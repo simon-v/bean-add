@@ -9,6 +9,7 @@ readline.parse_and_bind("tab: complete")
 
 accounts = []
 descriptions = []
+commands = ['balance']
 
 def confirm(prompt=''):
 	global vocab
@@ -41,6 +42,8 @@ else:
 	print('File contains no account definitions.')
 	if not confirm('Proceed with editing? [yn] '):
 		sys.exit()
+
+descriptions += commands
 
 def complete(text, state):
 	results = [x for x in vocab if x.startswith(text)] + [None]
