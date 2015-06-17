@@ -42,8 +42,6 @@ else:
 	if not confirm('Proceed with editing? [yn] '):
 		sys.exit()
 
-vocab = accounts
-
 def complete(text, state):
 	results = [x for x in vocab if x.startswith(text)] + [None]
 	return results[state]
@@ -52,17 +50,19 @@ readline.set_completer(complete)
 readline.set_completer_delims('')
 
 while True:
+	opmode = ''
 	output = ''
 	definitions = ''
 	date = datetime.date.today()
-	date = '%s-%s-%s' % (date.year, date.month, date.day)
-	_reading = input('Enter date [%s]: ' % date)
+	date = '%04d-%02d-%02d' % (date.year, date.month, date.day)
+	_reading = input('Enter transaction date [%s]: ' % date)
 	date = _reading if _reading != '' else date
-	#if _reading != '':
-	#	date = _reading
 	vocab = descriptions
-	description = input('Enter description: ')
-	output += '%s * "%s"\n' % (date, description)
+	description = input('Enter transaction description (or `balance`): ')
+	if description == "balance":
+		print('\nBalance assertion mode.')
+	else:
+		output += '%s * "%s"\n' % (date, description)
 	while True:
 		vocab = accounts
 		account = input('Enter account name (tab to complete, enter to fininsh): ')
@@ -74,7 +74,11 @@ while True:
 			definitions += '%s open %s\n' % (date, account)
 		vocab = []
 		amount = input('Enter amount (including currency symbol): ')
-		output += '	%s %s\n' % (account, amount)
+		if description == 'balance':
+			output += '%s %s %s %s' % (date, description, account, amount)
+			break
+		else:
+			output += '	%s %s\n' % (account, amount)
 	output += '\n'
 	with open(sys.argv[1], 'a') as source_file:
 		source_file.write(definitions + '\n')
