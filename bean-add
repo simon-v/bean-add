@@ -1,0 +1,75 @@
+#!/usr/bin/python
+
+import readline
+import sys
+import datetime
+
+
+readline.parse_and_bind("tab: complete")
+
+accounts = []
+
+def confirm(prompt=''):
+	while True:
+		ch = input(prompt).lower()
+		if ch == 'y':
+			return True
+		elif ch == 'n':
+			return False
+
+
+with open(sys.argv[1], 'r') as source_file:
+	for line in source_file:
+		line = line.strip()
+		if line == '':
+			continue
+		data = line.split(' ')
+		try:
+			if data[1] == 'open':
+				accounts.append(data[2])
+		except IndexError:
+			continue
+
+if len(accounts) > 0:
+	print('%s account(s) loaded\n' % len(accounts))
+else:
+	print('File contains no account definitions.')
+	if not confirm('Proceed with editing? [yn] '):
+		sys.exit()
+
+vocab = accounts
+
+def complete(text, state):
+	results = [x for x in vocab if x.startswith(text)] + [None]
+	return results[state]
+
+readline.set_completer(complete)
+readline.set_completer_delims('')
+
+while True:
+	output = ''
+	definitions = ''
+	date = datetime.date.today()
+	date = '%s-%s-%s' % (date.year, date.month, date.day)
+	_reading = input('Enter date [%s]: ' % date)
+	date = _reading if _reading != '' else date
+	#if _reading != '':
+	#	date = _reading
+	description = input('Enter description: ')
+	output += '%s * "%s"\n' % (date, description)
+	while True:
+		account = input('Enter account name (tab to complete, enter to fininsh): ')
+		if account == '':
+			break
+		if account not in accounts:
+			if not confirm('The account `%s` is not in the journal file. Add it? [yn] ' % account):
+				continue
+			definitions += '%s open %s\n' % (date, account)
+		amount = input('Enter amount (including currency symbol): ')
+		output += '	%s %s\n' % (account, amount)
+	output += '\n'
+	print('\nTransaction recorded.')
+	print('\nResults: \n%s\n%s\n' % (definitions, output))
+	if not confirm('Input anoter transaction? [yn] '):
+		sys.exit()
+
