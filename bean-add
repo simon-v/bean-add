@@ -8,8 +8,11 @@ import datetime
 readline.parse_and_bind("tab: complete")
 
 accounts = []
+descriptions = []
 
 def confirm(prompt=''):
+	global vocab
+	vocab = []
 	while True:
 		ch = input(prompt).lower()
 		if ch == 'y':
@@ -27,6 +30,8 @@ with open(sys.argv[1], 'r') as source_file:
 		try:
 			if data[1] == 'open':
 				accounts.append(data[2])
+			elif data[1] == '*':
+				descriptions.append(line[13:].strip('" '))
 		except IndexError:
 			continue
 
@@ -55,9 +60,11 @@ while True:
 	date = _reading if _reading != '' else date
 	#if _reading != '':
 	#	date = _reading
+	vocab = descriptions
 	description = input('Enter description: ')
 	output += '%s * "%s"\n' % (date, description)
 	while True:
+		vocab = accounts
 		account = input('Enter account name (tab to complete, enter to fininsh): ')
 		if account == '':
 			break
@@ -65,11 +72,16 @@ while True:
 			if not confirm('The account `%s` is not in the journal file. Add it? [yn] ' % account):
 				continue
 			definitions += '%s open %s\n' % (date, account)
+		vocab = []
 		amount = input('Enter amount (including currency symbol): ')
 		output += '	%s %s\n' % (account, amount)
 	output += '\n'
+	with open(sys.argv[1], 'a') as source_file:
+		source_file.write(definitions + '\n')
+		source_file.write(output)
 	print('\nTransaction recorded.')
-	print('\nResults: \n%s\n%s\n' % (definitions, output))
+	print('\nResults:\n%s\n%s' % (definitions, output))
 	if not confirm('Input anoter transaction? [yn] '):
+		print('\nRemember that there is no input validation whatsoever! Please run `bean-check` and correct any errors manually.')
 		sys.exit()
 
