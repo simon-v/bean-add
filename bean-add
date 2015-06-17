@@ -36,7 +36,7 @@ with open(sys.argv[1], 'r') as source_file:
 			continue
 
 if len(accounts) > 0:
-	print('%s account(s) loaded\n' % len(accounts))
+	print('%s account(s), %s unique description(s) loaded\n' % (len(accounts), len(descriptions)))
 else:
 	print('File contains no account definitions.')
 	if not confirm('Proceed with editing? [yn] '):
