@@ -1,4 +1,8 @@
 #!/usr/bin/python
+# bean-add - A beancount transaction entry assistant
+# Author: Simon Volpert <simon@simonvolpert.com>
+# License: "Do what you feel is right, but don't be a jerk" public license.
+# See the README.md file for additional information
 
 import readline
 import sys
@@ -77,11 +81,10 @@ while True:
 		vocab = []
 		amount = input('Enter amount (including currency symbol): ')
 		if description == 'balance':
-			output += '%s %s %s %s' % (date, description, account, amount)
+			output += '%s %s %s %s\n' % (date, description, account, amount)
 			break
 		else:
 			output += '	%s %s\n' % (account, amount)
-	output += '\n'
 	with open(sys.argv[1], 'a') as source_file:
 		source_file.write(definitions + '\n')
 		source_file.write(output)
