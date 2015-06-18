@@ -52,12 +52,11 @@ def complete(text, state):
 readline.set_completer(complete)
 readline.set_completer_delims('')
 
+date = datetime.date.today()
+date = '%04d-%02d-%02d' % (date.year, date.month, date.day)
 while True:
-	opmode = ''
 	output = ''
 	definitions = ''
-	date = datetime.date.today()
-	date = '%04d-%02d-%02d' % (date.year, date.month, date.day)
 	_reading = input('Enter transaction date [%s]: ' % date)
 	date = _reading if _reading != '' else date
 	vocab = descriptions
