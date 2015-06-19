@@ -14,6 +14,7 @@ readline.parse_and_bind("tab: complete")
 accounts = []
 descriptions = []
 commands = ['balance']
+currencies = []
 
 def confirm(prompt=''):
 	global vocab
@@ -37,11 +38,15 @@ with open(sys.argv[1], 'r') as source_file:
 				accounts.append(data[2])
 			elif data[1] == '*':
 				descriptions.append(line[13:].strip('" '))
+			elif data[0] in accounts and len(data) > 1:
+				_cur = data.pop()
+				if _cur not in currencies:
+					currencies.append(_cur)
 		except IndexError:
 			continue
 
 if len(accounts) > 0:
-	print('%s account(s), %s unique description(s) loaded\n' % (len(accounts), len(descriptions)))
+	print('%s account(s), %s unique description(s), %s currencies loaded\n' % (len(accounts), len(descriptions), len(currencies)))
 else:
 	print('File contains no account definitions.')
 	if not confirm('Proceed with editing? [yn] '):
@@ -54,7 +59,6 @@ def complete(text, state):
 	return results[state]
 
 readline.set_completer(complete)
-readline.set_completer_delims('')
 
 date = datetime.date.today()
 date = '%04d-%02d-%02d' % (date.year, date.month, date.day)
@@ -64,6 +68,7 @@ while True:
 	_reading = input('Enter transaction date [%s]: ' % date)
 	date = _reading if _reading != '' else date
 	vocab = descriptions
+	readline.set_completer_delims('')
 	description = input('Enter transaction description (or `balance`): ')
 	if description == "balance":
 		print('\nBalance assertion mode.')
@@ -78,7 +83,8 @@ while True:
 			if not confirm('The account `%s` is not in the journal file. Add it? [yn] ' % account):
 				continue
 			definitions += '%s open %s\n' % (date, account)
-		vocab = []
+		vocab = currencies
+		readline.set_completer_delims(' ')
 		amount = input('Enter amount (including currency symbol): ')
 		if description == 'balance':
 			output += '%s %s %s %s\n' % (date, description, account, amount)
