@@ -49,7 +49,7 @@ if len(accounts) > 0:
 	print('%s account(s), %s unique description(s), %s currencies loaded\n' % (len(accounts), len(descriptions), len(currencies)))
 else:
 	print('File contains no account definitions.')
-	if not confirm('Proceed with editing? [yn] '):
+	if not confirm('Proceed with editing? (y/n) '):
 		sys.exit()
 
 descriptions += commands
@@ -80,7 +80,7 @@ while True:
 		if account == '':
 			break
 		if account not in accounts:
-			if not confirm('The account `%s` is not in the journal file. Add it? [yn] ' % account):
+			if not confirm('The account `%s` is not in the journal file. Add it? (y/n) ' % account):
 				continue
 			definitions += '%s open %s\n' % (date, account)
 		vocab = currencies
@@ -96,7 +96,7 @@ while True:
 		source_file.write(output)
 	print('\nTransaction recorded.')
 	print('\nResults:\n%s\n%s' % (definitions, output))
-	if not confirm('Input anoter transaction? [yn] '):
+	if not confirm('Input anoter transaction? (y/n) '):
 		print('\nRemember that there is no input validation whatsoever! Please run `bean-check` and correct any errors manually.')
 		sys.exit()
 
