@@ -8,6 +8,25 @@ import readline
 import sys
 import datetime
 
+usage = '''bean-add [-n] FILENAME
+A beancount transaction entry assistant.
+
+-n		Dry run (do not write out transactions)
+-h, --help	Display this help message'''
+
+dry_run = False
+
+if sys.argv[1] == '-n':
+	dry_run = True
+	print('Dry run mode.')
+	del(sys.argv[1])
+elif sys.argv[1] == '-h' or sys.argv[1] == '--help':
+	print(usage)
+	sys.exit()
+
+if len(sys.argv) < 2:
+	print(usage)
+	sys.exit(1)
 
 readline.parse_and_bind("tab: complete")
 
@@ -76,7 +95,7 @@ while True:
 	vocab = transactions.keys()
 	readline.set_completer_delims('')
 	description = input('Enter transaction description (or `balance`): ')
-	if description == "balance":
+	if description == 'balance':
 		print('\nBalance assertion mode.')
 	else:
 		output += '%s * "%s"\n' % (date, description)
@@ -97,10 +116,11 @@ while True:
 			break
 		else:
 			output += '	%s %s\n' % (account, amount)
-	with open(sys.argv[1], 'a') as source_file:
-		source_file.write(definitions + '\n')
-		source_file.write(output)
-	print('\nTransaction recorded.')
+	if not dry_run:
+		with open(sys.argv[1], 'a') as source_file:
+			source_file.write(definitions + '\n')
+			source_file.write(output)
+		print('\nTransaction recorded.')
 	print('\nResults:\n%s\n%s' % (definitions, output))
 	if not confirm('Input anoter transaction? (y/n) '):
 		print('\nRemember that there is no input validation whatsoever! Please run `bean-check` and correct any errors manually.')
