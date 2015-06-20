@@ -93,6 +93,7 @@ while True:
 	output = ''
 	definitions = ''
 	defaults = []
+	_transaction = []
 	_reading = input('Enter transaction date [%s]: ' % date)
 	date = _reading if _reading != '' else date
 	vocab = transactions.keys()
@@ -123,14 +124,16 @@ while True:
 				if not confirm('The account `%s` is not in the journal file. Add it? (y/n) ' % account):
 					continue
 				definitions += '%s open %s\n' % (date, account)
+		_transaction.append(account)
 		vocab = currencies
 		readline.set_completer_delims(' ')
-		amount = input('Enter amount for %s (including currency symbol): ' % account)
+		amount = input('Enter amount for `%s` (including currency symbol): ' % account)
 		if description == 'balance':
 			output += '%s %s %s %s\n' % (date, description, account, amount)
 			break
 		else:
 			output += '	%s %s\n' % (account, amount)
+	transactions[description] = _transaction
 	if not dry_run:
 		with open(sys.argv[1], 'a') as source_file:
 			source_file.write(definitions + '\n')
