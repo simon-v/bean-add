@@ -16,6 +16,10 @@ A beancount transaction entry assistant.
 
 dry_run = False
 
+if len(sys.argv) < 2:
+	print(usage)
+	sys.exit(1)
+
 if sys.argv[1] == '-n':
 	dry_run = True
 	del(sys.argv[1])
