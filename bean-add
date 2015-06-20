@@ -72,9 +72,10 @@ with open(sys.argv[1], 'r') as source_file:
 			continue
 
 if len(accounts) > 0:
-	print('%s account(s), %s unique description(s), %s currency sign(s) loaded\n' % (len(accounts), len(transactions), len(currencies)))
+	print('%s account(s), %s unique description(s), %s currency sign(s) loaded' % (len(accounts), len(transactions), len(currencies)))
 	if dry_run:
 		print('Working in dry run mode; transactions will not be written.')
+	print()
 else:
 	print('File contains no account definitions.')
 	if not confirm('Proceed with editing? (y/n) '):
