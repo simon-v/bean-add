@@ -134,12 +134,15 @@ while True:
 		else:
 			output += '	%s %s\n' % (account, amount)
 	transactions[description] = _transaction
-	if not dry_run:
-		with open(sys.argv[1], 'a') as source_file:
-			source_file.write(definitions + '\n')
-			source_file.write(output)
-		print('\nTransaction recorded.')
-	print('\nResults:\n%s\n%s' % (definitions, output))
+	if _transaction == []:
+		print('Transaction entry aborted.\n')
+	else:
+		if not dry_run:
+			with open(sys.argv[1], 'a') as source_file:
+				source_file.write(definitions + '\n')
+				source_file.write(output)
+			print('\nTransaction recorded.')
+		print('\nResults:\n%s\n%s' % (definitions, output))
 	if not confirm('Input anoter transaction? (y/n) '):
 		print('\nRemember that there is no input validation whatsoever! Please run `bean-check` and correct any errors manually.')
 		sys.exit()
