@@ -12,7 +12,7 @@ import datetime
 readline.parse_and_bind("tab: complete")
 
 accounts = []
-descriptions = []
+transactions = {}
 commands = ['balance']
 currencies = []
 
@@ -28,31 +28,37 @@ def confirm(prompt=''):
 
 
 with open(sys.argv[1], 'r') as source_file:
+	#description = ''
 	for line in source_file:
 		line = line.strip()
 		if line == '':
 			continue
+		elif line.startswith(';'):
+			continue
 		data = line.split(' ')
 		try:
-			if data[1] == 'open':
+			if data[0] in accounts:
+				transactions[description].append(data[0])
+				if len(data) == 4: # Has a currency sign
+					_cur = data.pop()
+					if _cur not in currencies:
+						currencies.append(_cur)
+			elif data[1] == 'open':
 				accounts.append(data[2])
+			elif data[1] in commands:
+				transactions[data[1]] = [data[2]]
 			elif data[1] == '*':
-				descriptions.append(line[13:].strip('" '))
-			elif data[0] in accounts and len(data) > 1:
-				_cur = data.pop()
-				if _cur not in currencies:
-					currencies.append(_cur)
+				description = line[13:].strip('" ')
+				transactions[description] = []
 		except IndexError:
 			continue
 
 if len(accounts) > 0:
-	print('%s account(s), %s unique description(s), %s currencies loaded\n' % (len(accounts), len(descriptions), len(currencies)))
+	print('%s account(s), %s unique description(s), %s currency sign(s) loaded\n' % (len(accounts), len(transactions), len(currencies)))
 else:
 	print('File contains no account definitions.')
 	if not confirm('Proceed with editing? (y/n) '):
 		sys.exit()
-
-descriptions += commands
 
 def complete(text, state):
 	results = [x for x in vocab if x.startswith(text)] + [None]
@@ -67,7 +73,7 @@ while True:
 	definitions = ''
 	_reading = input('Enter transaction date [%s]: ' % date)
 	date = _reading if _reading != '' else date
-	vocab = descriptions
+	vocab = transactions.keys()
 	readline.set_completer_delims('')
 	description = input('Enter transaction description (or `balance`): ')
 	if description == "balance":
