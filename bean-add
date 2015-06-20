@@ -92,6 +92,7 @@ date = '%04d-%02d-%02d' % (date.year, date.month, date.day)
 while True:
 	output = ''
 	definitions = ''
+	defaults = []
 	_reading = input('Enter transaction date [%s]: ' % date)
 	date = _reading if _reading != '' else date
 	vocab = transactions.keys()
@@ -101,18 +102,30 @@ while True:
 		print('\nBalance assertion mode.')
 	else:
 		output += '%s * "%s"\n' % (date, description)
+	if description in transactions:
+		print('Previously used accounts for this transaction:')
+		defaults = transactions[description]
+		for _account in defaults:
+			print('\t%s' % _account)
+		print()
+		if not confirm('Use these accounts? (y/n) '):
+			defaults = []
 	while True:
-		vocab = accounts
-		account = input('Enter account name (tab to complete, enter to fininsh): ')
-		if account == '':
-			break
-		if account not in accounts:
-			if not confirm('The account `%s` is not in the journal file. Add it? (y/n) ' % account):
-				continue
-			definitions += '%s open %s\n' % (date, account)
+		if len(defaults) > 0:
+			account = defaults[0]
+			del(defaults[0])
+		else:
+			vocab = accounts
+			account = input('Enter account name (tab to complete, enter to fininsh): ')
+			if account == '':
+				break
+			if account not in accounts:
+				if not confirm('The account `%s` is not in the journal file. Add it? (y/n) ' % account):
+					continue
+				definitions += '%s open %s\n' % (date, account)
 		vocab = currencies
 		readline.set_completer_delims(' ')
-		amount = input('Enter amount (including currency symbol): ')
+		amount = input('Enter amount for %s (including currency symbol): ' % account)
 		if description == 'balance':
 			output += '%s %s %s %s\n' % (date, description, account, amount)
 			break
