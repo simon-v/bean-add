@@ -50,10 +50,11 @@ def confirm(prompt=''):
 
 
 with open(sys.argv[1], 'r') as source_file:
+	description = ''
 	for line in source_file:
 		line = line.strip()
 		if line == '':
-			if transactions[description] == []:
+			if description in transactions and transactions[description] == []:
 				del(transactions[description])
 			description = ''
 			continue
@@ -71,7 +72,7 @@ with open(sys.argv[1], 'r') as source_file:
 				accounts.append(data[2])
 			elif data[1] in commands:
 				transactions[data[1]] = [data[2]]
-			elif data[1] == '*':
+			else:
 				description = line[13:].strip('" ')
 				transactions[description] = []
 		except IndexError:
@@ -108,7 +109,7 @@ while True:
 	if description == 'balance':
 		print('\nBalance assertion mode.')
 	else:
-		output += '%s * "%s"\n' % (date, description)
+		output += '%s  "%s"\n' % (date, description)
 	if description in transactions:
 		print('Previously used accounts for this transaction:')
 		defaults = transactions[description]
