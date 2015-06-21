@@ -50,10 +50,12 @@ def confirm(prompt=''):
 
 
 with open(sys.argv[1], 'r') as source_file:
-	#description = ''
 	for line in source_file:
 		line = line.strip()
 		if line == '':
+			if transactions[description] == []:
+				del(transactions[description])
+			description = ''
 			continue
 		elif line.startswith(';'):
 			continue
