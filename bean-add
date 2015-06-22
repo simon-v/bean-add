@@ -109,7 +109,7 @@ while True:
 	if description == 'balance':
 		print('\nBalance assertion mode.')
 	else:
-		output += '%s  "%s"\n' % (date, description)
+		output += '%s * "%s"\n' % (date, description)
 	if description in transactions:
 		print('Previously used accounts for this transaction:')
 		defaults = transactions[description]
