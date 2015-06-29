@@ -64,7 +64,7 @@ with open(sys.argv[1], 'r') as source_file:
 		try:
 			if data[0] in accounts:
 				transactions[description].append(data[0])
-				if len(data) == 4: # Has a currency sign
+				if len(data) == 3: # Has a currency sign
 					_cur = data.pop()
 					if _cur not in currencies:
 						currencies.append(_cur)
@@ -96,11 +96,13 @@ readline.set_completer(complete)
 
 date = datetime.date.today()
 date = '%04d-%02d-%02d' % (date.year, date.month, date.day)
+cur = currencies[0]
 while True:
 	output = ''
 	definitions = ''
 	defaults = []
 	_transaction = []
+	total = 0
 	_reading = input('Enter transaction date [%s]: ' % date)
 	date = _reading if _reading != '' else date
 	vocab = transactions.keys()
@@ -134,7 +136,17 @@ while True:
 		_transaction.append(account)
 		vocab = currencies
 		readline.set_completer_delims(' ')
-		amount = input('Enter amount for `%s` (including currency symbol): ' % account)
+		amount = input('Enter amount for `%s` (including currency symbol) [%s %s]: ' % (account, total, cur))
+		if amount == "":
+			amount = '%s %s' % (total, cur)
+		amt = float(amount.split()[0])
+		if amt == int(amt):
+			amt = int(amt)
+		if total == 0:
+			total = amt * -1
+		else:
+			total -= amt
+		cur = amount.split().pop()
 		if description == 'balance':
 			output += '%s %s %s %s\n' % (date, description, account, amount)
 			break
