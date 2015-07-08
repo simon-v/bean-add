@@ -16,6 +16,7 @@ A beancount transaction entry assistant.
 
 dry_run = False
 
+# Process command line arguments
 if len(sys.argv) < 2:
 	print(usage)
 	sys.exit(1)
@@ -31,8 +32,10 @@ if len(sys.argv) < 2:
 	print(usage)
 	sys.exit(1)
 
+# Set up the completer
 readline.parse_and_bind("tab: complete")
 
+# Init transaction data
 accounts = []
 transactions = {}
 commands = ['balance']
@@ -48,36 +51,42 @@ def confirm(prompt=''):
 		elif ch == 'n':
 			return False
 
-
+# Read and process journal file
 with open(sys.argv[1], 'r') as source_file:
-	description = ''
-	for line in source_file:
-		line = line.strip()
-		if line == '':
-			if description in transactions and transactions[description] == []:
-				del(transactions[description])
-			description = ''
-			continue
-		elif line.startswith(';'):
-			continue
-		data = line.split(' ')
-		try:
-			if data[0] in accounts:
-				transactions[description].append(data[0])
-				if len(data) == 3: # Has a currency sign
-					_cur = data.pop()
-					if _cur not in currencies:
-						currencies.append(_cur)
-			elif data[1] == 'open':
-				accounts.append(data[2])
-			elif data[1] in commands:
-				transactions[data[1]] = [data[2]]
-			else:
-				description = line[13:].strip('" ')
-				transactions[description] = []
-		except IndexError:
-			continue
+	tx_file = source_file.read()
 
+description = ''
+for line in tx_file.split('\n'):
+	line = line.strip()
+	if line == '':
+		if description in transactions and transactions[description] == []:
+			del(transactions[description])
+		description = ''
+		continue
+	elif line.startswith(';'):
+		continue
+	data = line.split(' ')
+	try:
+		if data[0] in accounts:
+			transactions[description].append(data[0])
+			if len(data) == 3: # Has a currency sign
+				_cur = data.pop()
+				if _cur not in currencies:
+					currencies.append(_cur)
+		elif data[1] == 'open':
+			accounts.append(data[2])
+		elif data[1] in commands:
+			transactions[data[1]] = [data[2]]
+		else:
+			description = line[13:].strip('" ')
+			transactions[description] = []
+	except IndexError:
+		continue
+
+tx_file = tx_file.split('\n\n')
+
+# Print some statistics
+print('Read %s block(s) of data' % len(tx_file))
 if len(accounts) > 0:
 	print('%s account(s), %s unique description(s), %s currency sign(s) loaded' % (len(accounts), len(transactions), len(currencies)))
 	if dry_run:
@@ -94,9 +103,12 @@ def complete(text, state):
 
 readline.set_completer(complete)
 
+# Init date and currencies
 date = datetime.date.today()
 date = '%04d-%02d-%02d' % (date.year, date.month, date.day)
 cur = currencies[0]
+
+# Main data entry loop
 while True:
 	output = ''
 	definitions = ''
