@@ -32,17 +32,16 @@ if len(sys.argv) < 2:
 	print(usage)
 	sys.exit(1)
 
-# Set up the completer
-readline.parse_and_bind("tab: complete")
-
 # Init transaction data
 accounts = []
 transactions = {}
 commands = ['balance']
 currencies = []
 
+# Ask for confirmation: str(prompt) -> bool(result)
 def confirm(prompt=''):
 	global vocab
+	# Unset completion
 	vocab = []
 	while True:
 		ch = input(prompt).lower()
@@ -59,36 +58,53 @@ description = ''
 for line in tx_file.split('\n'):
 	line = line.strip()
 	if line == '':
+		# Transaction came out empty
 		if description in transactions and transactions[description] == []:
 			del(transactions[description])
 		description = ''
 		continue
+	# Skip comments
 	elif line.startswith(';'):
 		continue
 	data = line.split(' ')
 	try:
+		# Attach transaction legs to previous description
 		if data[0] in accounts:
 			transactions[description].append(data[0])
-			if len(data) == 3: # Has a currency sign
+			# Transaction leg has a currency sign
+			if len(data) == 3:
 				_cur = data.pop()
 				if _cur not in currencies:
 					currencies.append(_cur)
+		# Add account name to account list
 		elif data[1] == 'open':
 			accounts.append(data[2])
+		# Cache command data
 		elif data[1] in commands:
 			transactions[data[1]] = [data[2]]
+		# Record a description
 		else:
 			description = line[13:].strip('" ')
 			transactions[description] = []
 	except IndexError:
 		continue
 
+# Prepare file for transaction insertion
 tx_file = tx_file.split('\n\n')
 for i in range(len(tx_file)):
 	tx_file[i] = tx_file[i].strip()
 	if tx_file[i] == '':
 		del tx_file[i]
 		i -= 1
+
+# Set up the completer
+readline.parse_and_bind("tab: complete")
+
+def complete(text, state):
+	results = [x for x in vocab if x.startswith(text)] + [None]
+	return results[state]
+
+readline.set_completer(complete)
 
 # Print some statistics
 print('Read %s block(s) of data' % len(tx_file))
@@ -102,17 +118,11 @@ else:
 	if not confirm('Proceed with editing? (y/n) '):
 		sys.exit()
 
-def complete(text, state):
-	results = [x for x in vocab if x.startswith(text)] + [None]
-	return results[state]
-
-readline.set_completer(complete)
-
 # Init date and currencies
 date = datetime.date.today().isoformat()
 cur = currencies[0]
 
-# Insert a transaction in an appropriate place in the file
+# Insert a transaction in an appropriate place in the file: str(transaction) -> int(index)
 def insert_transaction(tx):
 	global tx_file
 	for tx_index in range(len(tx_file)):
@@ -130,14 +140,14 @@ def insert_transaction(tx):
 	print('Inserted transaction at position %s' % tx_index)
 	return tx_index
 
-# Date from string wrapper
+# Date from string wrapper: str(date) -> date(date)
 def strpdate(d):
 	return datetime.datetime.strptime(d, '%Y-%m-%d').date()
 
-# Read and validate a date
+# Read and validate a date: str(default) -> str(date)
 def get_date(default):
 	while True:
-		reading = input('Enter transaction date (%%Y-%%m-%%d, or +/-days ) [%s]: ' % default)
+		reading = input('Enter transaction date (%%Y-%%m-%%d, or +/-days) [%s]: ' % default)
 		# Accepting the default
 		if reading == '':
 			return default
