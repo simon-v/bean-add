@@ -109,28 +109,52 @@ def complete(text, state):
 readline.set_completer(complete)
 
 # Init date and currencies
-date = datetime.date.today()
-date = '%04d-%02d-%02d' % (date.year, date.month, date.day)
+date = datetime.date.today().isoformat()
 cur = currencies[0]
 
+# Insert a transaction in an appropriate place in the file
 def insert_transaction(tx):
 	global tx_file
-	print(tx)
 	for tx_index in range(len(tx_file)):
-		if tx_file[tx_index].startswith(';'): # Ignore comments
+		# Ignore comments
+		if tx_file[tx_index].startswith(';'):
 			continue
-		if tx_file[tx_index] == '':
-			continue
+		# Seek forward to first bigger date
 		if tx_file[tx_index][0:10] > tx[0:10]:
 			tx_file.insert(tx_index, tx)
 			break
+		# If not found, insert at the end of file
 		if ( tx_index + 1 ) == len(tx_file):
 			tx_index += 1
 			tx_file.append(tx)
 	print('Inserted transaction at position %s' % tx_index)
-	print(len(tx_file)) # debug
 	return tx_index
 
+# Date from string wrapper
+def strpdate(d):
+	return datetime.datetime.strptime(d, '%Y-%m-%d').date()
+
+# Read and validate a date
+def get_date(default):
+	while True:
+		reading = input('Enter transaction date (%%Y-%%m-%%d, or +/-days ) [%s]: ' % default)
+		# Accepting the default
+		if reading == '':
+			return default
+		date = strpdate(default)
+		# Relative date
+		if reading.startswith('+') or reading.startswith('-'):
+			try:
+				date += datetime.timedelta(int(reading))
+			except ValueError:
+				continue
+		# Absolute date
+		else:
+			try:
+				date = strpdate(reading)
+			except ValueError:
+				continue
+		return date.isoformat()
 
 # Main data entry loop
 while True:
@@ -139,8 +163,7 @@ while True:
 	defaults = []
 	_transaction = []
 	total = 0
-	_reading = input('Enter transaction date [%s]: ' % date)
-	date = _reading if _reading != '' else date
+	date = get_date(date)
 	vocab = transactions.keys()
 	readline.set_completer_delims('')
 	description = input('Enter transaction description (or `balance`): ')
