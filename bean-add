@@ -84,6 +84,11 @@ for line in tx_file.split('\n'):
 		continue
 
 tx_file = tx_file.split('\n\n')
+for i in range(len(tx_file)):
+	tx_file[i] = tx_file[i].strip()
+	if tx_file[i] == '':
+		del tx_file[i]
+		i -= 1
 
 # Print some statistics
 print('Read %s block(s) of data' % len(tx_file))
@@ -107,6 +112,25 @@ readline.set_completer(complete)
 date = datetime.date.today()
 date = '%04d-%02d-%02d' % (date.year, date.month, date.day)
 cur = currencies[0]
+
+def insert_transaction(tx):
+	global tx_file
+	print(tx)
+	for tx_index in range(len(tx_file)):
+		if tx_file[tx_index].startswith(';'): # Ignore comments
+			continue
+		if tx_file[tx_index] == '':
+			continue
+		if tx_file[tx_index][0:10] > tx[0:10]:
+			tx_file.insert(tx_index, tx)
+			break
+		if ( tx_index + 1 ) == len(tx_file):
+			tx_index += 1
+			tx_file.append(tx)
+	print('Inserted transaction at position %s' % tx_index)
+	print(len(tx_file)) # debug
+	return tx_index
+
 
 # Main data entry loop
 while True:
@@ -168,10 +192,15 @@ while True:
 	if _transaction == []:
 		print('Transaction entry aborted.\n')
 	else:
+		tx_index = insert_transaction('\n'.join([definitions, output]).strip())
 		if not dry_run:
-			with open(sys.argv[1], 'a') as source_file:
-				source_file.write(definitions + '\n')
-				source_file.write(output)
+			#print('\n\n'.join(tx_file))
+			#continue # debug
+			with open(sys.argv[1], 'w') as source_file:
+				#source_file.write(definitions + '\n')
+				#source_file.write(output)
+				source_file.write('\n\n'.join(tx_file))
+				print('%s record(s) written' % len(tx_file))
 			print('\nTransaction recorded.')
 		print('\nResults:\n%s\n%s' % (definitions, output))
 	if not confirm('Input anoter transaction? (y/n) '):
