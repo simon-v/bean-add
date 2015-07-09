@@ -137,7 +137,7 @@ def insert_transaction(tx):
 		if ( tx_index + 1 ) == len(tx_file):
 			tx_index += 1
 			tx_file.append(tx)
-	print('Inserted transaction at position %s' % tx_index)
+	print('\nTransaction added at block %s' % tx_index)
 	return tx_index
 
 # Date from string wrapper: str(date) -> date(date)
@@ -226,17 +226,24 @@ while True:
 		print('Transaction entry aborted.\n')
 	else:
 		tx_index = insert_transaction('\n'.join([definitions, output]).strip())
-		if not dry_run:
-			#print('\n\n'.join(tx_file))
-			#continue # debug
-			with open(sys.argv[1], 'w') as source_file:
-				#source_file.write(definitions + '\n')
-				#source_file.write(output)
-				source_file.write('\n\n'.join(tx_file))
-				print('%s record(s) written' % len(tx_file))
-			print('\nTransaction recorded.')
 		print('\nResults:\n%s\n%s' % (definitions, output))
-	if not confirm('Input anoter transaction? (y/n) '):
-		print('\nRemember that there is no input validation whatsoever! Please run `bean-check` and correct any errors manually.')
-		sys.exit()
-
+		while True:
+			#cmd = get_command(['n', 'w', 'q']) # todo
+			cmd = input('Enter command (nwq or h) ')
+			if cmd == 'w':
+				if not dry_run:
+					with open(sys.argv[1], 'w') as source_file:
+						source_file.write('\n\n'.join(tx_file))
+						print('%s record(s) written' % len(tx_file))
+				else:
+					print('Dry run mode, writing disabled.')
+			elif cmd == "q":
+				print('\nRemember that there is no input validation whatsoever! Please run `bean-check` and correct any errors manually.')
+				sys.exit()
+			elif cmd == "n":
+				break
+			elif cmd == "h":
+				print('n	new transaction')
+				print('w	write transaction file')
+				print('q	quit')
+				print('h	show this help')
