@@ -33,11 +33,20 @@ if len(sys.argv) < 2:
 	sys.exit(1)
 
 # Init transaction data
-accounts = []
-transactions = {}
-commands = ['balance']
-currencies = []
-tx_flag = False
+class data(object):
+	array = []
+	flag = False
+	txid = 0
+	accounts = []
+	defaults = {}
+	commands = ['balance']
+	currencies = []
+
+#data.accounts = []
+#data.defaults = {}
+#data.commands = ['balance']
+#data.currencies = []
+#data.flag = False
 
 # Ask for confirmation: str(prompt) -> bool(result)
 def confirm(prompt=''):
@@ -60,42 +69,42 @@ for line in tx_file.split('\n'):
 	line = line.strip()
 	if line == '':
 		# Transaction came out empty
-		if description in transactions and transactions[description] == []:
-			del(transactions[description])
+		if description in data.defaults and data.defaults[description] == []:
+			del(data.defaults[description])
 		description = ''
 		continue
 	# Skip comments
 	elif line.startswith(';'):
 		continue
-	data = line.split(' ')
+	_data = line.split(' ')
 	try:
 		# Attach transaction legs to previous description
-		if data[0] in accounts:
-			transactions[description].append(data[0])
+		if _data[0] in data.accounts:
+			data.defaults[description].append(_data[0])
 			# Transaction leg has a currency sign
-			if len(data) == 3:
-				_cur = data.pop()
-				if _cur not in currencies:
-					currencies.append(_cur)
+			if len(_data) == 3:
+				_cur = _data.pop()
+				if _cur not in data.currencies:
+					data.currencies.append(_cur)
 		# Add account name to account list
-		elif data[1] == 'open':
-			accounts.append(data[2])
+		elif _data[1] == 'open':
+			data.accounts.append(_data[2])
 		# Cache command data
-		elif data[1] in commands:
-			transactions[data[1]] = [data[2]]
+		elif _data[1] in data.commands:
+			data.defaults[_data[1]] = [_data[2]]
 		# Record a description
 		else:
 			description = line[13:].strip('" ')
-			transactions[description] = []
+			data.defaults[description] = []
 	except IndexError:
 		continue
 
 # Prepare file for transaction insertion
-tx_file = tx_file.split('\n\n')
-for i in range(len(tx_file)):
-	tx_file[i] = tx_file[i].strip()
-	if tx_file[i] == '':
-		del tx_file[i]
+data.array = tx_file.split('\n\n')
+for i in range(len(data.array)):
+	data.array[i] = data.array[i].strip()
+	if data.array[i] == '':
+		del data.array[i]
 		i -= 1
 
 # Set up the completer
@@ -108,9 +117,9 @@ def complete(text, state):
 readline.set_completer(complete)
 
 # Print some statistics
-print('Read %s block(s) of data' % len(tx_file))
-if len(accounts) > 0:
-	print('%s account(s), %s unique description(s), %s currency sign(s) loaded' % (len(accounts), len(transactions), len(currencies)))
+print('Read %s block(s) of data' % len(data.array))
+if len(data.accounts) > 0:
+	print('%s account(s), %s unique description(s), %s currency sign(s) loaded' % (len(data.accounts), len(data.defaults), len(data.currencies)))
 	if dry_run:
 		print('Working in dry run mode; transactions will not be written.')
 	print()
@@ -121,23 +130,23 @@ else:
 
 # Init date and currencies
 date = datetime.date.today().isoformat()
-cur = currencies[0]
+cur = data.currencies[0]
 
 # Insert a transaction in an appropriate place in the file: str(transaction) -> int(index)
 def insert_transaction(tx):
-	global tx_file
-	for tx_index in range(len(tx_file)):
+	for tx_index in range(len(data.array)):
 		# Ignore comments
-		if tx_file[tx_index].startswith(';'):
+		if data.array[tx_index].startswith(';'):
 			continue
 		# Seek forward to first bigger date
-		if tx_file[tx_index][0:10] > tx[0:10]:
-			tx_file.insert(tx_index, tx)
+		if data.array[tx_index][0:10] > tx[0:10]:
+			data.array.insert(tx_index, tx)
+			print('\nTransaction added at block %s' % tx_index)
 			return tx_index
 	# If not found, insert at the end of file
-	if ( tx_index + 1 ) == len(tx_file):
+	if ( tx_index + 1 ) == len(data.array):
 		tx_index += 1
-		tx_file.append(tx)
+		data.array.append(tx)
 	print('\nTransaction added at block %s' % tx_index)
 	return tx_index
 
@@ -169,13 +178,12 @@ def get_date(default):
 
 # Toggle transaction flag
 def toggle_flag(tx_index):
-	global tx_file, tx_flag
-	if tx_flag:
-		tx_flag = False
-		tx_file[tx_index] = tx_file[tx_index].replace(' ! ', ' * ')
+	if data.flag:
+		data.flag = False
+		data.array[tx_index] = data.array[tx_index].replace(' ! ', ' * ')
 	else:
-		tx_flag = True
-		tx_file[tx_index] = tx_file[tx_index].replace(' * ', ' ! ')
+		data.flag = True
+		data.array[tx_index] = data.array[tx_index].replace(' * ', ' ! ')
 
 
 # Main data entry loop
@@ -186,16 +194,16 @@ while True:
 	_transaction = []
 	total = 0
 	date = get_date(date)
-	vocab = transactions.keys()
+	vocab = data.defaults.keys()
 	readline.set_completer_delims('')
 	description = input('Enter transaction description (or `balance`): ')
 	if description == 'balance':
 		print('\nBalance assertion mode.')
 	else:
-		output += '%s %s "%s"\n' % (date, '!' if tx_flag else '*' , description)
-	if description in transactions:
+		output += '%s %s "%s"\n' % (date, '!' if data.flag else '*' , description)
+	if description in data.defaults:
 		print('Previously used accounts for this transaction:')
-		defaults = transactions[description]
+		defaults = data.defaults[description]
 		for _account in defaults:
 			print('\t%s' % _account)
 		print()
@@ -206,18 +214,18 @@ while True:
 			account = defaults[0]
 			del(defaults[0])
 		else:
-			vocab = accounts
+			vocab = data.accounts
 			account = input('Enter account name (tab to complete, enter to fininsh): ')
 			if account == '':
 				break
 			# Add new account option
-			if account not in accounts:
+			if account not in data.accounts:
 				if not confirm('The account `%s` is not in the journal file. Add it? (y/n) ' % account):
 					continue
 				definitions += '%s open %s\n' % (date, account)
-				accounts.append(account)
+				data.accounts.append(account)
 		_transaction.append(account)
-		vocab = currencies
+		vocab = data.currencies
 		readline.set_completer_delims(' ')
 		amount = input('Enter amount for `%s` (including currency symbol) [%s %s]: ' % (account, total, cur))
 		if amount == "":
@@ -225,7 +233,7 @@ while True:
 		# Normalize entries with unneeded decimal places
 		amt = float(amount.split()[0])
 		if amt == int(amt):
-			amt = int(amt)
+			amount = '%s %s' % (int(amt), cur)
 		if total == 0:
 			total = amt * -1
 		else:
@@ -247,20 +255,20 @@ while True:
 				amt = '.'.join(_b)
 				amount = ' '.join([amt, cur])
 			output += '	%s %s\n' % (account, amount)
-	transactions[description] = _transaction
+	data.defaults[description] = _transaction
 	if _transaction == []:
 		print('Transaction entry aborted.\n')
 	else:
-		tx_index = insert_transaction('\n'.join([definitions, output]).strip())
-		print('\nResults:\n%s\n' % tx_file[tx_index])
+		data.txid = insert_transaction('\n'.join([definitions, output]).strip())
+		print('\nResults:\n%s\n' % data.array[data.txid])
 		while True:
 			#cmd = get_command(['nwqh']) # todo
 			cmd = input('Enter command (fnwq or h) ')
 			if cmd == 'w':
 				if not dry_run:
 					with open(sys.argv[1], 'w') as source_file:
-						source_file.write('\n\n'.join(tx_file))
-						print('%s record(s) written' % len(tx_file))
+						source_file.write('\n\n'.join(data.array))
+						print('%s block(s) written' % len(data.array))
 				else:
 					print('Dry run mode, writing disabled.')
 			elif cmd == "q":
@@ -269,8 +277,8 @@ while True:
 			elif cmd == "n":
 				break
 			elif cmd == 'f':
-				toggle_flag(tx_index)
-				print('\nResults:\n%s\n' % tx_file[tx_index]) # todo
+				toggle_flag(data.txid)
+				print('\nResults:\n%s\n' % data.array[data.txid]) # todo
 			elif cmd == "h":
 				print('f	toggle transaction flag')
 				print('n	new transaction')
