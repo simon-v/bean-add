@@ -198,10 +198,12 @@ while True:
 			account = input('Enter account name (tab to complete, enter to fininsh): ')
 			if account == '':
 				break
+			# Add new account option
 			if account not in accounts:
 				if not confirm('The account `%s` is not in the journal file. Add it? (y/n) ' % account):
 					continue
 				definitions += '%s open %s\n' % (date, account)
+				accounts.append(account)
 		_transaction.append(account)
 		vocab = currencies
 		readline.set_completer_delims(' ')
