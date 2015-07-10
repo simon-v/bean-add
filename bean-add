@@ -37,6 +37,7 @@ accounts = []
 transactions = {}
 commands = ['balance']
 currencies = []
+tx_flag = False
 
 # Ask for confirmation: str(prompt) -> bool(result)
 def confirm(prompt=''):
@@ -166,6 +167,17 @@ def get_date(default):
 				continue
 		return date.isoformat()
 
+# Toggle transaction flag
+def toggle_flag(tx_index):
+	global tx_file, tx_flag
+	if tx_flag:
+		tx_flag = False
+		tx_file[tx_index] = tx_file[tx_index].replace(' ! ', ' * ')
+	else:
+		tx_flag = True
+		tx_file[tx_index] = tx_file[tx_index].replace(' * ', ' ! ')
+
+
 # Main data entry loop
 while True:
 	output = ''
@@ -180,7 +192,7 @@ while True:
 	if description == 'balance':
 		print('\nBalance assertion mode.')
 	else:
-		output += '%s * "%s"\n' % (date, description)
+		output += '%s %s "%s"\n' % (date, '!' if tx_flag else '*' , description)
 	if description in transactions:
 		print('Previously used accounts for this transaction:')
 		defaults = transactions[description]
@@ -243,7 +255,7 @@ while True:
 		print('\nResults:\n%s\n' % tx_file[tx_index])
 		while True:
 			#cmd = get_command(['nwqh']) # todo
-			cmd = input('Enter command (nwq or h) ')
+			cmd = input('Enter command (fnwq or h) ')
 			if cmd == 'w':
 				if not dry_run:
 					with open(sys.argv[1], 'w') as source_file:
@@ -256,7 +268,11 @@ while True:
 				sys.exit()
 			elif cmd == "n":
 				break
+			elif cmd == 'f':
+				toggle_flag(tx_index)
+				print('\nResults:\n%s\n' % tx_file[tx_index]) # todo
 			elif cmd == "h":
+				print('f	toggle transaction flag')
 				print('n	new transaction')
 				print('w	write journal file')
 				print('q	quit')
