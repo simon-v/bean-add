@@ -132,12 +132,13 @@ def insert_transaction(tx):
 		# Seek forward to first bigger date
 		if tx_file[tx_index][0:10] > tx[0:10]:
 			tx_file.insert(tx_index, tx)
-			break
-		# If not found, insert at the end of file
-		if ( tx_index + 1 ) == len(tx_file):
-			tx_index += 1
-			tx_file.append(tx)
+			return tx_index
+	# If not found, insert at the end of file
+	if ( tx_index + 1 ) == len(tx_file):
+		tx_index += 1
+		tx_file.append(tx)
 	print('\nTransaction added at block %s' % tx_index)
+	print(tx_file[tx_index]) # debug
 	return tx_index
 
 # Date from string wrapper: str(date) -> date(date)
