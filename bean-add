@@ -42,12 +42,6 @@ class data(object):
 	commands = ['balance']
 	currencies = []
 
-#data.accounts = []
-#data.defaults = {}
-#data.commands = ['balance']
-#data.currencies = []
-#data.flag = False
-
 # Ask for confirmation: str(prompt) -> bool(result)
 def confirm(prompt=''):
 	global vocab
@@ -176,6 +170,15 @@ def get_date(default):
 				continue
 		return date.isoformat()
 
+# Read and normalize transaction amount
+def get_amount(default):
+	try:
+		pass
+	except ValueError:
+		pass
+	finally:
+		return default
+
 # Toggle transaction flag
 def toggle_flag(tx_index):
 	if data.flag:
@@ -227,6 +230,7 @@ while True:
 		_transaction.append(account)
 		vocab = data.currencies
 		readline.set_completer_delims(' ')
+		amount = get_amount(total) # todo
 		amount = input('Enter amount for `%s` (including currency symbol) [%s %s]: ' % (account, total, cur))
 		if amount == "":
 			amount = '%s %s' % (total, cur)
@@ -238,6 +242,13 @@ while True:
 			total = amt * -1
 		else:
 			total -= amt
+		# Normalize amounts with one decimal place
+		amt = amount.split()[0]
+		_b = amt.split('.')
+		if len(_b) > 1 and len(_b[1]) == 1:
+			_b[1] += '0'
+			amt = '.'.join(_b)
+			amount = ' '.join([amt, cur])
 		# Detach currency sign for reuse
 		if len(amount.split()) == 1:
 			amount += ' ' + cur
@@ -247,13 +258,6 @@ while True:
 			output += '%s %s %s %s\n' % (date, description, account, amount)
 			break
 		else:
-			# Normalize amounts with one decimal place
-			amt = amount.split()[0]
-			_b = amt.split('.')
-			if len(_b) > 1 and len(_b[1]) == 1:
-				_b[1] += '0'
-				amt = '.'.join(_b)
-				amount = ' '.join([amt, cur])
 			output += '	%s %s\n' % (account, amount)
 	data.defaults[description] = _transaction
 	if _transaction == []:
