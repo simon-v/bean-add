@@ -261,7 +261,43 @@ def toggle_flag(tx_index):
 
 
 # Main data entry loop
+cmd = ''
 while True:
+	if data.txid < 0:
+		if cmd == 'f':
+			print('\nFlag toggled.\n')
+		else:
+			print('\nReady.\n')
+	else:
+		print()
+		print(data.array[data.txid])
+		print()
+	while True:
+		#cmd = get_command(['nwqh']) # todo
+		cmd = input('Enter command (fnwq or h) ')
+		if cmd == 'w':
+			if not dry_run:
+				with open(sys.argv[1], 'w') as source_file:
+					source_file.write('\n\n'.join(data.array))
+					print('%s block(s) written' % len(data.array))
+			else:
+				print('Dry run mode, writing disabled.')
+		elif cmd == "q":
+			print('\nRemember that there is no input validation whatsoever! Please run `bean-check` and correct any errors manually.')
+			sys.exit()
+		elif cmd == "n":
+			break # todo
+		elif cmd == 'f':
+			toggle_flag(data.txid)
+			break
+		elif cmd == "h":
+			print('f	toggle transaction flag')
+			print('n	new transaction')
+			print('w	write journal file')
+			print('q	quit')
+			print('h	show this help')
+	if cmd != 'n':
+		continue
 	output = ''
 	definitions = ''
 	defaults = []
@@ -304,28 +340,4 @@ while True:
 		print('Transaction entry aborted.\n')
 	else:
 		data.txid = insert_transaction('\n'.join([definitions, output]).strip())
-		print('\nResults:\n%s\n' % data.array[data.txid])
-		while True:
-			#cmd = get_command(['nwqh']) # todo
-			cmd = input('Enter command (fnwq or h) ')
-			if cmd == 'w':
-				if not dry_run:
-					with open(sys.argv[1], 'w') as source_file:
-						source_file.write('\n\n'.join(data.array))
-						print('%s block(s) written' % len(data.array))
-				else:
-					print('Dry run mode, writing disabled.')
-			elif cmd == "q":
-				print('\nRemember that there is no input validation whatsoever! Please run `bean-check` and correct any errors manually.')
-				sys.exit()
-			elif cmd == "n":
-				break
-			elif cmd == 'f':
-				toggle_flag(data.txid)
-				print('\nResults:\n%s\n' % data.array[data.txid]) # todo
-			elif cmd == "h":
-				print('f	toggle transaction flag')
-				print('n	new transaction')
-				print('w	write journal file')
-				print('q	quit')
-				print('h	show this help')
+		#print('\nResults:\n%s\n' % data.array[data.txid])
