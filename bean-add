@@ -34,17 +34,20 @@ if len(sys.argv) < 2:
 
 # Init transaction data
 class data(object):
+	# Journal/transactions
 	array = []
-	flag = False
-	txid = -1
-	accounts = []
 	defaults = {}
+	# Completion
+	accounts = []
 	commands = ['balance']
 	currencies = []
+	vocab = []
+	# Current transaction
 	description = ''
 	cur = ''
 	balance = 0
-	vocab = []
+	flag = False
+	txid = -1
 
 # Ask for confirmation: str(prompt) -> bool(result)
 def confirm(prompt=''):
