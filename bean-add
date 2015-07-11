@@ -190,6 +190,8 @@ def get_description():
 		if reading == '':
 			if data.description != '':
 				return data.description
+			else:
+				return None
 		else:
 			data.description = reading
 			return reading
@@ -264,7 +266,10 @@ while True:
 	data.balance = 0
 	date = get_date(date)
 	description = get_description()
-	if description == 'balance':
+	if description is None:
+		print('Transaction entry aborted.\n')
+		continue
+	elif description == 'balance':
 		print('\nBalance assertion mode.')
 	else:
 		output += '%s %s "%s"\n' % (date, '!' if data.flag else '*' , description)
