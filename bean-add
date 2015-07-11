@@ -41,6 +41,7 @@ class data(object):
 	defaults = {}
 	commands = ['balance']
 	currencies = []
+	description = ''
 
 # Ask for confirmation: str(prompt) -> bool(result)
 def confirm(prompt=''):
@@ -199,11 +200,14 @@ while True:
 	date = get_date(date)
 	vocab = data.defaults.keys()
 	readline.set_completer_delims('')
-	description = input('Enter transaction description (or `balance`): ')
+	description = input('Enter transaction description (or `balance`) [%s]: ' % data.description)
 	if description == 'balance':
 		print('\nBalance assertion mode.')
 	else:
+		if description == '':
+			description = data.description
 		output += '%s %s "%s"\n' % (date, '!' if data.flag else '*' , description)
+		data.description = description
 	if description in data.defaults:
 		print('Previously used accounts for this transaction:')
 		defaults = data.defaults[description]
