@@ -47,6 +47,7 @@ class data(object):
 	cur = ''
 	balance = 0
 	flag = False
+	tag = False
 	txid = -1
 
 # Ask for confirmation: str(prompt) -> bool(result)
@@ -265,16 +266,18 @@ cmd = ''
 while True:
 	if data.txid < 0:
 		if cmd == 'f':
-			print('\nFlag toggled.\n')
+			print('\nFlag toggled.')
+		elif cmd == 't':
+			print('\nNothing to tag, no current transaction')
 		else:
-			print('\nReady.\n')
+			print('\nReady.')
 	else:
 		print()
 		print(data.array[data.txid])
 		print()
 	while True:
 		#cmd = get_command(['nwqh']) # todo
-		cmd = input('Enter command (fnwq or h) ')
+		cmd = input('\nEnter command (nftwq or h) ')
 		if cmd == 'w':
 			if not dry_run:
 				with open(sys.argv[1], 'w') as source_file:
@@ -286,13 +289,23 @@ while True:
 			print('\nRemember that there is no input validation whatsoever! Please run `bean-check` and correct any errors manually.')
 			sys.exit()
 		elif cmd == "n":
+			data.tag = False
 			break # todo
 		elif cmd == 'f':
 			toggle_flag(data.txid)
 			break
+		elif cmd == 't':
+			if data.tag:
+				data.tag = False
+				data.array[data.txid] = data.array[data.txid].replace('" #bean-add\n', '"\n')
+			else:
+				data.tag = True
+				data.array[data.txid] = data.array[data.txid].replace('"\n', '" #bean-add\n')
+			break
 		elif cmd == "h":
-			print('f	toggle transaction flag')
 			print('n	new transaction')
+			print('f	toggle transaction flag')
+			print('t	tag the transaction for later review')
 			print('w	write journal file')
 			print('q	quit')
 			print('h	show this help')
