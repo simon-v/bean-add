@@ -194,6 +194,25 @@ def get_description():
 			data.description = reading
 			return reading
 
+# Read a valid account name
+def get_account():
+	global definitions # todo
+	# Set completion
+	global vocab
+	vocab = data.accounts
+	readline.set_completer_delims('')
+	# Read a valid account
+	while True:
+		reading = input('Enter account name (tab to complete, enter to fininsh): ')
+		if reading == '':
+			return None
+		# Add new account option
+		if reading not in data.accounts:
+			if not confirm('The account `%s` is not in the journal file. Add it? (y/n) ' % reading):
+				continue
+			definitions += '%s open %s\n' % (date, reading)
+			data.accounts.append(reading)
+		return reading
 
 # Read and normalize transaction amount
 def get_amount(default):
@@ -240,16 +259,9 @@ while True:
 			account = defaults[0]
 			del(defaults[0])
 		else:
-			vocab = data.accounts
-			account = input('Enter account name (tab to complete, enter to fininsh): ')
-			if account == '':
+			account = get_account() # todo
+			if account is None:
 				break
-			# Add new account option
-			if account not in data.accounts:
-				if not confirm('The account `%s` is not in the journal file. Add it? (y/n) ' % account):
-					continue
-				definitions += '%s open %s\n' % (date, account)
-				data.accounts.append(account)
 		_transaction.append(account)
 		vocab = data.currencies
 		readline.set_completer_delims(' ')
