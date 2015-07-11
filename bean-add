@@ -42,6 +42,8 @@ class data(object):
 	commands = ['balance']
 	currencies = []
 	description = ''
+	cur = ''
+	balance = 0
 
 # Ask for confirmation: str(prompt) -> bool(result)
 def confirm(prompt=''):
@@ -127,7 +129,7 @@ else:
 
 # Init date and currencies
 date = datetime.date.today().isoformat()
-cur = data.currencies[0]
+data.cur = data.currencies[0]
 
 # Insert a transaction in an appropriate place in the file: str(transaction) -> int(index)
 def insert_transaction(tx):
@@ -210,18 +212,42 @@ def get_account():
 		if reading not in data.accounts:
 			if not confirm('The account `%s` is not in the journal file. Add it? (y/n) ' % reading):
 				continue
-			definitions += '%s open %s\n' % (date, reading)
+			definitions += '%s open %s\n' % (date, reading) # todo
 			data.accounts.append(reading)
 		return reading
 
 # Read and normalize transaction amount
-def get_amount(default):
-	try:
-		pass
-	except ValueError:
-		pass
-	finally:
-		return default
+def get_amount():
+	# Set completion
+	global vocab
+	vocab = data.currencies
+	readline.set_completer_delims(' ')
+	# Read an amount
+	amount = input('Enter amount for `%s` (including currency symbol) [%s %s]: ' % (account, data.balance, data.cur))
+	if amount == '':
+		amount = '%s %s' % (data.balance, data.cur)
+	# Normalize entries with unneeded decimal places
+	amt = float(amount.split()[0])
+	if amt == int(amt):
+		amount = '%s %s' % (int(amt), data.cur)
+	if data.balance == 0:
+		data.balance = amt * -1
+	else:
+		data.balance -= amt
+	data.balance = int(data.balance) if data.balance == int(data.balance) else data.balance
+	# Normalize amounts with one decimal place
+	amt = amount.split()[0]
+	_b = amt.split('.')
+	if len(_b) > 1 and len(_b[1]) == 1:
+		_b[1] += '0'
+		amt = '.'.join(_b)
+		amount = ' '.join([amt, data.cur])
+	# Detach currency sign for reuse
+	if len(amount.split()) == 1:
+		amount += ' ' + data.cur
+	else:
+		data.cur = amount.split().pop()
+	return amount
 
 # Toggle transaction flag
 def toggle_flag(tx_index):
@@ -239,7 +265,7 @@ while True:
 	definitions = ''
 	defaults = []
 	_transaction = []
-	total = 0
+	data.balance = 0
 	date = get_date(date)
 	description = get_description()
 	if description == 'balance':
@@ -259,36 +285,11 @@ while True:
 			account = defaults[0]
 			del(defaults[0])
 		else:
-			account = get_account() # todo
+			account = get_account()
 			if account is None:
 				break
 		_transaction.append(account)
-		vocab = data.currencies
-		readline.set_completer_delims(' ')
-		amount = get_amount(total) # todo
-		amount = input('Enter amount for `%s` (including currency symbol) [%s %s]: ' % (account, total, cur))
-		if amount == "":
-			amount = '%s %s' % (total, cur)
-		# Normalize entries with unneeded decimal places
-		amt = float(amount.split()[0])
-		if amt == int(amt):
-			amount = '%s %s' % (int(amt), cur)
-		if total == 0:
-			total = amt * -1
-		else:
-			total -= amt
-		# Normalize amounts with one decimal place
-		amt = amount.split()[0]
-		_b = amt.split('.')
-		if len(_b) > 1 and len(_b[1]) == 1:
-			_b[1] += '0'
-			amt = '.'.join(_b)
-			amount = ' '.join([amt, cur])
-		# Detach currency sign for reuse
-		if len(amount.split()) == 1:
-			amount += ' ' + cur
-		else:
-			cur = amount.split().pop()
+		amount = get_amount()
 		if description == 'balance':
 			output += '%s %s %s %s\n' % (date, description, account, amount)
 			break
