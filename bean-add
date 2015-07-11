@@ -36,7 +36,7 @@ if len(sys.argv) < 2:
 class data(object):
 	array = []
 	flag = False
-	txid = 0
+	txid = -1
 	accounts = []
 	defaults = {}
 	commands = ['balance']
@@ -45,9 +45,11 @@ class data(object):
 
 # Ask for confirmation: str(prompt) -> bool(result)
 def confirm(prompt=''):
-	global vocab
 	# Unset completion
+	global vocab
 	vocab = []
+	readline.set_completer_delims('')
+	# Get a valid confirmation
 	while True:
 		ch = input(prompt).lower()
 		if ch == 'y':
@@ -151,6 +153,11 @@ def strpdate(d):
 
 # Read and validate a date: str(default) -> str(date)
 def get_date(default):
+	# Unset completion
+	global vocab
+	vocab = []
+	readline.set_completer_delims('')
+	# Get a valid date
 	while True:
 		reading = input('Enter transaction date (%%Y-%%m-%%d, or +/-days) [%s]: ' % default)
 		# Accepting the default
@@ -170,6 +177,23 @@ def get_date(default):
 			except ValueError:
 				continue
 		return date.isoformat()
+
+# Read a description -> str(description)
+def get_description():
+	# Set completion
+	global vocab
+	vocab = data.defaults.keys()
+	readline.set_completer_delims('')
+	# Get a non-empty description
+	while True:
+		reading = input('Enter transaction description (or `balance`) [%s]: ' % data.description).strip(' "')
+		if reading == '':
+			if data.description != '':
+				return data.description
+		else:
+			data.description = reading
+			return reading
+
 
 # Read and normalize transaction amount
 def get_amount(default):
@@ -198,16 +222,11 @@ while True:
 	_transaction = []
 	total = 0
 	date = get_date(date)
-	vocab = data.defaults.keys()
-	readline.set_completer_delims('')
-	description = input('Enter transaction description (or `balance`) [%s]: ' % data.description)
+	description = get_description()
 	if description == 'balance':
 		print('\nBalance assertion mode.')
 	else:
-		if description == '':
-			description = data.description
 		output += '%s %s "%s"\n' % (date, '!' if data.flag else '*' , description)
-		data.description = description
 	if description in data.defaults:
 		print('Previously used accounts for this transaction:')
 		defaults = data.defaults[description]
