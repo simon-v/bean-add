@@ -48,6 +48,7 @@ class data(object):
 	balance = 0
 	flag = False
 	tag = False
+	modified = False
 	txid = -1
 
 # Ask for confirmation: str(prompt) -> bool(result)
@@ -104,11 +105,13 @@ for line in tx_file.split('\n'):
 
 # Prepare file for transaction insertion
 data.array = tx_file.split('\n\n')
+_badblocks = []
 for i in range(len(data.array)):
 	data.array[i] = data.array[i].strip()
 	if data.array[i] == '':
+		_badblocks.insert(0, i)
+for i in _badblocks:
 		del data.array[i]
-		i -= 1
 
 # Set up the completer
 readline.parse_and_bind("tab: complete")
@@ -151,6 +154,7 @@ def insert_transaction(tx):
 		tx_index += 1
 		data.array.append(tx)
 	print('\nTransaction added at block %s' % tx_index)
+	data.modified = True
 	return tx_index
 
 # Date from string wrapper: str(date) -> date(date)
@@ -259,6 +263,7 @@ def toggle_flag(tx_index):
 	else:
 		data.flag = True
 		data.array[tx_index] = data.array[tx_index].replace(' * ', ' ! ')
+	data.modified = True
 
 
 # Main data entry loop
@@ -283,9 +288,13 @@ while True:
 				with open(sys.argv[1], 'w') as source_file:
 					source_file.write('\n\n'.join(data.array))
 					print('%s block(s) written' % len(data.array))
+					data.modified = False
 			else:
 				print('Dry run mode, writing disabled.')
 		elif cmd == "q":
+			if data.modified:
+				if not confirm('Transaction data was modified. Really quit? (y/n) '):
+					continue
 			print('\nRemember that there is no input validation whatsoever! Please run `bean-check` and correct any errors manually.')
 			sys.exit()
 		elif cmd == "n":
@@ -301,6 +310,7 @@ while True:
 			else:
 				data.tag = True
 				data.array[data.txid] = data.array[data.txid].replace('"\n', '" #bean-add\n')
+			data.modified = True
 			break
 		elif cmd == "h":
 			print('n	new transaction')
