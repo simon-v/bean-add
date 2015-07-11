@@ -11,24 +11,18 @@ import datetime
 usage = '''bean-add [-n] FILENAME
 A beancount transaction entry assistant.
 
--n		Dry run (do not write out transactions)
 -h, --help	Display this help message'''
 
-dry_run = False
 
 # Process command line arguments
 if len(sys.argv) < 2:
 	print(usage)
 	sys.exit(1)
 
-if sys.argv[1] == '-n':
-	dry_run = True
-	del(sys.argv[1])
-elif sys.argv[1] == '-h' or sys.argv[1] == '--help':
+if sys.argv[1] == '-h' or sys.argv[1] == '--help':
 	print(usage)
 	sys.exit()
-
-if len(sys.argv) < 2:
+elif len(sys.argv) < 2:
 	print(usage)
 	sys.exit(1)
 
@@ -127,8 +121,6 @@ readline.set_completer(complete)
 print('Read %s block(s) of data' % len(data.array))
 if len(data.accounts) > 0:
 	print('%s account(s), %s unique description(s), %s currency sign(s) loaded' % (len(data.accounts), len(data.defaults), len(data.currencies)))
-	if dry_run:
-		print('Working in dry run mode; transactions will not be written.')
 	print()
 else:
 	print('File contains no account definitions.')
@@ -283,13 +275,10 @@ while True:
 		#cmd = get_command(['nwqh']) # todo
 		cmd = input('\nEnter command (nftwq or h) ')
 		if cmd == 'w':
-			if not dry_run:
-				with open(sys.argv[1], 'w') as source_file:
-					source_file.write('\n\n'.join(data.array))
-					print('%s block(s) written' % len(data.array))
-					data.saved = data.array.copy()
-			else:
-				print('Dry run mode, writing disabled.')
+			with open(sys.argv[1], 'w') as source_file:
+				source_file.write('\n\n'.join(data.array))
+				print('%s block(s) written' % len(data.array))
+				data.saved = data.array.copy()
 		elif cmd == "q":
 			if data.array != data.saved:
 				if not confirm('Transaction data was modified. Really quit? (y/n) '):
