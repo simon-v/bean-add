@@ -315,7 +315,6 @@ h	show this help'''
 		continue
 	last_message = ''
 	output = ''
-	definitions = ''
 	defaults = []
 	_transaction = []
 	data.balance = 0
@@ -371,4 +370,4 @@ h	show this help'''
 	if _transaction == []:
 		last_message = 'Transaction entry aborted.'
 	else:
-		data.txid = insert_transaction('\n'.join([definitions, output]).strip())
+		data.txid = insert_transaction(output.strip())
