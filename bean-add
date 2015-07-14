@@ -198,7 +198,6 @@ def get_description():
 
 # Read a valid account name
 def get_account():
-	global definitions # todo
 	# Read a valid account
 	while True:
 		# Set completion
@@ -211,7 +210,7 @@ def get_account():
 		if reading not in data.accounts:
 			if not confirm('The account `%s` is not in the journal file. Add it? (y/n) ' % reading):
 				continue
-			definitions += '%s open %s\n' % (date, reading) # todo
+			insert_transaction('%s open %s' % (date, reading))
 			data.accounts.append(reading)
 		return reading
 
