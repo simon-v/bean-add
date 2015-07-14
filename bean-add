@@ -277,7 +277,7 @@ while True:
 			cmd = 'q'
 		if cmd == 'w':
 			with open(sys.argv[1], 'w') as source_file:
-				source_file.write('\n\n'.join(data.array))
+				source_file.write('\n\n'.join(data.array) + '\n')
 				last_message = '%s block(s) written' % len(data.array)
 				data.saved = data.array.copy()
 		elif cmd == "q":
