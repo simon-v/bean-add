@@ -8,11 +8,7 @@ import readline
 import sys
 import datetime
 
-usage = '''bean-add [-n] FILENAME
-A beancount transaction entry assistant.
-
--h, --help	Display this help message'''
-
+usage = 'Usage: bean-add FILENAME'
 
 # Process command line arguments
 if len(sys.argv) < 2:
@@ -210,6 +206,7 @@ def get_account():
 		if reading not in data.accounts:
 			if not confirm('The account `%s` is not in the journal file. Add it? (y/n) ' % reading):
 				continue
+			print()
 			insert_transaction('%s open %s' % (date, reading))
 			data.accounts.append(reading)
 		return reading
