@@ -255,7 +255,7 @@ def toggle_flag(tx_index):
 
 # Main data entry loop
 cmd = ''
-last_message = 'Ready.'
+last_message = 'Type `h` for list of available commands.'
 while True:
 	if last_message != '':
 		print()
