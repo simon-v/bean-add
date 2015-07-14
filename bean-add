@@ -273,7 +273,10 @@ while True:
 		print()
 	while True:
 		#cmd = get_command(['nwqh']) # todo
-		cmd = input('\nEnter command (nftwq or h) ')
+		try:
+			cmd = input('\nEnter command (nftwq or h) ')
+		except KeyboardInterrupt:
+			cmd = 'q'
 		if cmd == 'w':
 			with open(sys.argv[1], 'w') as source_file:
 				source_file.write('\n\n'.join(data.array))
@@ -313,8 +316,12 @@ while True:
 	defaults = []
 	_transaction = []
 	data.balance = 0
-	date = get_date(date)
-	description = get_description()
+	try:
+		date = get_date(date)
+		description = get_description()
+	except KeyboardInterrupt:
+		print('\nTransaction entry aborted.')
+		continue
 	if description is None:
 		print('Transaction entry aborted.\n')
 		continue
@@ -328,18 +335,30 @@ while True:
 		for _account in defaults:
 			print('\t%s' % _account)
 		print()
-		if not confirm('Use these accounts? (y/n) '):
-			defaults = []
+		try:
+			if not confirm('Use these accounts? (y/n) '):
+				defaults = []
+		except KeyboardInterrupt:
+			print('\nTransaction entry aborted.\n')
+			continue
 	while True:
 		if len(defaults) > 0:
 			account = defaults[0]
 			del(defaults[0])
 		else:
-			account = get_account()
+			try:
+				account = get_account()
+			except KeyboardInterrupt:
+				print('\nTransaction entry aborted.')
+				continue
 			if account is None:
 				break
 		_transaction.append(account)
-		amount = get_amount()
+		try:
+			amount = get_amount()
+		except KeyboardInterrupt:
+			print('\nTransaction entry aborted.')
+			continue
 		if description == 'balance':
 			output += '%s %s %s %s\n' % (date, description, account, amount)
 			break
