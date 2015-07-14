@@ -91,8 +91,8 @@ for line in tx_file.split('\n'):
 		elif _data[1] in data.commands:
 			data.defaults[_data[1]] = [_data[2]]
 		# Record a description
-		else:
-			description = line[13:].strip('" ')
+		elif _data[1] in '!*':
+			description = line[13:].split('#')[0].strip('" ')
 			data.defaults[description] = []
 	except IndexError:
 		continue
