@@ -259,15 +259,13 @@ def toggle_flag(tx_index):
 
 # Main data entry loop
 cmd = ''
+last_message = 'Ready.'
 while True:
-	if data.txid < 0:
-		if cmd == 'f':
-			print('\nFlag toggled.')
-		elif cmd == 't':
-			print('\nNothing to tag, no current transaction')
-		else:
-			print('\nReady.')
-	else:
+	if last_message != '':
+		print()
+		print(last_message)
+		print()
+	if data.txid >= 0:
 		print()
 		print(data.array[data.txid])
 		print()
@@ -280,7 +278,7 @@ while True:
 		if cmd == 'w':
 			with open(sys.argv[1], 'w') as source_file:
 				source_file.write('\n\n'.join(data.array))
-				print('%s block(s) written' % len(data.array))
+				last_message = '%s block(s) written' % len(data.array)
 				data.saved = data.array.copy()
 		elif cmd == "q":
 			if data.array != data.saved:
@@ -293,24 +291,33 @@ while True:
 			break # todo
 		elif cmd == 'f':
 			toggle_flag(data.txid)
+			last_message = 'Flag toggled.'
 			break
 		elif cmd == 't':
+			if data.txid >= 0:
+				last_message = 'Nothing to tag, no current transaction.'
+				continue
 			if data.tag:
 				data.tag = False
 				data.array[data.txid] = data.array[data.txid].replace('" #bean-add\n', '"\n')
+				last_message = 'Tag removed.'
 			else:
 				data.tag = True
 				data.array[data.txid] = data.array[data.txid].replace('"\n', '" #bean-add\n')
+				last_message = 'Tag added.'
 			break
 		elif cmd == "h":
-			print('n	new transaction')
-			print('f	toggle transaction flag')
-			print('t	tag the transaction for later review')
-			print('w	write journal file')
-			print('q	quit')
-			print('h	show this help')
+			last_message = '''Available commands:
+n	new transaction
+f	toggle transaction flag
+t	tag the transaction for later review
+w	write journal file
+q	quit
+h	show this help'''
+			last_message = '' # todo
 	if cmd != 'n':
 		continue
+	last_message = ''
 	output = ''
 	definitions = ''
 	defaults = []
@@ -320,10 +327,10 @@ while True:
 		date = get_date(date)
 		description = get_description()
 	except KeyboardInterrupt:
-		print('\nTransaction entry aborted.')
+		last_message = 'Transaction entry aborted.'
 		continue
 	if description is None:
-		print('Transaction entry aborted.\n')
+		last_message = 'Transaction entry aborted.'
 		continue
 	elif description == 'balance':
 		print('\nBalance assertion mode.')
@@ -339,7 +346,7 @@ while True:
 			if not confirm('Use these accounts? (y/n) '):
 				defaults = []
 		except KeyboardInterrupt:
-			print('\nTransaction entry aborted.\n')
+			last_message = 'Transaction entry aborted.'
 			continue
 	while True:
 		if len(defaults) > 0:
@@ -349,7 +356,7 @@ while True:
 			try:
 				account = get_account()
 			except KeyboardInterrupt:
-				print('\nTransaction entry aborted.')
+				last_message = 'Transaction entry aborted.'
 				continue
 			if account is None:
 				break
@@ -357,7 +364,7 @@ while True:
 		try:
 			amount = get_amount()
 		except KeyboardInterrupt:
-			print('\nTransaction entry aborted.')
+			last_message = 'Transaction entry aborted.'
 			continue
 		if description == 'balance':
 			output += '%s %s %s %s\n' % (date, description, account, amount)
@@ -366,7 +373,6 @@ while True:
 			output += '	%s %s\n' % (account, amount)
 	data.defaults[description] = _transaction
 	if _transaction == []:
-		print('Transaction entry aborted.\n')
+		last_message = 'Transaction entry aborted.'
 	else:
 		data.txid = insert_transaction('\n'.join([definitions, output]).strip())
-		#print('\nResults:\n%s\n' % data.array[data.txid])
