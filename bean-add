@@ -199,11 +199,11 @@ def get_description():
 # Read a valid account name
 def get_account():
 	global definitions # todo
-	# Set completion
-	data.vocab = data.accounts
-	readline.set_completer_delims('')
 	# Read a valid account
 	while True:
+		# Set completion
+		data.vocab = data.accounts
+		readline.set_completer_delims('')
 		reading = input('Enter account name (tab to complete, enter to fininsh): ')
 		if reading == '':
 			return None
