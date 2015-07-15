@@ -114,7 +114,7 @@ def complete(text, state):
 readline.set_completer(complete)
 
 # Print some statistics
-print('Read %s block(s) of data' % len(data.array))
+print('%s record(s) processed' % len(data.array))
 if len(data.accounts) > 0:
 	print('%s account(s), %s unique description(s), %s currency sign(s) loaded' % (len(data.accounts), len(data.defaults), len(data.currencies)))
 	print()
@@ -136,13 +136,13 @@ def insert_transaction(tx):
 		# Seek forward to first bigger date
 		if data.array[tx_index][0:10] > tx[0:10]:
 			data.array.insert(tx_index, tx)
-			print('\nTransaction added at block %s' % tx_index)
+			print('\nTransaction added as record %s' % tx_index)
 			return tx_index
 	# If not found, insert at the end of file
 	if ( tx_index + 1 ) == len(data.array):
 		tx_index += 1
 		data.array.append(tx)
-	print('\nTransaction added at block %s' % tx_index)
+	print('\nTransaction added as record %s' % tx_index)
 	return tx_index
 
 # Date from string wrapper: str(date) -> date(date)
@@ -274,7 +274,7 @@ while True:
 		if cmd == 'w':
 			with open(sys.argv[1], 'w') as source_file:
 				source_file.write('\n\n'.join(data.array) + '\n')
-				last_message = '%s block(s) written' % len(data.array)
+				last_message = '%s record(s) written' % len(data.array)
 				data.saved = data.array.copy()
 		elif cmd == "q":
 			if data.array != data.saved:
