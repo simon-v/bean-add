@@ -117,7 +117,6 @@ readline.set_completer(complete)
 print('%s record(s) processed' % len(data.array))
 if len(data.accounts) > 0:
 	print('%s account(s), %s unique description(s), %s currency sign(s) loaded' % (len(data.accounts), len(data.defaults), len(data.currencies)))
-	print()
 else:
 	print('File contains no account definitions.')
 	if not confirm('Proceed with editing? (y/n) '):
@@ -255,7 +254,9 @@ def toggle_flag(tx_index):
 
 # Main data entry loop
 cmd = ''
-last_message = 'Type `h` for list of available commands.'
+last_message = '''Changes stay in memory until you [w]rite them out.
+
+Type `h` for a list of available commands.'''
 while True:
 	if last_message != '':
 		print()
@@ -278,9 +279,9 @@ while True:
 				data.saved = data.array.copy()
 		elif cmd == "q":
 			if data.array != data.saved:
-				if not confirm('Transaction data was modified. Really quit? (y/n) '):
+				if not confirm('The journal file was modified. Really quit? (y/n) '):
 					continue
-			print('\nRemember that there is no input validation whatsoever! Please run `bean-check` and correct any errors manually.')
+			print('\nRemember that there is no input validation whatsoever!\nPlease run `bean-check` and correct any errors manually.')
 			sys.exit()
 		elif cmd == "n":
 			data.tag = False
