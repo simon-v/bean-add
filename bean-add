@@ -28,6 +28,7 @@ class data(object):
 	array = []
 	saved = []
 	defaults = {}
+	restore = []
 	# Completion
 	accounts = []
 	commands = ['balance']
@@ -268,7 +269,7 @@ while True:
 	while True:
 		#cmd = get_command(['nwqh']) # todo
 		try:
-			cmd = input('\nEnter command (nftwq or h) ')
+			cmd = input('\nEnter command (h for help) ')
 		except KeyboardInterrupt:
 			cmd = 'q'
 		if cmd == 'w':
@@ -289,11 +290,11 @@ while True:
 		elif cmd == 'f':
 			toggle_flag(data.txid)
 			last_message = 'Flag toggled.'
-			break
+			continue
 		elif cmd == 't':
 			if data.txid < 0:
 				last_message = 'Nothing to tag, no current transaction.'
-				continue
+				break
 			if data.tag:
 				data.tag = False
 				data.array[data.txid] = data.array[data.txid].replace('" #bean-add\n', '"\n')
@@ -303,15 +304,32 @@ while True:
 				data.array[data.txid] = data.array[data.txid].replace('"\n', '" #bean-add\n')
 				last_message = 'Tag added.'
 			break
+		elif cmd == 'D':
+			if data.txid >= 0:
+				data.restore.append(data.array.pop(data.txid))
+				last_message = 'Deleted record %s' % data.txid
+				if data.txid >= len(data.array):
+					data.txid -= 1
+			else:
+				last_message = 'Nothing to delete, no current transaction.'
+			break
+		elif cmd == 'U':
+			if len(data.restore) > 0:
+				insert_transaction(data.restore.pop())
+			else:
+				last_message = 'Nothing to undo, the restore buffer is empty.'
+			break
 		elif cmd == "h":
 			last_message = '''Available commands:
 n	new transaction
 f	toggle transaction flag
 t	tag the transaction for later review
+D	delete the current transaction
+U	undo transaction deletion
 w	write journal file
 q	quit
 h	show this help'''
-			last_message = '' # todo
+			break
 	if cmd != 'n':
 		continue
 	last_message = ''
