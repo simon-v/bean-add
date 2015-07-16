@@ -261,7 +261,6 @@ while True:
 	if last_message != '':
 		print()
 		print(last_message)
-		print()
 	if data.txid >= 0:
 		print()
 		print(data.array[data.txid])
@@ -277,6 +276,7 @@ while True:
 				source_file.write('\n\n'.join(data.array) + '\n')
 				last_message = '%s record(s) written' % len(data.array)
 				data.saved = data.array.copy()
+			break
 		elif cmd == "q":
 			if data.array != data.saved:
 				if not confirm('The journal file was modified. Really quit? (y/n) '):
@@ -291,7 +291,7 @@ while True:
 			last_message = 'Flag toggled.'
 			break
 		elif cmd == 't':
-			if data.txid >= 0:
+			if data.txid < 0:
 				last_message = 'Nothing to tag, no current transaction.'
 				continue
 			if data.tag:
