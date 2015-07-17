@@ -304,6 +304,35 @@ while True:
 				data.array[data.txid] = data.array[data.txid].replace('"\n', '" #bean-add\n')
 				last_message = 'Tag added.'
 			break
+		elif cmd == 's':
+			if data.txid > 0:
+				print('Currently at record %s out of %s.' % (data.txid, len(data.array) - 1))
+			else:
+				print('No current record.')
+			while True:
+				try:
+					reading = input('Enter transaction number (or +/-count): ')
+				except KeyboardInterrupt:
+					reading = None
+					break
+			if reading is None:
+				last_message = 'Seeking cancelled.'
+				break
+			elif reading.startswith('+') or reading.startswith('-'):
+				try:
+					data.txid += int(reading)
+				except ValueError:
+					continue
+			else:
+				try:
+					data.txid = int(reading)
+				except ValueError:
+					continue
+			if data.txid >= len(data.array):
+				data.txid = len(data.array) - 1
+			elif data.txid < 0:
+				data.txid = 0
+			break
 		elif cmd == 'D':
 			if data.txid >= 0:
 				data.restore.append(data.array.pop(data.txid))
