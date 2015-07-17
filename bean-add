@@ -122,6 +122,8 @@ else:
 	print('File contains no account definitions.')
 	if not confirm('Proceed with editing? (y/n) '):
 		sys.exit()
+if data.journal != data.saved:
+	print('Automatic normalizations applied.')
 
 # Init date and currencies
 date = datetime.date.today().isoformat()
@@ -354,7 +356,7 @@ while True:
 				print('\nNothing to undo, the restore buffer is empty.')
 			break
 		elif cmd == "h":
-			last_message = '''Available commands:
+			print('''Available commands:
 n	new transaction
 f	toggle transaction flag
 t	tag the transaction for later review
@@ -363,8 +365,8 @@ r	remove the current transaction
 u	undo transaction removal
 w	write journal file
 q	quit
-h	show this help message'''
-			break
+h	show this help message''')
+			continue
 	if cmd != 'n':
 		continue
 	last_message = ''
