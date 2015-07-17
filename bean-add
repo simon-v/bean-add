@@ -338,31 +338,32 @@ while True:
 		elif cmd == 's':
 			seek_to_transaction()
 			break
-		elif cmd == 'D':
+		elif cmd == 'r':
 			if data.txid >= 0:
 				data.restore.append(data.journal.pop(data.txid))
-				last_message = 'Deleted record %s' % data.txid
+				print('\nDeleted record %s' % data.txid)
 				if data.txid >= len(data.journal):
 					data.txid -= 1
 			else:
-				last_message = 'Nothing to delete, no current transaction.'
+				print('\nNothing to delete, no current transaction.')
 			break
-		elif cmd == 'U':
+		elif cmd == 'u':
 			if len(data.restore) > 0:
 				insert_transaction(data.restore.pop())
 			else:
-				last_message = 'Nothing to undo, the restore buffer is empty.'
+				print('\nNothing to undo, the restore buffer is empty.')
 			break
 		elif cmd == "h":
 			last_message = '''Available commands:
 n	new transaction
 f	toggle transaction flag
 t	tag the transaction for later review
-D	delete the current transaction
-U	undo transaction deletion
+s	seek to another record
+r	remove the current transaction
+u	undo transaction removal
 w	write journal file
 q	quit
-h	show this help'''
+h	show this help message'''
 			break
 	if cmd != 'n':
 		continue
