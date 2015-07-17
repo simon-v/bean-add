@@ -150,7 +150,7 @@ def strpdate(d):
 	return datetime.datetime.strptime(d, '%Y-%m-%d').date()
 
 # Read and validate a date: str(default) -> str(date)
-def get_date(default):
+def read_date(default):
 	# Unset completion
 	data.vocab = []
 	readline.set_completer_delims('')
@@ -176,7 +176,7 @@ def get_date(default):
 		return date.isoformat()
 
 # Read a description -> str(description)
-def get_description():
+def read_description():
 	# Set completion
 	data.vocab = data.defaults.keys()
 	readline.set_completer_delims('')
@@ -193,7 +193,7 @@ def get_description():
 			return reading
 
 # Read a valid account name
-def get_account():
+def read_account():
 	# Read a valid account
 	while True:
 		# Set completion
@@ -212,7 +212,7 @@ def get_account():
 		return reading
 
 # Read and normalize transaction amount
-def get_amount():
+def read_amount():
 	# Set completion
 	data.vocab = data.currencies
 	readline.set_completer_delims(' ')
@@ -367,8 +367,8 @@ h	show this help'''
 	_transaction = []
 	data.balance = 0
 	try:
-		date = get_date(date)
-		description = get_description()
+		date = read_date(date)
+		description = read_description()
 	except KeyboardInterrupt:
 		last_message = 'Transaction entry aborted.'
 		continue
@@ -397,7 +397,7 @@ h	show this help'''
 			del(defaults[0])
 		else:
 			try:
-				account = get_account()
+				account = read_account()
 			except KeyboardInterrupt:
 				last_message = 'Transaction entry aborted.'
 				continue
@@ -409,7 +409,7 @@ h	show this help'''
 						continue
 		_transaction.append(account)
 		try:
-			amount = get_amount()
+			amount = read_amount()
 		except KeyboardInterrupt:
 			last_message = 'Transaction entry aborted.'
 			continue
