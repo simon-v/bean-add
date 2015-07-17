@@ -267,6 +267,34 @@ def toggle_tag(tx_index):
 		data.array[data.txid] = data.array[data.txid].replace('"\n', '" #bean-add\n')
 		print('\nTag added.')
 
+# Seek to a specific record in the journal file
+def seek_to_transaction():
+	if data.txid > 0:
+		print('\nCurrently at record %s.' % data.txid)
+	else:
+		print('\nNo current record.')
+	while True:
+		try:
+			reading = input('Enter number (0-%s, or +/-count): ' % (len(data.array) - 1))
+		except KeyboardInterrupt:
+			print('\nSeeking cancelled.')
+			return
+		if reading.startswith('+') or reading.startswith('-'):
+			try:
+				txid = data.txid + int(reading)
+			except ValueError:
+				continue
+		else:
+			try:
+				txid = int(reading)
+			except ValueError:
+				continue
+		if txid > len(data.array) - 1 or txid < 0:
+			continue
+		else:
+			break
+	data.txid = txid
+
 # Main data entry loop
 cmd = ''
 last_message = '''Changes stay in memory until you [w]rite them out.
@@ -308,33 +336,7 @@ while True:
 			toggle_tag(data.txid)
 			continue
 		elif cmd == 's':
-			if data.txid > 0:
-				print('Currently at record %s out of %s.' % (data.txid, len(data.array) - 1))
-			else:
-				print('No current record.')
-			while True:
-				try:
-					reading = input('Enter transaction number (or +/-count): ')
-				except KeyboardInterrupt:
-					reading = None
-					break
-			if reading is None:
-				last_message = 'Seeking cancelled.'
-				break
-			elif reading.startswith('+') or reading.startswith('-'):
-				try:
-					data.txid += int(reading)
-				except ValueError:
-					continue
-			else:
-				try:
-					data.txid = int(reading)
-				except ValueError:
-					continue
-			if data.txid >= len(data.array):
-				data.txid = len(data.array) - 1
-			elif data.txid < 0:
-				data.txid = 0
+			seek_to_transaction()
 			break
 		elif cmd == 'D':
 			if data.txid >= 0:
