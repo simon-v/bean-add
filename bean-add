@@ -402,7 +402,11 @@ h	show this help'''
 				last_message = 'Transaction entry aborted.'
 				continue
 			if account is None:
-				break
+				if data.balance != 0:
+					if confirm('\nThe transaction is unbalanced! Really finish? (y/n) '):
+						break
+					else:
+						continue
 		_transaction.append(account)
 		try:
 			amount = get_amount()
