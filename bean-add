@@ -25,7 +25,7 @@ elif len(sys.argv) < 2:
 # Init transaction data
 class data(object):
 	# Journal/transactions
-	array = []
+	journal = []
 	saved = []
 	defaults = {}
 	restore = []
@@ -95,15 +95,15 @@ for line in tx_file.split('\n'):
 		continue
 
 # Prepare file for transaction insertion
-data.array = tx_file.split('\n\n')
-data.saved = data.array.copy()
+data.journal = tx_file.split('\n\n')
+data.saved = data.journal.copy()
 _badblocks = []
-for i in range(len(data.array)):
-	data.array[i] = data.array[i].strip()
-	if data.array[i] == '':
+for i in range(len(data.journal)):
+	data.journal[i] = data.journal[i].strip()
+	if data.journal[i] == '':
 		_badblocks.insert(0, i)
 for i in _badblocks:
-		del data.array[i]
+		del data.journal[i]
 
 # Set up the completer
 readline.parse_and_bind("tab: complete")
@@ -115,7 +115,7 @@ def complete(text, state):
 readline.set_completer(complete)
 
 # Print some statistics
-print('%s record(s) processed' % len(data.array))
+print('%s record(s) processed' % len(data.journal))
 if len(data.accounts) > 0:
 	print('%s account(s), %s unique description(s), %s currency sign(s) loaded' % (len(data.accounts), len(data.defaults), len(data.currencies)))
 else:
@@ -129,19 +129,19 @@ data.cur = data.currencies[0]
 
 # Insert a transaction in an appropriate place in the file: str(transaction) -> int(index)
 def insert_transaction(tx):
-	for tx_index in range(len(data.array)):
+	for tx_index in range(len(data.journal)):
 		# Ignore comments
-		if data.array[tx_index].startswith(';'):
+		if data.journal[tx_index].startswith(';'):
 			continue
 		# Seek forward to first bigger date
-		if data.array[tx_index][0:10] > tx[0:10]:
-			data.array.insert(tx_index, tx)
+		if data.journal[tx_index][0:10] > tx[0:10]:
+			data.journal.insert(tx_index, tx)
 			print('\nTransaction added as record %s' % tx_index)
 			return tx_index
 	# If not found, insert at the end of file
-	if ( tx_index + 1 ) == len(data.array):
+	if ( tx_index + 1 ) == len(data.journal):
 		tx_index += 1
-		data.array.append(tx)
+		data.journal.append(tx)
 	print('\nTransaction added as record %s' % tx_index)
 	return tx_index
 
@@ -247,11 +247,11 @@ def read_amount():
 def toggle_flag(tx_index):
 	if data.flag:
 		data.flag = False
-		data.array[tx_index] = data.array[tx_index].replace(' ! ', ' * ')
+		data.journal[tx_index] = data.journal[tx_index].replace(' ! ', ' * ')
 		print('\nTransaction flag unset.')
 	else:
 		data.flag = True
-		data.array[tx_index] = data.array[tx_index].replace(' * ', ' ! ')
+		data.journal[tx_index] = data.journal[tx_index].replace(' * ', ' ! ')
 		print('\nTransaction flag set.')
 
 # Toggle transaction tag
@@ -260,11 +260,11 @@ def toggle_tag(tx_index):
 		print('\nNothing to tag, no current transaction.')
 	elif data.tag:
 		data.tag = False
-		data.array[data.txid] = data.array[data.txid].replace('" #bean-add\n', '"\n')
+		data.journal[data.txid] = data.journal[data.txid].replace('" #bean-add\n', '"\n')
 		print('\nTag removed.')
 	else:
 		data.tag = True
-		data.array[data.txid] = data.array[data.txid].replace('"\n', '" #bean-add\n')
+		data.journal[data.txid] = data.journal[data.txid].replace('"\n', '" #bean-add\n')
 		print('\nTag added.')
 
 # Seek to a specific record in the journal file
@@ -275,7 +275,7 @@ def seek_to_transaction():
 		print('\nNo current record.')
 	while True:
 		try:
-			reading = input('Enter number (0-%s, or +/-count): ' % (len(data.array) - 1))
+			reading = input('Enter number (0-%s, or +/-count): ' % (len(data.journal) - 1))
 		except KeyboardInterrupt:
 			print('\nSeeking cancelled.')
 			return
@@ -289,7 +289,7 @@ def seek_to_transaction():
 				txid = int(reading)
 			except ValueError:
 				continue
-		if txid > len(data.array) - 1 or txid < 0:
+		if txid > len(data.journal) - 1 or txid < 0:
 			continue
 		else:
 			break
@@ -306,7 +306,7 @@ while True:
 		print(last_message)
 	if data.txid >= 0:
 		print()
-		print(data.array[data.txid])
+		print(data.journal[data.txid])
 		print()
 	while True:
 		#cmd = get_command(['nwqh']) # todo
@@ -316,12 +316,12 @@ while True:
 			cmd = 'q'
 		if cmd == 'w':
 			with open(sys.argv[1], 'w') as source_file:
-				source_file.write('\n\n'.join(data.array) + '\n')
-				last_message = '%s record(s) written' % len(data.array)
-				data.saved = data.array.copy()
+				source_file.write('\n\n'.join(data.journal) + '\n')
+				last_message = '%s record(s) written' % len(data.journal)
+				data.saved = data.journal.copy()
 			break
 		elif cmd == "q":
-			if data.array != data.saved:
+			if data.journal != data.saved:
 				if not confirm('The journal file was modified. Really quit? (y/n) '):
 					continue
 			print('\nRemember that there is no input validation whatsoever!\nPlease run `bean-check` and correct any errors manually.')
@@ -340,9 +340,9 @@ while True:
 			break
 		elif cmd == 'D':
 			if data.txid >= 0:
-				data.restore.append(data.array.pop(data.txid))
+				data.restore.append(data.journal.pop(data.txid))
 				last_message = 'Deleted record %s' % data.txid
-				if data.txid >= len(data.array):
+				if data.txid >= len(data.journal):
 					data.txid -= 1
 			else:
 				last_message = 'Nothing to delete, no current transaction.'
