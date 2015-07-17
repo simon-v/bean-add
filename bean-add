@@ -248,10 +248,24 @@ def toggle_flag(tx_index):
 	if data.flag:
 		data.flag = False
 		data.array[tx_index] = data.array[tx_index].replace(' ! ', ' * ')
+		print('\nTransaction flag unset.')
 	else:
 		data.flag = True
 		data.array[tx_index] = data.array[tx_index].replace(' * ', ' ! ')
+		print('\nTransaction flag set.')
 
+# Toggle transaction tag
+def toggle_tag(tx_index):
+	if data.txid < 0:
+		print('\nNothing to tag, no current transaction.')
+	elif data.tag:
+		data.tag = False
+		data.array[data.txid] = data.array[data.txid].replace('" #bean-add\n', '"\n')
+		print('\nTag removed.')
+	else:
+		data.tag = True
+		data.array[data.txid] = data.array[data.txid].replace('"\n', '" #bean-add\n')
+		print('\nTag added.')
 
 # Main data entry loop
 cmd = ''
@@ -289,21 +303,10 @@ while True:
 			break # todo
 		elif cmd == 'f':
 			toggle_flag(data.txid)
-			last_message = 'Flag toggled.'
 			continue
 		elif cmd == 't':
-			if data.txid < 0:
-				last_message = 'Nothing to tag, no current transaction.'
-				break
-			if data.tag:
-				data.tag = False
-				data.array[data.txid] = data.array[data.txid].replace('" #bean-add\n', '"\n')
-				last_message = 'Tag removed.'
-			else:
-				data.tag = True
-				data.array[data.txid] = data.array[data.txid].replace('"\n', '" #bean-add\n')
-				last_message = 'Tag added.'
-			break
+			toggle_tag(data.txid)
+			continue
 		elif cmd == 's':
 			if data.txid > 0:
 				print('Currently at record %s out of %s.' % (data.txid, len(data.array) - 1))
@@ -403,10 +406,9 @@ h	show this help'''
 				continue
 			if account is None:
 				if data.balance != 0:
-					if confirm('\nThe transaction is unbalanced! Really finish? (y/n) '):
-						break
-					else:
+					if not confirm('\nThe transaction is unbalanced! Really finish? (y/n) '):
 						continue
+				break
 		_transaction.append(account)
 		try:
 			amount = read_amount()
