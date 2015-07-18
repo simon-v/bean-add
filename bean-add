@@ -134,21 +134,22 @@ data.cur = data.currencies[0]
 
 # Insert a transaction in an appropriate place in the file: str(transaction) -> int(index)
 def insert_transaction(tx):
-	for tx_index in range(len(data.journal)):
+	for _txid in range(len(data.journal)):
 		# Ignore comments
-		if data.journal[tx_index].startswith(';'):
+		if data.journal[_txid].startswith(';'):
 			continue
 		# Seek forward to first bigger date
-		if data.journal[tx_index][0:10] > tx[0:10]:
-			data.journal.insert(tx_index, tx)
-			print('\nTransaction added as record %s' % tx_index)
-			return tx_index
+		if data.journal[_txid][0:10] > tx[0:10]:
+			data.journal.insert(_txid, tx)
+			print('\nTransaction added as record %s' % _txid)
+			return _txid
 	# If not found, insert at the end of file
-	if ( tx_index + 1 ) == len(data.journal):
-		tx_index += 1
+	if ( _txid + 1 ) == len(data.journal):
+		_txid += 1
 		data.journal.append(tx)
-	print('\nTransaction added as record %s' % tx_index)
-	return tx_index
+	print('\nTransaction added as record %s\n' % _txid)
+	print(data.journal[_txid])
+	return _txid
 
 # Date from string wrapper: str(date) -> date(date)
 def strpdate(d):
@@ -249,20 +250,26 @@ def read_amount():
 	return amount
 
 # Toggle transaction flag
-def toggle_flag(tx_index):
+def toggle_flag():
+	if data.txid < 0:
+		print('\nNothing to flag, no current transaction.')
+		return
 	if data.flag:
 		data.flag = False
-		data.journal[tx_index] = data.journal[tx_index].replace(' ! ', ' * ')
+		data.journal[data.txid] = data.journal[data.txid].replace(' ! ', ' * ')
 		print('\nTransaction flag unset.')
 	else:
 		data.flag = True
-		data.journal[tx_index] = data.journal[tx_index].replace(' * ', ' ! ')
+		data.journal[data.txid] = data.journal[data.txid].replace(' * ', ' ! ')
 		print('\nTransaction flag set.')
+	print()
+	print(data.journal[data.txid])
 
 # Toggle transaction tag
-def toggle_tag(tx_index):
+def toggle_tag():
 	if data.txid < 0:
 		print('\nNothing to tag, no current transaction.')
+		return
 	elif data.tag:
 		data.tag = False
 		data.journal[data.txid] = data.journal[data.txid].replace('" #bean-add\n', '"\n')
@@ -271,6 +278,8 @@ def toggle_tag(tx_index):
 		data.tag = True
 		data.journal[data.txid] = data.journal[data.txid].replace('"\n', '" #bean-add\n')
 		print('\nTag added.')
+	print()
+	print(data.journal[data.txid])
 
 # Seek to a specific record in the journal file
 def seek_to_transaction():
@@ -281,38 +290,28 @@ def seek_to_transaction():
 	while True:
 		try:
 			reading = input('Enter number (0-%s, or +/-count): ' % (len(data.journal) - 1))
+			_txid = int(reading)
 		except KeyboardInterrupt:
 			print('\nSeeking cancelled.')
 			return
+		except ValueError:
+			continue
 		if reading.startswith('+') or reading.startswith('-'):
-			try:
-				txid = data.txid + int(reading)
-			except ValueError:
-				continue
-		else:
-			try:
-				txid = int(reading)
-			except ValueError:
-				continue
-		if txid > len(data.journal) - 1 or txid < 0:
+			_txid += data.txid
+		if _txid < 0 or _txid > len(data.journal) - 1:
 			continue
 		else:
 			break
-	data.txid = txid
+	print('\nRecord %s:\n' % _txid)
+	print(data.journal[_txid])
+	data.txid = _txid
 
 # Main data entry loop
 cmd = ''
-last_message = '''Changes stay in memory until you [w]rite them out.
+print('\nChanges stay in memory until you [w]rite them out.')
+print('Type `h` for a list of available commands.')
 
-Type `h` for a list of available commands.'''
 while True:
-	if last_message != '':
-		print()
-		print(last_message)
-	if data.txid >= 0:
-		print()
-		print(data.journal[data.txid])
-		print()
 	while True:
 		#cmd = get_command(['nwqh']) # todo
 		try:
@@ -322,7 +321,7 @@ while True:
 		if cmd == 'w':
 			with open(sys.argv[1], 'w') as source_file:
 				source_file.write('\n\n'.join(data.journal) + '\n')
-				last_message = '%s record(s) written' % len(data.journal)
+				print('\n%s record(s) written' % len(data.journal))
 				data.saved = data.journal.copy()
 			break
 		elif cmd == "q":
@@ -335,10 +334,10 @@ while True:
 			data.tag = False
 			break # todo
 		elif cmd == 'f':
-			toggle_flag(data.txid)
+			toggle_flag()
 			continue
 		elif cmd == 't':
-			toggle_tag(data.txid)
+			toggle_tag()
 			continue
 		elif cmd == 's':
 			seek_to_transaction()
@@ -372,7 +371,6 @@ h	show this help message''')
 			continue
 	if cmd != 'n':
 		continue
-	last_message = ''
 	output = ''
 	defaults = []
 	_transaction = []
@@ -381,10 +379,10 @@ h	show this help message''')
 		date = read_date(date)
 		description = read_description()
 	except KeyboardInterrupt:
-		last_message = 'Transaction entry aborted.'
+		print('\nTransaction entry aborted.')
 		continue
 	if description is None:
-		last_message = 'Transaction entry aborted.'
+		print('\nTransaction entry aborted.')
 		continue
 	elif description == 'balance':
 		print('\nBalance assertion mode.')
@@ -400,7 +398,7 @@ h	show this help message''')
 			if not confirm('Use these accounts? (y/n) '):
 				defaults = []
 		except KeyboardInterrupt:
-			last_message = 'Transaction entry aborted.'
+			print('\nTransaction entry aborted.')
 			continue
 	while True:
 		if len(defaults) > 0:
@@ -410,7 +408,7 @@ h	show this help message''')
 			try:
 				account = read_account()
 			except KeyboardInterrupt:
-				last_message = 'Transaction entry aborted.'
+				print('\nTransaction entry aborted.')
 				continue
 			if account is None:
 				if data.balance != 0:
@@ -421,7 +419,7 @@ h	show this help message''')
 		try:
 			amount = read_amount()
 		except KeyboardInterrupt:
-			last_message = 'Transaction entry aborted.'
+			print('\nTransaction entry aborted.')
 			continue
 		if description == 'balance':
 			output += '%s %s %s %s\n' % (date, description, account, amount)
@@ -430,6 +428,6 @@ h	show this help message''')
 			output += '	%s %s\n' % (account, amount)
 	data.defaults[description] = _transaction
 	if _transaction == []:
-		last_message = 'Transaction entry aborted.'
+		print('\nTransaction entry aborted.')
 	else:
 		data.txid = insert_transaction(output.strip())
