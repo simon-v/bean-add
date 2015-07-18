@@ -140,16 +140,15 @@ def insert_transaction(tx):
 			continue
 		# Seek forward to first bigger date
 		if data.journal[_txid][0:10] > tx[0:10]:
-			data.journal.insert(_txid, tx)
-			print('\nTransaction added as record %s' % _txid)
-			return _txid
+			break
 	# If not found, insert at the end of file
 	if ( _txid + 1 ) == len(data.journal):
 		_txid += 1
 		data.journal.append(tx)
-	print('\nTransaction added as record %s\n' % _txid)
-	print(data.journal[_txid])
-	return _txid
+	else:
+		data.journal.insert(_txid, tx)
+	print('\nTransaction added as record %s\n\n%s' % (_txid, tx))
+	data.txid = _txid
 
 # Date from string wrapper: str(date) -> date(date)
 def strpdate(d):
@@ -430,4 +429,4 @@ h	show this help message''')
 	if _transaction == []:
 		print('\nTransaction entry aborted.')
 	else:
-		data.txid = insert_transaction(output.strip())
+		insert_transaction(output.strip())
