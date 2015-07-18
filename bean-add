@@ -96,10 +96,12 @@ for line in tx_file.split('\n'):
 
 # Prepare file for transaction insertion
 data.journal = tx_file.split('\n\n')
+data.journal = [ i.strip() for i in data.journal ]
+# Modification tracking
 data.saved = data.journal.copy()
+# Remove empty records
 _badblocks = []
 for i in range(len(data.journal)):
-	data.journal[i] = data.journal[i].strip()
 	if data.journal[i] == '':
 		_badblocks.insert(0, i)
 for i in _badblocks:
@@ -124,6 +126,7 @@ else:
 		sys.exit()
 if data.journal != data.saved:
 	print('Automatic normalizations applied.')
+	data.saved = data.journal.copy()
 
 # Init date and currencies
 date = datetime.date.today().isoformat()
