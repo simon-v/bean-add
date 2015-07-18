@@ -4,23 +4,19 @@
 # License: "Do what you feel is right, but don't be a jerk" public license.
 # See the README.md file for additional information
 
+usage = 'Usage: bean-add FILENAME'
+
 import readline
 import sys
 import datetime
 
-usage = 'Usage: bean-add FILENAME'
-
 # Process command line arguments
 if len(sys.argv) < 2:
-	print(usage)
-	sys.exit(1)
-
-if sys.argv[1] == '-h' or sys.argv[1] == '--help':
-	print(usage)
-	sys.exit()
+	sys.exit(usage)
+elif sys.argv[1] == '-h' or sys.argv[1] == '--help':
+	sys.exit(usage)
 elif len(sys.argv) < 2:
-	print(usage)
-	sys.exit(1)
+	sys.exit(usage)
 
 # Init transaction data
 class data(object):
@@ -56,8 +52,11 @@ def confirm(prompt=''):
 			return False
 
 # Read and process journal file
-with open(sys.argv[1], 'r') as source_file:
-	tx_file = source_file.read()
+try:
+	with open(sys.argv[1], 'r') as source_file:
+		tx_file = source_file.read()
+except:
+	sys.exit('Could not open the file `%s`.' % sys.argv[1])
 
 description = ''
 for line in tx_file.split('\n'):
