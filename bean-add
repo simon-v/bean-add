@@ -186,7 +186,7 @@ def read_description():
 	readline.set_completer_delims('')
 	# Get a non-empty description
 	while True:
-		reading = input('Enter transaction description (or `balance`) [%s]: ' % data.description).strip(' "')
+		reading = input('Enter transaction description [%s]: ' % data.description).strip(' "')
 		if reading == '':
 			if data.description != '':
 				return data.description
@@ -312,7 +312,7 @@ def get_defaults(description):
 			print('\t%s' % _account)
 		print()
 		if confirm('Use these accounts? (y/n) '):
-			return data.defaults
+			return data.defaults[description]
 		else:
 			return []
 	else:
@@ -321,7 +321,6 @@ def get_defaults(description):
 # Enter a normal transaction
 def read_normal_transaction():
 	output = ''
-	#defaults = []
 	_transaction = []
 	data.balance = 0
 	try:
@@ -333,8 +332,6 @@ def read_normal_transaction():
 	if description is None:
 		print('\nTransaction entry aborted.')
 		return
-	elif description == 'balance':
-		print('\nBalance assertion mode.')
 	else:
 		output += '%s %s "%s"\n' % (data.date, '!' if data.flag else '*' , description)
 	try:
@@ -344,8 +341,7 @@ def read_normal_transaction():
 		return
 	while True:
 		if len(defaults) > 0:
-			account = defaults[0]
-			del(defaults[0])
+			account = defaults.pop(0)
 		else:
 			try:
 				account = read_account()
@@ -363,12 +359,7 @@ def read_normal_transaction():
 		except KeyboardInterrupt:
 			print('\nTransaction entry aborted.')
 			return
-		if description == 'balance':
-			output += '%s %s %s %s\n' % (data.date, description, account, amount)
-			break
-		else:
-			output += '	%s %s\n' % (account, amount)
-			break
+		output += '	%s %s\n' % (account, amount)
 	data.defaults[description] = _transaction
 	if _transaction == []:
 		print('\nTransaction entry aborted.')
@@ -377,7 +368,20 @@ def read_normal_transaction():
 
 # Read a balance assertion transaction
 def read_balance_transaction():
-	pass
+	print('\nBalance assertion mode.')
+	data.date = read_date(data.date)
+	try:
+		defaults = get_defaults('balance')
+	except KeyboardInterrupt:
+		print('\nTransaction entry aborted.')
+		return
+	if defaults == []:
+		account = read_account()
+	else:
+		account = defaults[0]
+	amount = read_amount(account)
+	output = '%s %s %s %s\n' % (data.date, description, account, amount)
+	insert_transaction(output.strip())
 
 # Main data entry loop
 cmd = ''
@@ -404,6 +408,8 @@ while True:
 	elif cmd == "n":
 		data.tag = False
 		read_normal_transaction()
+	elif cmd == 'B':
+		read_balance_transaction()
 	elif cmd == 'f':
 		toggle_flag()
 	elif cmd == 't':
@@ -431,6 +437,7 @@ t	tag the transaction for later review
 s	seek to another record
 r	remove the current transaction
 u	undo transaction removal
+B	new balance assertion
 w	write journal file
 q	quit
 h	show this help message''')
