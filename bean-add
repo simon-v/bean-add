@@ -108,7 +108,7 @@ for i in _badblocks:
 		del data.journal[i]
 
 # Set up the completer
-readline.parse_and_bind("tab: complete")
+readline.parse_and_bind('tab: complete')
 
 def complete(text, state):
 	results = [x for x in data.vocab if x.startswith(text)] + [None]
@@ -379,13 +379,13 @@ while True:
 			source_file.write('\n\n'.join(data.journal) + '\n')
 			print('\n%s record(s) written' % len(data.journal))
 			data.saved = data.journal.copy()
-	elif cmd == "q":
+	elif cmd == 'q':
 		if data.journal != data.saved:
 			if not confirm('The journal file was modified. Really quit? (y/n) '):
 				continue
 		print('\nRemember that there is no input validation whatsoever!\nPlease run `bean-check` and correct any errors manually.')
 		sys.exit()
-	elif cmd == "n":
+	elif cmd == 'n':
 		data.tag = False
 		try:
 			read_normal_transaction()
@@ -415,7 +415,7 @@ while True:
 			insert_transaction(data.restore.pop())
 		else:
 			print('\nNothing to undo, the restore buffer is empty.')
-	elif cmd == "h":
+	elif cmd == 'h':
 		print('''Available commands:
 n	new transaction
 f	toggle transaction flag
