@@ -253,6 +253,10 @@ def toggle_flag():
 	if data.txid < 0:
 		print('\nNothing to flag, no current transaction.')
 		return
+	if ' ! ' in data.journal[data.txid]:
+		data.flag = True
+	else:
+		data.flag = False
 	if data.flag:
 		data.flag = False
 		data.journal[data.txid] = data.journal[data.txid].replace(' ! ', ' * ')
@@ -269,7 +273,11 @@ def toggle_tag():
 	if data.txid < 0:
 		print('\nNothing to tag, no current transaction.')
 		return
-	elif data.tag:
+	if '" #bean-add' in data.journal[data.txid]:
+		data.tag = True
+	else:
+		data.tag = False
+	if data.tag:
 		data.tag = False
 		data.journal[data.txid] = data.journal[data.txid].replace('" #bean-add\n', '"\n')
 		print('\nTag removed.')
