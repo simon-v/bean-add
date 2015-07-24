@@ -304,10 +304,24 @@ def seek_to_transaction():
 	print(data.journal[_txid])
 	data.txid = _txid
 
+# Get default accounts for a transaction
+def get_defaults(description):
+	if description in data.defaults:
+		print('Previously used accounts for this transaction:')
+		for _account in data.defaults[description]:
+			print('\t%s' % _account)
+		print()
+		if confirm('Use these accounts? (y/n) '):
+			return data.defaults
+		else:
+			return []
+	else:
+		return []
+
 # Enter a normal transaction
 def read_normal_transaction():
 	output = ''
-	defaults = []
+	#defaults = []
 	_transaction = []
 	data.balance = 0
 	try:
@@ -323,18 +337,11 @@ def read_normal_transaction():
 		print('\nBalance assertion mode.')
 	else:
 		output += '%s %s "%s"\n' % (data.date, '!' if data.flag else '*' , description)
-	if description in data.defaults:
-		print('Previously used accounts for this transaction:')
-		defaults = data.defaults[description]
-		for _account in defaults:
-			print('\t%s' % _account)
-		print()
-		try:
-			if not confirm('Use these accounts? (y/n) '):
-				defaults = []
-		except KeyboardInterrupt:
-			print('\nTransaction entry aborted.')
-			return
+	try:
+		defaults = get_defaults(description)
+	except KeyboardInterrupt:
+		print('\nTransaction entry aborted.')
+		return
 	while True:
 		if len(defaults) > 0:
 			account = defaults[0]
@@ -368,6 +375,9 @@ def read_normal_transaction():
 	else:
 		insert_transaction(output.strip())
 
+# Read a balance assertion transaction
+def read_balance_transaction():
+	pass
 
 # Main data entry loop
 cmd = ''
