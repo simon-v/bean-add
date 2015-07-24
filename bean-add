@@ -37,6 +37,7 @@ class data(object):
 	flag = False
 	tag = False
 	txid = -1
+	date = datetime.date.today().isoformat()
 
 # Ask for confirmation: str(prompt) -> bool(result)
 def confirm(prompt=''):
@@ -128,7 +129,6 @@ if data.journal != data.saved:
 	data.saved = data.journal.copy()
 
 # Init date and currencies
-date = datetime.date.today().isoformat()
 data.cur = data.currencies[0]
 
 # Insert a transaction in an appropriate place in the file: str(transaction) -> int(index)
@@ -216,7 +216,7 @@ def read_account():
 		return reading
 
 # Read and normalize transaction amount
-def read_amount():
+def read_amount(account):
 	# Set completion
 	data.vocab = data.currencies
 	readline.set_completer_delims(' ')
@@ -304,88 +304,25 @@ def seek_to_transaction():
 	print(data.journal[_txid])
 	data.txid = _txid
 
-# Main data entry loop
-cmd = ''
-print('\nChanges stay in memory until you [w]rite them out.')
-print('Type `h` for a list of available commands.')
-
-while True:
-	while True:
-		#cmd = get_command(['nwqh']) # todo
-		try:
-			cmd = input('\nEnter command (h for help) ')
-		except KeyboardInterrupt:
-			cmd = 'q'
-		if cmd == 'w':
-			with open(sys.argv[1], 'w') as source_file:
-				source_file.write('\n\n'.join(data.journal) + '\n')
-				print('\n%s record(s) written' % len(data.journal))
-				data.saved = data.journal.copy()
-			break
-		elif cmd == "q":
-			if data.journal != data.saved:
-				if not confirm('The journal file was modified. Really quit? (y/n) '):
-					continue
-			print('\nRemember that there is no input validation whatsoever!\nPlease run `bean-check` and correct any errors manually.')
-			sys.exit()
-		elif cmd == "n":
-			data.tag = False
-			break # todo
-		elif cmd == 'f':
-			toggle_flag()
-			continue
-		elif cmd == 't':
-			toggle_tag()
-			continue
-		elif cmd == 's':
-			seek_to_transaction()
-			break
-		elif cmd == 'r':
-			if data.txid >= 0:
-				data.restore.append(data.journal.pop(data.txid))
-				print('\nDeleted record %s' % data.txid)
-				if data.txid >= len(data.journal):
-					data.txid -= 1
-			else:
-				print('\nNothing to delete, no current transaction.')
-			break
-		elif cmd == 'u':
-			if len(data.restore) > 0:
-				insert_transaction(data.restore.pop())
-			else:
-				print('\nNothing to undo, the restore buffer is empty.')
-			break
-		elif cmd == "h":
-			print('''Available commands:
-n	new transaction
-f	toggle transaction flag
-t	tag the transaction for later review
-s	seek to another record
-r	remove the current transaction
-u	undo transaction removal
-w	write journal file
-q	quit
-h	show this help message''')
-			continue
-	if cmd != 'n':
-		continue
+# Enter a normal transaction
+def read_normal_transaction():
 	output = ''
 	defaults = []
 	_transaction = []
 	data.balance = 0
 	try:
-		date = read_date(date)
+		data.date = read_date(data.date)
 		description = read_description()
 	except KeyboardInterrupt:
 		print('\nTransaction entry aborted.')
-		continue
+		return
 	if description is None:
 		print('\nTransaction entry aborted.')
-		continue
+		return
 	elif description == 'balance':
 		print('\nBalance assertion mode.')
 	else:
-		output += '%s %s "%s"\n' % (date, '!' if data.flag else '*' , description)
+		output += '%s %s "%s"\n' % (data.date, '!' if data.flag else '*' , description)
 	if description in data.defaults:
 		print('Previously used accounts for this transaction:')
 		defaults = data.defaults[description]
@@ -397,7 +334,7 @@ h	show this help message''')
 				defaults = []
 		except KeyboardInterrupt:
 			print('\nTransaction entry aborted.')
-			continue
+			return
 	while True:
 		if len(defaults) > 0:
 			account = defaults[0]
@@ -407,7 +344,7 @@ h	show this help message''')
 				account = read_account()
 			except KeyboardInterrupt:
 				print('\nTransaction entry aborted.')
-				continue
+				return
 			if account is None:
 				if data.balance != 0:
 					if not confirm('\nThe transaction is unbalanced! Really finish? (y/n) '):
@@ -415,17 +352,75 @@ h	show this help message''')
 				break
 		_transaction.append(account)
 		try:
-			amount = read_amount()
+			amount = read_amount(account)
 		except KeyboardInterrupt:
 			print('\nTransaction entry aborted.')
-			continue
+			return
 		if description == 'balance':
-			output += '%s %s %s %s\n' % (date, description, account, amount)
+			output += '%s %s %s %s\n' % (data.date, description, account, amount)
 			break
 		else:
 			output += '	%s %s\n' % (account, amount)
+			break
 	data.defaults[description] = _transaction
 	if _transaction == []:
 		print('\nTransaction entry aborted.')
 	else:
 		insert_transaction(output.strip())
+
+
+# Main data entry loop
+cmd = ''
+print('\nChanges stay in memory until you [w]rite them out.')
+print('Type `h` for a list of available commands.')
+
+while True:
+	#cmd = get_command(['nwqh']) # todo
+	try:
+		cmd = input('\nEnter command (h for help) ')
+	except KeyboardInterrupt:
+		cmd = 'q'
+	if cmd == 'w':
+		with open(sys.argv[1], 'w') as source_file:
+			source_file.write('\n\n'.join(data.journal) + '\n')
+			print('\n%s record(s) written' % len(data.journal))
+			data.saved = data.journal.copy()
+	elif cmd == "q":
+		if data.journal != data.saved:
+			if not confirm('The journal file was modified. Really quit? (y/n) '):
+				continue
+		print('\nRemember that there is no input validation whatsoever!\nPlease run `bean-check` and correct any errors manually.')
+		sys.exit()
+	elif cmd == "n":
+		data.tag = False
+		read_normal_transaction()
+	elif cmd == 'f':
+		toggle_flag()
+	elif cmd == 't':
+		toggle_tag()
+	elif cmd == 's':
+		seek_to_transaction()
+	elif cmd == 'r':
+		if data.txid >= 0:
+			data.restore.append(data.journal.pop(data.txid))
+			print('\nDeleted record %s' % data.txid)
+			if data.txid >= len(data.journal):
+				data.txid -= 1
+		else:
+			print('\nNothing to delete, no current transaction.')
+	elif cmd == 'u':
+		if len(data.restore) > 0:
+			insert_transaction(data.restore.pop())
+		else:
+			print('\nNothing to undo, the restore buffer is empty.')
+	elif cmd == "h":
+		print('''Available commands:
+n	new transaction
+f	toggle transaction flag
+t	tag the transaction for later review
+s	seek to another record
+r	remove the current transaction
+u	undo transaction removal
+w	write journal file
+q	quit
+h	show this help message''')
