@@ -27,7 +27,6 @@ class data(object):
 	restore = []
 	# Completion
 	accounts = []
-	commands = ['balance']
 	currencies = []
 	vocab = []
 	# Current transaction
@@ -85,8 +84,10 @@ for line in tx_file.split('\n'):
 		elif _data[1] == 'open':
 			data.accounts.append(_data[2])
 		# Cache command data
-		elif _data[1] in data.commands:
-			data.defaults[_data[1]] = [_data[2]]
+		elif _data[1] == 'balance':
+			data.defaults['balance'] = [_data[2]]
+		elif _data[1] == 'pad':
+			data.defaults['pad'] = [_data[2], _data[3]]
 		# Record a description
 		elif _data[1] in '!*':
 			description = line[13:].split('#')[0].strip('" ')
@@ -352,7 +353,7 @@ def read_normal_transaction():
 
 # Read a balance assertion transaction
 def read_balance_transaction():
-	print('\nBalance assertion mode.')
+	print('\nAdding a new balance assertion.')
 	data.date = read_date(data.date)
 	defaults = get_defaults('balance')
 	if defaults == []:
@@ -360,8 +361,21 @@ def read_balance_transaction():
 	else:
 		account = defaults[0]
 	amount = read_amount(account)
-	output = '%s %s %s %s\n' % (data.date, description, account, amount)
-	insert_transaction(output.strip())
+	output = '%s balance %s %s\n' % (data.date, account, amount)
+	insert_transaction(output)
+
+# Read a pad statement
+def read_pad_transaction():
+	print('\nAdding a new pad statement.')
+	data.date = read_date(data.date)
+	defaults = get_defaults('pad')
+	if defaults == []:
+		account1 = read_account()
+		account2 = read_account()
+	else:
+		account1, account2 = defaults
+	output = '%s pad %s %s' % (data.date, account1, account2)
+	insert_transaction(output)
 
 # Main data entry loop
 cmd = ''
@@ -396,6 +410,11 @@ while True:
 			read_balance_transaction()
 		except KeyboardInterrupt:
 			print('\nTransaction entry cancelled.')
+	elif cmd == 'P':
+		try:
+			read_pad_transaction()
+		except KeyboardInterrupt:
+			print('\nTransaction entry cancelled.')
 	elif cmd == 'f':
 		toggle_flag()
 	elif cmd == 't':
@@ -424,6 +443,7 @@ s	seek to another record
 r	remove the current transaction
 u	undo transaction removal
 B	new balance assertion
+P	new pad statement
 w	write journal file
 q	quit
 h	show this help message''')
