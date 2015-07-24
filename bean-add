@@ -323,42 +323,26 @@ def read_normal_transaction():
 	output = ''
 	_transaction = []
 	data.balance = 0
-	try:
-		data.date = read_date(data.date)
-		description = read_description()
-	except KeyboardInterrupt:
-		print('\nTransaction entry aborted.')
-		return
+	data.date = read_date(data.date)
+	description = read_description()
 	if description is None:
 		print('\nTransaction entry aborted.')
 		return
 	else:
 		output += '%s %s "%s"\n' % (data.date, '!' if data.flag else '*' , description)
-	try:
-		defaults = get_defaults(description)
-	except KeyboardInterrupt:
-		print('\nTransaction entry aborted.')
-		return
+	defaults = get_defaults(description)
 	while True:
 		if len(defaults) > 0:
 			account = defaults.pop(0)
 		else:
-			try:
-				account = read_account()
-			except KeyboardInterrupt:
-				print('\nTransaction entry aborted.')
-				return
+			account = read_account()
 			if account is None:
 				if data.balance != 0:
 					if not confirm('\nThe transaction is unbalanced! Really finish? (y/n) '):
 						continue
 				break
 		_transaction.append(account)
-		try:
-			amount = read_amount(account)
-		except KeyboardInterrupt:
-			print('\nTransaction entry aborted.')
-			return
+		amount = read_amount(account)
 		output += '	%s %s\n' % (account, amount)
 	data.defaults[description] = _transaction
 	if _transaction == []:
@@ -370,11 +354,7 @@ def read_normal_transaction():
 def read_balance_transaction():
 	print('\nBalance assertion mode.')
 	data.date = read_date(data.date)
-	try:
-		defaults = get_defaults('balance')
-	except KeyboardInterrupt:
-		print('\nTransaction entry aborted.')
-		return
+	defaults = get_defaults('balance')
 	if defaults == []:
 		account = read_account()
 	else:
@@ -407,9 +387,15 @@ while True:
 		sys.exit()
 	elif cmd == "n":
 		data.tag = False
-		read_normal_transaction()
+		try:
+			read_normal_transaction()
+		except KeyboardInterrupt:
+			print('\nTransaction entry cancelled.')
 	elif cmd == 'B':
-		read_balance_transaction()
+		try:
+			read_balance_transaction()
+		except KeyboardInterrupt:
+			print('\nTransaction entry cancelled.')
 	elif cmd == 'f':
 		toggle_flag()
 	elif cmd == 't':
