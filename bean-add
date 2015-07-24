@@ -9,6 +9,7 @@ usage = 'Usage: bean-add FILENAME'
 import readline
 import sys
 import datetime
+import subprocess
 
 # Process command line arguments
 if len(sys.argv) < 2:
@@ -405,8 +406,12 @@ while True:
 		if data.journal != data.saved:
 			if not confirm('The journal file was modified. Really quit? (y/n) '):
 				continue
-		print('\nRemember that there is no input validation whatsoever!\nPlease run `bean-check` and correct any errors manually.')
 		sys.exit()
+	elif cmd == 'c':
+		with open('/tmp/bean-add.tmp', 'w') as tmp_file:
+			tmp_file.write('\n\n'.join(data.journal) + '\n')
+			subprocess.call(['bean-check', '/tmp/bean-add.tmp'])
+			print('\nValidation finished.')
 	elif cmd == 'n':
 		data.tag = False
 		try:
@@ -452,6 +457,7 @@ r	remove the current transaction
 u	undo transaction removal
 B	new balance assertion
 P	new pad statement
+c	run bean-check on the journal file
 w	write journal file
 q	quit
 h	show this help message''')
