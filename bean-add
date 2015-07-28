@@ -234,7 +234,7 @@ def read_amount(account):
 		data.balance = amt * -1
 	else:
 		data.balance -= amt
-	data.balance = int(data.balance) if data.balance == int(data.balance) else data.balance
+	data.balance = int(data.balance) if data.balance == int(data.balance) else round(data.balance, 2)
 	# Normalize amounts with one decimal place
 	amt = amount.split()[0]
 	_b = amt.split('.')
