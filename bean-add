@@ -370,7 +370,7 @@ def read_balance_transaction():
 	else:
 		account = defaults[0]
 	amount = read_amount(account)
-	output = '%s balance %s %s\n' % (data.date, account, amount)
+	output = '%s balance %s %s' % (data.date, account, amount)
 	insert_transaction(output)
 
 # Read a pad statement
