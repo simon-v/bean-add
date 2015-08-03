@@ -212,7 +212,7 @@ def read_account():
 		if reading not in data.accounts:
 			if not confirm('The account `%s` is not in the journal file. Add it? (y/n) ' % reading):
 				continue
-			insert_transaction('%s open %s' % (date, reading))
+			insert_transaction('%s open %s' % (data.date, reading))
 			print()
 			data.accounts.append(reading)
 		return reading
