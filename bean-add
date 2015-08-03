@@ -314,6 +314,20 @@ def seek_to_transaction():
 	print(data.journal[_txid])
 	data.txid = _txid
 
+# Find transactions that contain a string
+def find_transactions():
+	try:
+		reading = input('Enter search string: ').strip('\n')
+	except KeyboardInterrupt:
+		pring('Lookup cancelled.')
+		return
+	if reading == '':
+		print('Lookup cancelled.')
+		return
+	for i in range(len(data.journal)):
+		if reading in data.journal[i]:
+			print('[%s]	%s' % (i, data.journal[i].split('\n')[0]))
+
 # Get default accounts for a transaction
 def get_defaults(description):
 	if description in data.defaults:
@@ -432,6 +446,8 @@ while True:
 		toggle_tag()
 	elif cmd == 's':
 		seek_to_transaction()
+	elif cmd == 'l':
+		find_transactions()
 	elif cmd == 'r':
 		if data.txid >= 0:
 			data.restore.append(data.journal.pop(data.txid))
@@ -451,6 +467,7 @@ n	new transaction
 f	toggle transaction flag
 t	tag the transaction for later review
 s	seek to another record
+l	look up transactions containing a string
 r	remove the current transaction
 u	undo transaction removal
 B	new balance assertion
