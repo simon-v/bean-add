@@ -387,12 +387,10 @@ def read_pad_transaction():
 	insert_transaction(output)
 
 # Main data entry loop
-cmd = ''
 print('\nChanges stay in memory until you [w]rite them out.')
 print('Type `h` for a list of available commands.')
 
 while True:
-	#cmd = get_command(['nwqh']) # todo
 	try:
 		cmd = input('\nEnter command (h for help) ')
 	except KeyboardInterrupt:
