@@ -40,13 +40,17 @@ class data(object):
 	date = datetime.date.today().isoformat()
 
 # Ask for confirmation: str(prompt) -> bool(result)
-def confirm(prompt=''):
+def confirm(prompt='', default_yes=None):
 	# Unset completion
 	data.vocab = []
 	readline.set_completer_delims('')
 	# Get a valid confirmation
 	while True:
 		ch = input(prompt).lower()
+		if ch == '':
+			if default_yes is None:
+				continue
+			ch = 'y' if default_yes else 'n'
 		if ch == 'y':
 			return True
 		elif ch == 'n':
@@ -124,7 +128,7 @@ if len(data.accounts) > 0:
 	print('%s account(s), %s unique description(s), %s currency sign(s) loaded' % (len(data.accounts), len(data.defaults), len(data.currencies)))
 else:
 	print('File contains no account definitions.')
-	if not confirm('Proceed with editing? (y/n) '):
+	if not confirm('Proceed with editing? (y/N) ', False):
 		sys.exit()
 if data.journal != data.saved:
 	print('Automatic normalizations applied.')
@@ -210,7 +214,7 @@ def read_account():
 			return None
 		# Add new account option
 		if reading not in data.accounts:
-			if not confirm('The account `%s` is not in the journal file. Add it? (y/n) ' % reading):
+			if not confirm('The account `%s` is not in the journal file. Add it? (Y/n) ' % reading, True):
 				continue
 			insert_transaction('%s open %s' % (data.date, reading))
 			print()
@@ -335,7 +339,7 @@ def get_defaults(description):
 		for _account in data.defaults[description]:
 			print('\t%s' % _account)
 		print()
-		if confirm('Use these accounts? (y/n) '):
+		if confirm('Use these accounts? (Y/n) ', True):
 			return data.defaults[description]
 		else:
 			return []
@@ -362,7 +366,7 @@ def read_normal_transaction():
 			account = read_account()
 			if account is None:
 				if data.balance != 0:
-					if not confirm('\nThe transaction is unbalanced! Really finish? (y/n) '):
+					if not confirm('\nThe transaction is unbalanced! Really finish? (y/N) ', False):
 						continue
 				break
 		_transaction.append(account)
@@ -416,7 +420,7 @@ while True:
 			data.saved = data.journal.copy()
 	elif cmd == 'q':
 		if data.journal != data.saved:
-			if not confirm('The journal file was modified. Really quit? (y/n) '):
+			if not confirm('The journal file was modified. Really quit? (y/N) ', False):
 				continue
 		sys.exit()
 	elif cmd == 'c':
