@@ -387,6 +387,7 @@ def read_balance_transaction():
 		account = read_account()
 	else:
 		account = defaults[0]
+	data.balance = 0
 	amount = read_amount(account)
 	output = '%s balance %s %s' % (data.date, account, amount)
 	insert_transaction(output)
