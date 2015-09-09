@@ -405,9 +405,24 @@ def read_pad_transaction():
 	output = '%s pad %s %s' % (data.date, account1, account2)
 	insert_transaction(output)
 
+def read_note_transaction():
+	# Unset completion
+	data.vocab = []
+	readline.set_completer_delims('')
+	print('\nAdding a new note statement.')
+	data.date = read_date(data.date)
+	defaults = get_defaults('note')
+	if defaults == []:
+		account = read_account()
+	else:
+		account = defaults[0]
+	description = input('Enter the note description: ').strip(' "')
+	output = '%s note %s "%s"' % (data.date, account, description)
+	insert_transaction(output)
+
 # Main data entry loop
 print('\nChanges stay in memory until you [w]rite them out.')
-print('Type `h` for a list of available commands.')
+print('Type `h` or `?` for a list of available commands.')
 
 while True:
 	try:
@@ -445,6 +460,11 @@ while True:
 			read_pad_transaction()
 		except KeyboardInterrupt:
 			print('\nTransaction entry cancelled.')
+	elif cmd == 'N':
+		try:
+			read_note_transaction()
+		except KeyboardInterrupt:
+			print('\nTransaction entry cancelled.')
 	elif cmd == 'f':
 		toggle_flag()
 	elif cmd == 't':
@@ -466,7 +486,7 @@ while True:
 			insert_transaction(data.restore.pop())
 		else:
 			print('\nNothing to undo, the restore buffer is empty.')
-	elif cmd == 'h':
+	elif cmd == 'h' or cmd == '?':
 		print('''Available commands:
 n	new transaction
 f	toggle transaction flag
@@ -477,7 +497,8 @@ r	remove the current transaction
 u	undo transaction removal
 B	new balance assertion
 P	new pad statement
+N	new note statement
 c	run bean-check on the journal file
 w	write journal file
 q	quit
-h	show this help message''')
+h,?	show this help message''')
