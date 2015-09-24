@@ -502,3 +502,5 @@ c	run bean-check on the journal file
 w	write journal file
 q	quit
 h,?	show this help message''')
+	else:
+		print('Unknown command.')
