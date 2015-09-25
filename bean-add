@@ -139,19 +139,21 @@ data.cur = data.currencies[0]
 
 # Insert a transaction in an appropriate place in the file: str(transaction) -> int(index)
 def insert_transaction(tx):
+	_found = False
 	for _txid in range(len(data.journal)):
 		# Ignore comments
 		if data.journal[_txid].startswith(';'):
 			continue
 		# Seek forward to first bigger date
 		if data.journal[_txid][0:10] > tx[0:10]:
+			_found = True
 			break
-	# If not found, insert at the end of file
-	if ( _txid + 1 ) == len(data.journal):
+	if _found:
+		data.journal.insert(_txid, tx)
+	else:
+		# If not found, insert at the end of file
 		_txid += 1
 		data.journal.append(tx)
-	else:
-		data.journal.insert(_txid, tx)
 	print('\nTransaction added as record %s\n\n%s' % (_txid, tx))
 	data.txid = _txid
 
