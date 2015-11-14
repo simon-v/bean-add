@@ -387,6 +387,7 @@ def read_balance_transaction():
 	defaults = get_defaults('balance')
 	if defaults == []:
 		account = read_account()
+		data.defaults['balance'] = [account]
 	else:
 		account = defaults[0]
 	data.balance = 0
@@ -402,6 +403,7 @@ def read_pad_transaction():
 	if defaults == []:
 		account1 = read_account()
 		account2 = read_account()
+		data.defaults['pad'] = [account1, account2]
 	else:
 		account1, account2 = defaults
 	output = '%s pad %s %s' % (data.date, account1, account2)
@@ -416,6 +418,7 @@ def read_note_transaction():
 	defaults = get_defaults('note')
 	if defaults == []:
 		account = read_account()
+		data.defaults['balance'] = [account]
 	else:
 		account = defaults[0]
 	description = input('Enter the note description: ').strip(' "')
