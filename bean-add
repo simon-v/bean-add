@@ -100,8 +100,10 @@ for line in tx_file.split('\n'):
 			data.defaults[description] = []
 			if '#' in line:
 				for word in _data:
-					if '#' in word and not word[1:] in data.tags:
-						data.tags.append(word[1:])
+					if '#' in word:
+						if not word[1:] in data.tags:
+							data.tags.append(word[1:])
+						data.defaults['tag'] = word[1:]
 	except IndexError:
 		continue
 
@@ -290,25 +292,27 @@ def add_remove_tag():
 	readline.set_completer_delims('')
 	# Get and normalize a tag
 	try:
-		_tag = input('Enter a tag [%s]: ' % data.tag)
+		_tag = input('Enter a tag [%s]: ' % data.defaults['tag'])
 	except KeyboardInterrupt:
 		print('\nTagging cancelled.')
 		return
-	data.tag = data.tag if _tag == '' else _tag
-	if '#' in data.tag:
-		data.tag = data.tag.strip('# ')
-	# If the tag is already there, remove it instead
-	if data.tag in data.journal[data.txid]:
+	_tag = _tag.strip('# ')
+	if _tag == '':
+		_tag = data.defaults['tag']
+	else:
+		data.defaults['tag'] = _tag
+	# If the tag is already there, offer to remove it instead
+	if '#' + _tag in data.journal[data.txid]:
 		if confirm('\nThe transaction already has this tag. Remove it? (Y/n) ', True):
-			data.journal[data.txid] = data.journal[data.txid].replace(' #%s' % data.tag, '')
+			data.journal[data.txid] = data.journal[data.txid].replace(' #%s' % _tag, '')
 		else:
 			print('\nTagging cancelled.')
 			return
-	# Apply the tag (using two different methods
+	# Apply the tag (using two different methods)
 	else:
-		_transaction = data.journal[data.txid].replace('"\n', '" #%s\n' % data.tag)
+		_transaction = data.journal[data.txid].replace('"\n', '" #%s\n' % _tag)
 		if _transaction == data.journal[data.txid]:
-			_transaction = data.journal[data.txid].replace('" #', '" #%s #' % data.tag)
+			_transaction = data.journal[data.txid].replace('" #', '" #%s #' % _tag)
 		if _transaction == data.journal[data.txid]:
 			print('\nCould not add the tag. Syntax error?')
 			return
@@ -471,7 +475,6 @@ while True:
 			subprocess.call(['bean-check', '/tmp/bean-add.tmp'])
 			print('\nValidation finished.')
 	elif cmd == 'n':
-		data.tag = False
 		try:
 			read_normal_transaction()
 		except KeyboardInterrupt:
