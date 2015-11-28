@@ -443,7 +443,7 @@ def read_note_transaction():
 	defaults = get_defaults('__note__')
 	if defaults == []:
 		account = read_account()
-		data.defaults['__balance__'] = [account]
+		data.defaults['__note__'] = [account]
 	else:
 		account = defaults[0]
 	description = input('Enter the note description: ').strip(' "')
