@@ -360,7 +360,7 @@ def find_transactions():
 			print('[%s]	%s' % (i, data.journal[i].split('\n')[0]))
 
 # Get default accounts for a transaction
-def get_defaults(description):
+def get_default_accounts(description):
 	if description in data.defaults:
 		print('Previously used accounts for this transaction:')
 		for _account in data.defaults[description]:
@@ -385,7 +385,7 @@ def read_normal_transaction():
 		return
 	else:
 		output += '%s %s "%s"\n' % (data.date, '!' if data.flag else '*' , description)
-	defaults = get_defaults(description)
+	defaults = get_default_accounts(description)
 	while True:
 		if len(defaults) > 0:
 			account = defaults.pop(0)
@@ -409,7 +409,7 @@ def read_normal_transaction():
 def read_balance_transaction():
 	print('\nAdding a new balance assertion.')
 	data.date = read_date(data.date)
-	defaults = get_defaults('__balance__')
+	defaults = get_default_accounts('__balance__')
 	if defaults == []:
 		account = read_account()
 		data.defaults['__balance__'] = [account]
@@ -424,7 +424,7 @@ def read_balance_transaction():
 def read_pad_transaction():
 	print('\nAdding a new pad statement.')
 	data.date = read_date(data.date)
-	defaults = get_defaults('__pad__')
+	defaults = get_default_accounts('__pad__')
 	if defaults == []:
 		account1 = read_account()
 		account2 = read_account()
@@ -440,7 +440,7 @@ def read_note_transaction():
 	readline.set_completer_delims('')
 	print('\nAdding a new note statement.')
 	data.date = read_date(data.date)
-	defaults = get_defaults('__note__')
+	defaults = get_default_accounts('__note__')
 	if defaults == []:
 		account = read_account()
 		data.defaults['__note__'] = [account]
