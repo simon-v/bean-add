@@ -29,13 +29,14 @@ class data(object):
 	# Completion
 	accounts = []
 	currencies = []
+	tags = []
 	vocab = []
 	# Current transaction
 	description = ''
 	cur = ''
 	balance = 0
 	flag = False
-	tag = False
+	tag = 'bean-add'
 	txid = -1
 	date = datetime.date.today().isoformat()
 
@@ -97,6 +98,10 @@ for line in tx_file.split('\n'):
 		elif _data[1] in '!*':
 			description = line[13:].split('#')[0].strip('" ')
 			data.defaults[description] = []
+			if '#' in line:
+				for word in _data:
+					if '#' in word and not word[1:] in data.tags:
+						data.tags.append(word[1:])
 	except IndexError:
 		continue
 
@@ -125,7 +130,7 @@ readline.set_completer(complete)
 # Print some statistics
 print('%s record(s) processed' % len(data.journal))
 if len(data.accounts) > 0:
-	print('%s account(s), %s unique description(s), %s currency sign(s) loaded' % (len(data.accounts), len(data.defaults), len(data.currencies)))
+	print('%s account(s), %s unique description(s), %s currency sign(s), %s tag(s) loaded' % (len(data.accounts), len(data.defaults), len(data.currencies), len(data.tags)))
 else:
 	print('File contains no account definitions.')
 	if not confirm('Proceed with editing? (y/N) ', False):
@@ -275,23 +280,39 @@ def toggle_flag():
 	print()
 	print(data.journal[data.txid])
 
-# Toggle transaction tag
-def toggle_tag():
+# Add or remove transaction tags
+def add_remove_tag():
 	if data.txid < 0:
 		print('\nNothing to tag, no current transaction.')
 		return
-	if '" #bean-add' in data.journal[data.txid]:
-		data.tag = True
+	# Set completion
+	data.vocab = data.tags
+	readline.set_completer_delims('')
+	# Get and normalize a tag
+	try:
+		_tag = input('Enter a tag [%s]: ' % data.tag)
+	except KeyboardInterrupt:
+		print('\nTagging cancelled.')
+		return
+	data.tag = data.tag if _tag == '' else _tag
+	if '#' in data.tag:
+		data.tag = data.tag.strip('# ')
+	# If the tag is already there, remove it instead
+	if data.tag in data.journal[data.txid]:
+		if confirm('\nThe transaction already has this tag. Remove it? (Y/n) ', True):
+			data.journal[data.txid] = data.journal[data.txid].replace(' #%s' % data.tag, '')
+		else:
+			print('\nTagging cancelled.')
+			return
+	# Apply the tag (using two different methods
 	else:
-		data.tag = False
-	if data.tag:
-		data.tag = False
-		data.journal[data.txid] = data.journal[data.txid].replace('" #bean-add\n', '"\n')
-		print('\nTag removed.')
-	else:
-		data.tag = True
-		data.journal[data.txid] = data.journal[data.txid].replace('"\n', '" #bean-add\n')
-		print('\nTag added.')
+		_transaction = data.journal[data.txid].replace('"\n', '" #%s\n' % data.tag)
+		if _transaction == data.journal[data.txid]:
+			_transaction = data.journal[data.txid].replace('" #', '" #%s #' % data.tag)
+		if _transaction == data.journal[data.txid]:
+			print('\nCould not add the tag. Syntax error?')
+			return
+		data.journal[data.txid] = _transaction
 	print()
 	print(data.journal[data.txid])
 
@@ -473,7 +494,7 @@ while True:
 	elif cmd == 'f':
 		toggle_flag()
 	elif cmd == 't':
-		toggle_tag()
+		add_remove_tag()
 	elif cmd == 's':
 		seek_to_transaction()
 	elif cmd == 'l':
@@ -495,7 +516,7 @@ while True:
 		print('''Available commands:
 n	new transaction
 f	toggle transaction flag
-t	tag the transaction for later review
+t	add or remove tags
 s	seek to another record
 l	look up transactions containing a string
 r	remove the current transaction
