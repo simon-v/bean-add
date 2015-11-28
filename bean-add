@@ -91,9 +91,9 @@ for line in tx_file.split('\n'):
 			data.accounts.append(_data[2])
 		# Cache command data
 		elif _data[1] == 'balance':
-			data.defaults['balance'] = [_data[2]]
+			data.defaults['__balance__'] = [_data[2]]
 		elif _data[1] == 'pad':
-			data.defaults['pad'] = [_data[2], _data[3]]
+			data.defaults['__pad__'] = [_data[2], _data[3]]
 		# Record a description
 		elif _data[1] in '!*':
 			description = line[13:].split('#')[0].strip('" ')
@@ -103,7 +103,7 @@ for line in tx_file.split('\n'):
 					if '#' in word:
 						if not word[1:] in data.tags:
 							data.tags.append(word[1:])
-						data.defaults['tag'] = word[1:]
+						data.defaults['__tag__'] = word[1:]
 	except IndexError:
 		continue
 
@@ -292,15 +292,15 @@ def add_remove_tag():
 	readline.set_completer_delims('')
 	# Get and normalize a tag
 	try:
-		_tag = input('Enter a tag [%s]: ' % data.defaults['tag'])
+		_tag = input('Enter a tag [%s]: ' % data.defaults['__tag__'])
 	except KeyboardInterrupt:
 		print('\nTagging cancelled.')
 		return
 	_tag = _tag.strip('# ')
 	if _tag == '':
-		_tag = data.defaults['tag']
+		_tag = data.defaults['__tag__']
 	else:
-		data.defaults['tag'] = _tag
+		data.defaults['__tag__'] = _tag
 	# If the tag is already there, offer to remove it instead
 	if '#' + _tag in data.journal[data.txid]:
 		if confirm('\nThe transaction already has this tag. Remove it? (Y/n) ', True):
@@ -314,7 +314,7 @@ def add_remove_tag():
 		if _transaction == data.journal[data.txid]:
 			_transaction = data.journal[data.txid].replace('" #', '" #%s #' % _tag)
 		if _transaction == data.journal[data.txid]:
-			print('\nCould not add the tag. Syntax error?')
+			print('\nCannot add tags to special transactions.')
 			return
 		data.journal[data.txid] = _transaction
 	print()
@@ -409,10 +409,10 @@ def read_normal_transaction():
 def read_balance_transaction():
 	print('\nAdding a new balance assertion.')
 	data.date = read_date(data.date)
-	defaults = get_defaults('balance')
+	defaults = get_defaults('__balance__')
 	if defaults == []:
 		account = read_account()
-		data.defaults['balance'] = [account]
+		data.defaults['__balance__'] = [account]
 	else:
 		account = defaults[0]
 	data.balance = 0
@@ -424,11 +424,11 @@ def read_balance_transaction():
 def read_pad_transaction():
 	print('\nAdding a new pad statement.')
 	data.date = read_date(data.date)
-	defaults = get_defaults('pad')
+	defaults = get_defaults('__pad__')
 	if defaults == []:
 		account1 = read_account()
 		account2 = read_account()
-		data.defaults['pad'] = [account1, account2]
+		data.defaults['__pad__'] = [account1, account2]
 	else:
 		account1, account2 = defaults
 	output = '%s pad %s %s' % (data.date, account1, account2)
@@ -440,10 +440,10 @@ def read_note_transaction():
 	readline.set_completer_delims('')
 	print('\nAdding a new note statement.')
 	data.date = read_date(data.date)
-	defaults = get_defaults('note')
+	defaults = get_defaults('__note__')
 	if defaults == []:
 		account = read_account()
-		data.defaults['balance'] = [account]
+		data.defaults['__balance__'] = [account]
 	else:
 		account = defaults[0]
 	description = input('Enter the note description: ').strip(' "')
