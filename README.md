@@ -1,7 +1,7 @@
 # bean-add
 ## A beancount transaction entry assistant
 
-Bean-add is a relatively simple tool designed to ease adding transactions to your beancount [http://furius.ca/beancount/] journal.
+Bean-add is a relatively simple tool designed to ease adding transactions to your beancount [http://furius.ca/beancount/] journal. While both vi and EMACS have extensions for dealing with ledger and beancount files, some people prefer to edit their text with Nano.
 
 To begin, run `bean-add` with your journal file name as the argument. The journal file will be parsed, and you will be presented with a command prompt, not unlike that of fdisk or parted.
 
@@ -13,7 +13,7 @@ Once you are done with the transaction entry, it will be inserted chronologicall
 
 Certain special directives, such as `balance` and `pad` can also be entered using `bean-add`. The commands for those are usually an uppercase letter.
 
-Type `f` to flag the transaction and `t` to tag it with `#bean-add` so you can find it more easily when you later open the journal file with your favorite text editor.
+Type `f` to flag the transaction. Type `t` to add or remove transaction tags.
 
 You can navigate to other record in the journal file with `s`. This is useful if you suddenly remember you forgot some minor detail in a previous transaction.
 
