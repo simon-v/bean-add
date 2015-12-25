@@ -459,11 +459,13 @@ while True:
 		cmd = input('\nEnter command (h for help) ')
 	except KeyboardInterrupt:
 		cmd = 'q'
-	if cmd == 'w':
+	if cmd in ['w', 'wq']:
 		with open(sys.argv[1], 'w') as source_file:
 			source_file.write('\n\n'.join(data.journal) + '\n')
 			print('\n%s record(s) written' % len(data.journal))
 			data.saved = data.journal.copy()
+		if cmd == 'wq':
+			sys.exit()
 	elif cmd == 'q':
 		if data.journal != data.saved:
 			if not confirm('The journal file was modified. Really quit? (y/N) ', False):
@@ -530,6 +532,7 @@ N	new note statement
 c	run bean-check on the journal file
 w	write journal file
 q	quit
+wq	write journal file and quit immediately
 h,?	show this help message''')
 	else:
 		print('Unknown command.')
