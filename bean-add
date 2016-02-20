@@ -350,7 +350,7 @@ def find_transactions():
 	try:
 		reading = input('Enter search string: ').strip('\n')
 	except KeyboardInterrupt:
-		pring('Lookup cancelled.')
+		print('Lookup cancelled.')
 		return
 	if reading == '':
 		print('Lookup cancelled.')
