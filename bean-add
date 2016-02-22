@@ -39,6 +39,8 @@ class data(object):
 	tag = 'bean-add'
 	txid = -1
 	date = datetime.date.today().isoformat()
+	# Options
+	sort_by_date = True
 
 # Ask for confirmation: str(prompt) -> bool(result)
 def confirm(prompt='', default_yes=None):
@@ -161,11 +163,11 @@ def insert_transaction(tx):
 		if data.journal[_txid][0:10] > tx[0:10]:
 			_found = True
 			break
-	if _found:
+	if _found and data.sort_by_date:
 		data.journal.insert(_txid, tx)
 	else:
 		# If not found, insert at the end of file
-		_txid += 1
+		_txid = len(data.journal)
 		data.journal.append(tx)
 	print('\nTransaction added as record %s\n\n%s' % (_txid, tx))
 	data.txid = _txid
@@ -523,6 +525,12 @@ while True:
 			insert_transaction(data.restore.pop())
 		else:
 			print('\nNothing to undo, the restore buffer is empty.')
+	elif cmd == 'o':
+		print('Available option commands:')
+		print('os	sort transactions by date (%s)' % ('enabled' if data.sort_by_date else 'disabled'))
+	elif cmd == 'os':
+		data.sort_by_date = not data.sort_by_date
+		print('\nSorting by date %s.' % ('enabled' if data.sort_by_date else 'disabled'))
 	elif cmd == 'h' or cmd == '?':
 		print('''Available commands:
 n	new transaction
@@ -536,6 +544,7 @@ B	new balance assertion
 P	new pad statement
 N	new note statement
 c	run bean-check on the journal file
+o	view or change options
 w	write journal file
 q	quit
 wq	write journal file and quit immediately
