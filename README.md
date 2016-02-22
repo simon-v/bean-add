@@ -9,7 +9,7 @@ Type `h` for a list of available commands.
 
 To add a new transaction, type `n`. Enter the transaction's details: date, description, and the participating accounts and their amounts. You can press `tab` during entry to trigger completion. If there was a transaction with matching description in the past (and there almost always is), you will be presented with an option to reuse the accounts for the new transaction.
 
-Once you are done with the transaction entry, it will be inserted chronologically into your file and you will be returned to the command prompt.
+Once you are done with the transaction entry, it will be inserted chronologically into your file and you will be returned to the command prompt. Note that this assumes that your beancount file is sorted by date; If it isn't, the results will be unpredictable. Fortunately, this sorting method can be disabled through the options (see below).
 
 Certain special directives, such as `balance` and `pad` can also be entered using `bean-add`. The commands for those are usually an uppercase letter.
 
@@ -23,4 +23,6 @@ When you are done entering your transactions, type `w` to write the journal file
 
 Type `c` at any point to validate the journal file with `bean-check`. If you plan on using this feature, make sure `bean-check` is in your `$PATH`.
 
-The program is released under the "Do what you feel is right, but don't be a jerk" public license.
+Type `o` to view a list of option commands that modify the way bean-add works and their current settings.
+
+The program is released under the "Do what you feel is right, but don't be a jerk" public license, and it comes without any kind of warranty.
