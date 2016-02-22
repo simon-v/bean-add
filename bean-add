@@ -156,8 +156,8 @@ data.cur = data.currencies[0]
 def insert_transaction(tx):
 	_found = False
 	for _txid in range(len(data.journal)):
-		# Ignore comments
-		if data.journal[_txid].startswith(';'):
+		# Ignore records that don't start with a date
+		if data.journal[_txid][0] not in '0123456789':
 			continue
 		# Seek forward to first bigger date
 		if data.journal[_txid][0:10] > tx[0:10]:
