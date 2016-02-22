@@ -77,6 +77,12 @@ for line in tx_file.split('\n'):
 	elif line.startswith(';'):
 		continue
 	_data = line.split(' ')
+	# Compress redundant whitespace
+	__data = []
+	for i in _data:
+		if i.strip() != '':
+			__data.append(i)
+	_data = __data
 	try:
 		# Attach transaction legs to previous description
 		if _data[0] in data.accounts:
