@@ -41,6 +41,7 @@ class data(object):
 	date = datetime.date.today().isoformat()
 	# Options
 	sort_by_date = True
+	date_delimiter = '-'
 
 # Ask for confirmation: str(prompt) -> bool(result)
 def confirm(prompt='', default_yes=None):
@@ -104,6 +105,7 @@ for line in tx_file.split('\n'):
 			data.defaults['__pad__'] = [_data[2], _data[3]]
 		# Record a description
 		elif _data[1] in '!*':
+			data.date_delimiter = _data[0][4]
 			description = line[13:].split('#')[0].strip('" ')
 			data.defaults[description] = []
 			if '#' in line:
@@ -149,6 +151,12 @@ if data.journal != data.saved:
 	print('Automatic normalizations applied.')
 	data.saved = data.journal.copy()
 
+# Date delimiter handling
+if data.date_delimiter != '-':
+	print('\nWarning: Non-standard date delimiter.')
+	data.date = data.date.replace('-', data.date_delimiter)
+	date_prompt = data.date_delimiter.join(['%Y', '%m', '%d'])
+
 # Init date and currencies
 data.cur = data.currencies[0]
 
@@ -174,7 +182,7 @@ def insert_transaction(tx):
 
 # Date from string wrapper: str(date) -> date(date)
 def strpdate(d):
-	return datetime.datetime.strptime(d, '%Y-%m-%d').date()
+	return datetime.datetime.strptime(d, date_prompt).date()
 
 # Read and validate a date: str(default) -> str(date)
 def read_date(default):
@@ -183,7 +191,7 @@ def read_date(default):
 	readline.set_completer_delims('')
 	# Get a valid date
 	while True:
-		reading = input('Enter transaction date (%%Y-%%m-%%d, or +/-days) [%s]: ' % default)
+		reading = input('Enter transaction date (%s, or +/-days) [%s]: ' % (date_prompt, default))
 		# Accepting the default
 		if reading == '':
 			return default
