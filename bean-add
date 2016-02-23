@@ -39,6 +39,7 @@ class data(object):
 	tag = 'bean-add'
 	txid = -1
 	date = datetime.date.today().isoformat()
+	date_prompt = '%Y-%m-%d'
 	# Options
 	sort_by_date = True
 	date_delimiter = '-'
@@ -155,7 +156,7 @@ if data.journal != data.saved:
 if data.date_delimiter != '-':
 	print('\nWarning: Non-standard date delimiter.')
 	data.date = data.date.replace('-', data.date_delimiter)
-	date_prompt = data.date_delimiter.join(['%Y', '%m', '%d'])
+	data.date_prompt = data.date_delimiter.join(['%Y', '%m', '%d'])
 
 # Init date and currencies
 data.cur = data.currencies[0]
@@ -182,7 +183,7 @@ def insert_transaction(tx):
 
 # Date from string wrapper: str(date) -> date(date)
 def strpdate(d):
-	return datetime.datetime.strptime(d, date_prompt).date()
+	return datetime.datetime.strptime(d, data.date_prompt).date()
 
 # Read and validate a date: str(default) -> str(date)
 def read_date(default):
@@ -191,7 +192,7 @@ def read_date(default):
 	readline.set_completer_delims('')
 	# Get a valid date
 	while True:
-		reading = input('Enter transaction date (%s, or +/-days) [%s]: ' % (date_prompt, default))
+		reading = input('Enter transaction date (%s, or +/-days) [%s]: ' % (data.date_prompt, default))
 		# Accepting the default
 		if reading == '':
 			return default
