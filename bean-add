@@ -415,7 +415,11 @@ def read_normal_transaction():
 				break
 		_transaction.append(account)
 		amount = read_amount(account)
-		output += '	%s %s\n' % (account, amount)
+		if amount.startswith('0 '):
+			print('Removing zero-amount `%s` from transaction.' % account)
+			del(_transaction[ -1])
+		else:
+			output += '	%s %s\n' % (account, amount)
 	data.defaults[description] = _transaction
 	if _transaction == []:
 		print('\nTransaction entry aborted.')
