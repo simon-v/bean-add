@@ -16,14 +16,13 @@ if len(sys.argv) < 2:
 	sys.exit(usage)
 elif sys.argv[1] == '-h' or sys.argv[1] == '--help':
 	sys.exit(usage)
-elif len(sys.argv) < 2:
-	sys.exit(usage)
 
 # Init transaction data
 class data(object):
 	# Journal/transactions
 	journal = []
 	saved = []
+	file_name = sys.argv[1]
 	defaults = {}
 	restore = []
 	# Completion
@@ -63,10 +62,10 @@ def confirm(prompt='', default_yes=None):
 
 # Read and process journal file
 try:
-	with open(sys.argv[1], 'r') as source_file:
+	with open(data.file_name, 'r') as source_file:
 		tx_file = source_file.read()
 except:
-	sys.exit('Could not open the file `%s`.' % sys.argv[1])
+	sys.exit('Could not open the file `%s`.' % data.file_name)
 
 description = ''
 for line in tx_file.split('\n'):
@@ -481,7 +480,7 @@ while True:
 	except KeyboardInterrupt:
 		cmd = 'q'
 	if cmd in ['w', 'wq']:
-		with open(sys.argv[1], 'w') as source_file:
+		with open(data.file_name, 'w') as source_file:
 			source_file.write('\n\n'.join(data.journal) + '\n')
 			print('\n%s record(s) written' % len(data.journal))
 			data.saved = data.journal.copy()
