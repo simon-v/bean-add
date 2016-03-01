@@ -42,6 +42,7 @@ class data(object):
 	# Options
 	sort_by_date = True
 	date_delimiter = '-'
+	use_defaults = None
 
 # Ask for confirmation: str(prompt) -> bool(result)
 def confirm(prompt='', default_yes=None):
@@ -382,7 +383,8 @@ def get_default_accounts(description):
 		for _account in data.defaults[description]:
 			print('\t%s' % _account)
 		print()
-		if confirm('Use these accounts? (Y/n) ', True):
+		_use = confirm('Use these accounts? (Y/n) ', True) if data.use_defaults is None else data.use_defaults
+		if _use:
 			return data.defaults[description]
 		else:
 			return []
@@ -540,9 +542,13 @@ while True:
 	elif cmd == 'o':
 		print('Available option commands:')
 		print('os	sort transactions by date (%s)' % ('enabled' if data.sort_by_date else 'disabled'))
+		print('oa	reuse last used accounts in new transactions (%s)' % ('ask' if data.use_defaults is None else 'always' if data.use_defaults else 'never'))
 	elif cmd == 'os':
 		data.sort_by_date = not data.sort_by_date
 		print('\nSorting by date %s.' % ('enabled' if data.sort_by_date else 'disabled'))
+	elif cmd == 'oa':
+		data.use_defaults = None if data.use_defaults == False else not data.use_defaults
+		print('\nThe policy on reusing accounts for new transactions is now `%s`.' % ('ask' if data.use_defaults is None else 'always' if data.use_defaults else 'never'))
 	elif cmd == 'h' or cmd == '?':
 		print('''Available commands:
 n	new transaction
