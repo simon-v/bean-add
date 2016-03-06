@@ -17,7 +17,7 @@ Certain special directives, such as `balance` and `pad` can also be entered usin
 
 Type `f` to flag the transaction. Type `t` to add or remove transaction tags.
 
-You can navigate to other record in the journal file with `s`. This is useful if you suddenly remember you forgot some minor detail in a previous transaction.
+You can navigate to other record in the journal file with `s`. This is useful if you suddenly remember you forgot some minor detail in a previous transaction. There are also shortcuts available for seeking one record forward and backwards, as well as to the beginning and end of the journal file.
 
 To remove a record from the journal file, type `r`. To undo a recent removal, type `u`.
 

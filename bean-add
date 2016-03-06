@@ -338,24 +338,50 @@ def add_remove_tag():
 	print(data.journal[data.txid])
 
 # Seek to a specific record in the journal file
-def seek_to_transaction():
-	if data.txid > 0:
-		print('\nCurrently at record %s.' % data.txid)
-	else:
-		print('\nNo current record.')
+def seek_to_transaction(autoseek=None):
 	while True:
+		if autoseek is None:
+			# Manual seeking input
+			if data.txid >= 0:
+				print('\nCurrently at record %s.' % data.txid)
+			else:
+				print('\nNo current record.')
+			try:
+				reading = input('Enter record number (0-%s, or +/-COUNT): ' % (len(data.journal) - 1))
+			except KeyboardInterrupt:
+				print('\nSeeking cancelled.')
+				return
+		else:
+			reading = autoseek
 		try:
-			reading = input('Enter number (0-%s, or +/-count): ' % (len(data.journal) - 1))
 			_txid = int(reading)
-		except KeyboardInterrupt:
+		except ValueError:
 			print('\nSeeking cancelled.')
 			return
-		except ValueError:
-			continue
 		if reading.startswith('+') or reading.startswith('-'):
-			_txid += data.txid
-		if _txid < 0 or _txid > len(data.journal) - 1:
-			continue
+			if data.txid == -1:
+				if autoseek is not None:
+					print('\nNo current record.')
+					return
+				else:
+					print('\nSeeking cancelled.')
+					return
+			else:
+				_txid += data.txid
+		if _txid < 0:
+			if autoseek is not None:
+				print('\nYou are at the first record.')
+				return
+			else:
+				print('\nSeeking cancelled.')
+				return
+		elif _txid > len(data.journal) - 1:
+			if autoseek is not None:
+				print('\nYou are at the last record.')
+				return
+			else:
+				print('\nSeeking cancelled.')
+				return
 		else:
 			break
 	print('\nRecord %s:\n' % _txid)
@@ -524,6 +550,14 @@ while True:
 		add_remove_tag()
 	elif cmd == 's':
 		seek_to_transaction()
+	elif cmd == 'sa':
+		seek_to_transaction('-1')
+	elif cmd == 'sd':
+		seek_to_transaction('+1')
+	elif cmd == 'sq':
+		seek_to_transaction('0')
+	elif cmd == 'se':
+		seek_to_transaction(str(len(data.journal) - 1))
 	elif cmd == 'l':
 		find_transactions()
 	elif cmd == 'r':
@@ -555,6 +589,10 @@ n	new transaction
 f	toggle transaction flag
 t	add or remove tags
 s	seek to another record
+sa	seek one record forward
+sd	seek one record backwards
+sq	seek to the first record
+se	seek to the last record
 l	look up transactions containing a string
 r	remove the current transaction
 u	undo transaction removal
