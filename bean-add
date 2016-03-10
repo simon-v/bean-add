@@ -520,7 +520,7 @@ while True:
 			sys.exit()
 	elif cmd == 'q':
 		if data.journal != data.saved:
-			if not confirm('The journal file was modified. Really quit? (y/N) ', False):
+			if not confirm('The journal file was modified. Do you really want to DESTROY ALL CHANGES and quit? (y/N) ', False):
 				continue
 		sys.exit()
 	elif cmd == 'c':
