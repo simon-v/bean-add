@@ -43,6 +43,7 @@ class data(object):
 	sort_by_date = True
 	date_delimiter = '-'
 	use_defaults = None
+	paranoid_write = False
 
 # Ask for confirmation: str(prompt) -> bool(result)
 def confirm(prompt='', default_yes=None):
@@ -503,10 +504,13 @@ print('\nChanges stay in memory until you [w]rite them out.')
 print('Type `h` or `?` for a list of available commands.')
 
 while True:
-	try:
-		cmd = input('\nEnter command (h for help) ')
-	except KeyboardInterrupt:
-		cmd = 'q'
+	if data.paranoid_write and data.journal != data.saved:
+		cmd = 'w'
+	else:
+		try:
+			cmd = input('\nEnter command (h for help) ')
+		except KeyboardInterrupt:
+			cmd = 'q'
 	if cmd in ['w', 'wq']:
 		with open(data.file_name, 'w') as source_file:
 			source_file.write('\n\n'.join(data.journal) + '\n')
@@ -577,12 +581,16 @@ while True:
 		print('Available option commands:')
 		print('os	sort transactions by date (%s)' % ('enabled' if data.sort_by_date else 'disabled'))
 		print('oa	reuse last used accounts in new transactions (%s)' % ('ask' if data.use_defaults is None else 'always' if data.use_defaults else 'never'))
+		print('ow	write journal after every change (%s)' % ('enabled' if data.paranoid_write else 'disabled'))
 	elif cmd == 'os':
 		data.sort_by_date = not data.sort_by_date
 		print('\nSorting by date %s.' % ('enabled' if data.sort_by_date else 'disabled'))
 	elif cmd == 'oa':
 		data.use_defaults = None if data.use_defaults == False else not data.use_defaults
 		print('\nThe policy on reusing accounts for new transactions is now `%s`.' % ('ask' if data.use_defaults is None else 'always' if data.use_defaults else 'never'))
+	elif cmd == 'ow':
+		data.paranoid_write = not data.paranoid_write
+		print('\nWriting journal after every change is %s.' % ('enabled' if data.paranoid_write else 'disabled'))
 	elif cmd == 'h' or cmd == '?':
 		print('''Available commands:
 n	new transaction
