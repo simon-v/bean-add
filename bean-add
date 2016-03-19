@@ -10,6 +10,7 @@ import readline
 import sys
 import datetime
 import subprocess
+import os
 
 # Process command line arguments
 if len(sys.argv) < 2:
@@ -44,6 +45,9 @@ class data(object):
 	date_delimiter = '-'
 	use_defaults = None
 	paranoid_write = False
+
+# Set global constants
+tempfile = '/tmp/bean-add.%s.tmp' % os.environ['USER']
 
 # Ask for confirmation: str(prompt) -> bool(result)
 def confirm(prompt='', default_yes=None):
@@ -499,6 +503,28 @@ def read_note_transaction():
 	output = '%s note %s "%s"' % (data.date, account, description)
 	insert_transaction(output)
 
+def edit_transaction():
+	if 'EDITOR' not in os.environ or os.environ['EDITOR'] == '':
+		print('\nThe $EDITOR environmental variable is not set, editing unavailable.')
+		return
+	if data.txid < 0:
+		print('\nNothing to edit, no current record.')
+		return
+	with open(tempfile, 'w') as tmp_file:
+		tmp_file.write(data.journal[data.txid])
+	try:
+		subprocess.call([os.environ['EDITOR'], tempfile])
+	except:
+		print('\nCould not start the editor: %s\n' % sys.exc_info()[1])
+	with open(tempfile, 'r') as tmp_file:
+		_tx = ''.join(tmp_file.readlines())
+	if _tx == data.journal[data.txid]:
+		print('Nothing changed.')
+	else:
+		data.journal[data.txid] = _tx
+		print('Record updated.')
+	os.unlink(tempfile)
+
 # Main data entry loop
 print('\nChanges stay in memory until you [w]rite them out.')
 print('Type `h` or `?` for a list of available commands.')
@@ -524,10 +550,15 @@ while True:
 				continue
 		sys.exit()
 	elif cmd == 'c':
-		with open('/tmp/bean-add.tmp', 'w') as tmp_file:
+		with open(tempfile, 'w') as tmp_file:
 			tmp_file.write('\n\n'.join(data.journal) + '\n')
-			subprocess.call(['bean-check', '/tmp/bean-add.tmp'])
+		try:
+			subprocess.call(['bean-check', tempfile])
+		except:
+			print('\nCould not start the validator: %s' % sys.exc_info()[1])
+		else:
 			print('\nValidation finished.')
+		os.unlink(tempfile)
 	elif cmd == 'n':
 		try:
 			read_normal_transaction()
@@ -577,6 +608,8 @@ while True:
 			insert_transaction(data.restore.pop())
 		else:
 			print('\nNothing to undo, the restore buffer is empty.')
+	elif cmd == 'e':
+		edit_transaction()
 	elif cmd == 'o':
 		print('Available option commands:')
 		print('os	sort transactions by date (%s)' % ('enabled' if data.sort_by_date else 'disabled'))
@@ -604,6 +637,7 @@ se	seek to the last record
 l	look up transactions containing a string
 r	remove the current transaction
 u	undo transaction removal
+e	edit the current transaction with your preferred editor
 B	new balance assertion
 P	new pad statement
 N	new note statement

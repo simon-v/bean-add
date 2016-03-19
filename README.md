@@ -9,7 +9,7 @@ Type `h` for a list of available commands.
 
 To add a new transaction, type `n`. Enter the transaction's details: date, description, and the participating accounts and their amounts. You can press `tab` during entry to trigger completion. If there was a transaction with matching description in the past (and there almost always is), you will be presented with an option to reuse the accounts for the new transaction.
 
-If, during transaction entry, you enter an amount of zero for any of the accounts, that account will be removed from the transaction, allowing you to correct any mistakes on the fly.
+If, during transaction entry, you enter an amount of zero for any of the accounts, that account will be removed from the transaction, allowing you to correct any mistakes on the fly. For more elaborate corrections, use the `e` command. If you plan on using this feature, make sure `$EDITOR` is set to your preferred editor.
 
 Once you are done with the transaction entry, it will be inserted chronologically into your file and you will be returned to the command prompt. Note that this assumes that your beancount file is sorted by date; If it isn't, the results will be unpredictable. Fortunately, this sorting method can be disabled through the options (see below).
 
