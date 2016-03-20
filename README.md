@@ -27,4 +27,20 @@ Type `c` at any point to validate the journal file with `bean-check`. If you pla
 
 Type `o` to view a list of option commands that modify the way bean-add works and their current settings.
 
+Some degree of scripting is possible by piping input into `bean-add`. For example, if you know that your bank charges you $1.95 every month for holding a checking account (and most banks do), then you could write a script, replicating your keystrokes, similar to:
+
+```
+#!/bin/sh
+echo 'n
+
+Bank service charge
+y
+1.95 USD
+
+
+wq' | bean-add journal.bnct
+```
+
+And then have `cron` or another scheduler execute it every month, on the 1st, thus saving you the effort.
+
 The program is released under the "Do what you feel is right, but don't be a jerk" public license, and it comes without any kind of warranty.
