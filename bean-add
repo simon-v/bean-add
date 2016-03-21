@@ -47,7 +47,7 @@ class data(object):
 	paranoid_write = False
 
 # Set global constants
-tempfile = '/tmp/bean-add.%s.tmp' % os.environ['USER']
+tempfile = '/tmp/bean-add.%s.tmp.bnct' % os.environ['USER']
 
 # Ask for confirmation: str(prompt) -> bool(result)
 def confirm(prompt='', default_yes=None):
