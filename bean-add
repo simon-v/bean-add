@@ -487,6 +487,7 @@ def read_pad_transaction():
 	output = '%s pad %s %s' % (data.date, account1, account2)
 	insert_transaction(output)
 
+# Read a note statement
 def read_note_transaction():
 	# Unset completion
 	data.vocab = []
@@ -503,6 +504,7 @@ def read_note_transaction():
 	output = '%s note %s "%s"' % (data.date, account, description)
 	insert_transaction(output)
 
+# Edit the current transaction with an external editor
 def edit_transaction():
 	if 'EDITOR' not in os.environ or os.environ['EDITOR'] == '':
 		print('\nThe $EDITOR environmental variable is not set, editing unavailable.')
@@ -524,6 +526,18 @@ def edit_transaction():
 		data.journal[data.txid] = _tx
 		print('Record updated.')
 	os.unlink(tempfile)
+
+# Print the context to the current transaction (+-10 transactions)
+def print_journal():
+	if data.txid == -1:
+		print('\nNo current record.')
+		return
+	start = max(data.txid - 10, 0)
+	end = min(data.txid + 10, len(data.journal))
+	for tx in range(start, end):
+		tx_string = data.journal[tx].split('\n')[0]
+		tx_number = '>>>>>>>' if tx == data.txid else '[%s]' % tx
+		print('%s	%s' % (tx_number, tx_string))
 
 # Main data entry loop
 print('\nChanges stay in memory until you [w]rite them out.')
@@ -610,6 +624,8 @@ while True:
 			print('\nNothing to undo, the restore buffer is empty.')
 	elif cmd == 'e':
 		edit_transaction()
+	elif cmd == 'j':
+		print_journal()
 	elif cmd == 'o':
 		print('Available option commands:')
 		print('os	sort transactions by date (%s)' % ('enabled' if data.sort_by_date else 'disabled'))
@@ -635,6 +651,7 @@ sd	seek one record backwards
 sq	seek to the first record
 se	seek to the last record
 l	look up transactions containing a string
+j	show the context of the current transaction
 r	remove the current transaction
 u	undo transaction removal
 e	edit the current transaction with your preferred editor
