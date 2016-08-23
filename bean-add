@@ -403,6 +403,23 @@ def seek_to_transaction(autoseek=None):
 	print(data.journal[_txid])
 	data.txid = _txid
 
+# Return a list of txids which contain all of the passed strings
+def tx_lookup(patterns, prune_txids=[]):
+	if type(patterns) == type(''):
+		patterns = [patterns]
+	results = []
+	for i in range(len(data.journal)):
+		if i not in prune_txids:
+			match = True
+			for pattern in patterns:
+				# Use an AND keyword joining
+				if pattern not in data.journal[i]:
+					match = False
+					break
+			if match:
+				results.append(i)
+	return results
+
 # Find transactions that contain a string
 def find_transactions():
 	try:
@@ -413,9 +430,8 @@ def find_transactions():
 	if reading == '':
 		print('Lookup cancelled.')
 		return
-	for i in range(len(data.journal)):
-		if reading in data.journal[i]:
-			print('[%s]	%s' % (i, data.journal[i].split('\n')[0]))
+	for i in tx_lookup(reading):
+		print('[%s]	%s' % (i, data.journal[i].split('\n')[0]))
 
 # Get default accounts for a transaction
 def get_default_accounts(description):
