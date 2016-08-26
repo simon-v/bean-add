@@ -591,7 +591,8 @@ def calculate_balance(account, txlist=list(range(len(data.journal)))):
 				del(line[0])
 			# Line is too short to be useful
 			if len(line) < 3:
-				# TODO: handle implied amounts somehow
+				if line[0] == account:
+					print('Warning: Implied amounts are not supported! Skipping record %s.' % tx)
 				continue
 			if line[0] == account:
 				amounts[line[2]] = cast_number(amounts[line[2]] + float(line[1]))
