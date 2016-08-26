@@ -571,6 +571,45 @@ def print_journal():
 		tx_number = '>>>>>>>' if tx == data.txid else '[%s]' % tx
 		print('%s	%s' % (tx_number, tx_string))
 
+# Calculate the balance of an account
+def calculate_balance(account, txlist=list(range(len(data.journal)))):
+	amounts = {}
+	for currency in data.currencies:
+		amounts[currency] = 0
+	for tx in txlist:
+		lines = data.journal[tx].split('\n')
+		line = condense(lines[0])
+		# If the record is a balance statement, use that
+		if line[1] == 'balance' and line[2] == account:
+			amounts[line[4]] = cast_number(line[3])
+			continue
+		# Else, add the amount to the balance
+		for line in lines[1:]:
+			line = condense(line)
+			# Transaction leg flags are irrelevant
+			if line[0] == '!':
+				del(line[0])
+			# Line is too short to be useful
+			if len(line) < 3:
+				# TODO: handle implied amounts somehow
+				continue
+			if line[0] == account:
+				amounts[line[2]] = cast_number(amounts[line[2]] + float(line[1]))
+	return amounts
+
+# Count and print the balances for an account
+def print_account_balances():
+	try:
+		account = read_account()
+	except KeyboardInterrupt:
+		print('Cancelled.')
+		return
+	amounts = calculate_balance(account)
+	print('\nBalances for %s:' % account)
+	for currency in data.currencies:
+		if amounts[currency] != 0:
+			print('%s %s' % (amounts[currency], currency))
+
 # Main data entry loop
 print('\nChanges stay in memory until you [w]rite them out.')
 print('Type `h` or `?` for a list of available commands.')
@@ -658,6 +697,8 @@ while True:
 		edit_transaction()
 	elif cmd == 'j':
 		print_journal()
+	elif cmd == 'b':
+		print_account_balances()
 	elif cmd == 'o':
 		print('Available option commands:')
 		print('os	sort transactions by date (%s)' % ('enabled' if data.sort_by_date else 'disabled'))
@@ -684,6 +725,7 @@ sq	seek to the first record
 se	seek to the last record
 l	look up transactions containing a string
 j	show the context of the current transaction
+b	show the balance of an account
 r	remove the current transaction
 u	undo transaction removal
 e	edit the current transaction with your preferred editor
