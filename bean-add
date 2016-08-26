@@ -66,6 +66,19 @@ def confirm(prompt='', default_yes=None):
 		elif ch == 'n':
 			return False
 
+# Cast a number into the appropriate format: number -> int or rounded float
+def cast_number(number):
+	return int(number) if int(float(number)) == float(number) else round(float(number), 2)
+
+# Condense whitespace and return a list
+def condense(line):
+	line = line.strip().split(' ')
+	_data = []
+	for i in line:
+		if i.strip() != '':
+			_data.append(i)
+	return _data
+
 # Read and process journal file
 try:
 	with open(data.file_name, 'r') as source_file:
@@ -85,13 +98,7 @@ for line in tx_file.split('\n'):
 	# Skip comments
 	elif line.startswith(';'):
 		continue
-	_data = line.split(' ')
-	# Compress redundant whitespace
-	__data = []
-	for i in _data:
-		if i.strip() != '':
-			__data.append(i)
-	_data = __data
+	_data = condense(line)
 	try:
 		# Attach transaction legs to previous description
 		if _data[0] in data.accounts:
@@ -256,11 +263,10 @@ def read_account():
 # number, rounding precision -> string
 def undecimal(number, precision):
 	try:
-		number = float(number)
+		number = cast_number(number)
 	except ValueError:
 		print('\nThis is not a number.')
 		raise KeyboardInterrupt
-	number = int(number) if number == int(number) else number
 	if type(number) == type(0.0):
 		number = round(number, precision)
 		if len(str(number).split('.')[1]) == 1:
@@ -290,7 +296,7 @@ def read_amount(account):
 		data.balance -= float(amount[0]) * float(amount[-2])
 	else:
 		data.balance -= float(amount[0])
-	data.balance = int(data.balance) if data.balance == int(data.balance) else round(data.balance, 2)
+	data.balance = cast_number(data.balance)
 	# Finalize and return
 	return ' '.join(amount)
 
