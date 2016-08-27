@@ -580,7 +580,7 @@ def calculate_balance(account, txlist=list(range(len(data.journal)))):
 		lines = data.journal[tx].split('\n')
 		line = condense(lines[0])
 		# If the record is a balance statement, use that
-		if line[1] == 'balance' and line[2] == account:
+		if len(line) == 5 and line[1] == 'balance' and line[2] == account:
 			amounts[line[4]] = cast_number(line[3])
 			continue
 		# Else, add the amount to the balance
@@ -603,7 +603,7 @@ def print_account_balances():
 	try:
 		account = read_account()
 	except KeyboardInterrupt:
-		print('Cancelled.')
+		print('\nCancelled.')
 		return
 	amounts = calculate_balance(account)
 	print('\nBalances for %s:' % account)
