@@ -572,8 +572,8 @@ def print_journal():
 		print('%s	%s' % (tx_number, tx_string))
 
 # Calculate the balance of an account
-def calculate_balance(account, txlist=[]):
-	if txlist == []:
+def calculate_balance(account, txlist=None):
+	if txlist is None:
 		txlist = list(range(len(data.journal)))
 	amounts = {}
 	for currency in data.currencies:
