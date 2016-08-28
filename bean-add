@@ -200,6 +200,7 @@ def insert_transaction(tx):
 		data.journal.append(tx)
 	print('\nTransaction added as record %s\n\n%s' % (_txid, tx))
 	data.txid = _txid
+	update_statement_refs(_txid, True)
 
 # Date from string wrapper: str(date) -> date(date)
 def strpdate(d):
@@ -623,6 +624,16 @@ def print_account_balances():
 		if amounts[currency] != 0:
 			print('%s %s' % (amounts[currency], currency))
 
+# Nudge txids in the statement following a journal modification
+def update_statement_refs(txid, insertion):
+	for tx in range(len(data.statement)):
+		if insertion:
+			if data.statement[tx] >= txid:
+				data.statement[tx] += 1
+		else:
+			if data.statement[tx] > txid:
+				data.statement[tx] -= 1
+
 # Verify a statement
 def verify_statement():
 	# If wasn't working on a statement before
@@ -768,6 +779,9 @@ while True:
 		if data.txid >= 0:
 			data.restore.append(data.journal.pop(data.txid))
 			print('\nDeleted record %s' % data.txid)
+			if data.txid in data.statement:
+				data.statement.remove(data.txid)
+			update_statement_refs(data.txid, False)
 			if data.txid >= len(data.journal):
 				data.txid -= 1
 		else:
