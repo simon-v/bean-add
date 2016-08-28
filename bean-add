@@ -247,7 +247,7 @@ def read_account():
 		# Set completion
 		data.vocab = data.accounts
 		readline.set_completer_delims('')
-		reading = input('Enter account name (tab to complete, enter to fininsh): ')
+		reading = input('Enter an account name (tab to complete, enter to fininsh): ')
 		if reading == '':
 			return None
 		# Add new account option
@@ -279,7 +279,9 @@ def read_amount(account):
 	data.vocab = data.currencies
 	readline.set_completer_delims(' ')
 	# Read an amount
-	amount = input('Enter amount for `%s` (including currency symbol) [%s %s]: ' % (account, data.balance, data.cur))
+	if account in data.accounts:
+		account = '`%s`' % account
+	amount = input('Enter the amount for %s (including currency symbol) [%s %s]: ' % (account, data.balance, data.cur))
 	if amount == '':
 		amount = [data.balance, data.cur]
 	else:
@@ -429,7 +431,7 @@ def tx_lookup(patterns, prune_txids=[]):
 # Find transactions that contain a string
 def find_transactions():
 	try:
-		reading = input('Enter search string: ').strip('\n')
+		reading = input('Enter a search string: ').strip('\n')
 	except KeyboardInterrupt:
 		print('Lookup cancelled.')
 		return
@@ -532,7 +534,7 @@ def read_note_transaction():
 		data.defaults['__note__'] = [account]
 	else:
 		account = defaults[0]
-	description = input('Enter the note description: ').strip(' "')
+	description = input('Enter the note text: ').strip(' "')
 	output = '%s note %s "%s"' % (data.date, account, description)
 	insert_transaction(output)
 
