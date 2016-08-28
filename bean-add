@@ -40,6 +40,14 @@ class data(object):
 	txid = -1
 	date = datetime.date.today().isoformat()
 	date_prompt = '%Y-%m-%d'
+	# Statements
+	statement = []
+	statement_pattern = ' ! '
+	statement_replacement = ' * '
+	target = 0
+	statement_currency = ''
+	transaction_account = ''
+	funding_account = ''
 	# Options
 	sort_by_date = True
 	date_delimiter = '-'
@@ -615,6 +623,74 @@ def print_account_balances():
 		if amounts[currency] != 0:
 			print('%s %s' % (amounts[currency], currency))
 
+# Verify a statement
+def verify_statement():
+	# If wasn't working on a statement before
+	if data.target == 0 or not confirm('Continue ongoing statement verification? (Y/n) ', True):
+		try:
+			data.statement = []
+			print('\nEnter the account the statement refers to.')
+			data.transaction_account = read_account()
+			print('\nEnter the account which funds the statement.')
+			data.funding_account = read_account()
+			print()
+			amount = read_amount('the statement')
+			data.target = cast_number(amount.split()[0])
+			if data.target == 0:
+				raise KeyboardInterrupt
+			data.statement_currency = amount.split()[1]
+		except KeyboardInterrupt:
+			print('\nCancelled.')
+			return
+	while True:
+		# Tally the balance
+		balance = abs(calculate_balance(data.transaction_account, data.statement)[data.statement_currency])
+		print('\nTotal: %s %s (target: %s %s, difference: %s %s)' % (balance, data.statement_currency, data.target, data.statement_currency, cast_number(balance - data.target), data.statement_currency))
+		if balance == data.target:
+			break
+		transactions = tx_lookup([data.transaction_account, data.statement_pattern], data.statement)
+		print()
+		# List matching records
+		for tx in transactions:
+			a = [data.journal[tx].split('\n')[0]]
+			for l in data.journal[tx].split('\n'):
+				if data.transaction_account in l:
+					a.append(condense(l)[1])
+					a[1] = abs(cast_number(a[1]))
+			print('[%s]	%s	%s %s' % (tx, a[0], a[1], data.statement_currency)) # TODO space padding
+		# Select records to add
+		print('\nSelect records to add to the statement. Type a record number already on the statement to remove it.')
+		try:
+			reading = int(input('Enter a record number: ').strip())
+			if reading < 0 or reading > len(data.journal) -1:
+				raise ValueError
+		except ValueError:
+			print('\nInvalid record number.')
+			continue
+		except KeyboardInterrupt:
+			print('\n\nPostponing statement verification.')
+			return
+		if reading in data.statement:
+			data.statement.remove(reading)
+		else:
+			data.statement.append(reading)
+			data.statement.sort()
+	# Modify the journal
+	if confirm('Commit statement to journal? (Y/n) ', True):
+		try:
+			date = read_date(data.date)
+			desc = read_description()
+		except KeyboardInterrupt:
+			print('Postponing statement verification.')
+			return
+		print('\nSetting transaction flags.')
+		for tx in data.statement:
+			data.journal[tx] = data.journal[tx].replace(data.statement_pattern, data.statement_replacement)
+		output = '%s * "%s"\n	%s %s %s\n	%s %s %s' % (date, desc, data.funding_account, undecimal(balance * -1, 2), data.statement_currency, data.transaction_account, undecimal(balance, 2), data.statement_currency)
+		insert_transaction(output)
+		# Mark the verification as finished
+		data.target = 0
+
 # Main data entry loop
 print('\nChanges stay in memory until you [w]rite them out.')
 print('Type `h` or `?` for a list of available commands.')
@@ -637,6 +713,9 @@ while True:
 	elif cmd == 'q':
 		if data.journal != data.saved:
 			if not confirm('The journal file was modified. Do you really want to DESTROY ALL CHANGES and quit? (y/N) ', False):
+				continue
+		elif data.target != 0:
+			if not confirm('Statement verification in progress. Do you really want to DESTROY ALL CHANGES and quit? (y/N) ', False):
 				continue
 		sys.exit()
 	elif cmd == 'c':
@@ -704,6 +783,8 @@ while True:
 		print_journal()
 	elif cmd == 'b':
 		print_account_balances()
+	elif cmd == 'v':
+		verify_statement()
 	elif cmd == 'o':
 		print('Available option commands:')
 		print('os	sort transactions by date (%s)' % ('enabled' if data.sort_by_date else 'disabled'))
@@ -734,6 +815,7 @@ b	show the balance of an account
 r	remove the current transaction
 u	undo transaction removal
 e	edit the current transaction with your preferred editor
+v	verify a statement
 B	new balance assertion
 P	new pad statement
 N	new note statement
