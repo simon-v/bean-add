@@ -683,9 +683,12 @@ def verify_statement():
 			return
 		if reading in data.statement:
 			data.statement.remove(reading)
-		else:
+		elif reading in transactions:
 			data.statement.append(reading)
 			data.statement.sort()
+		else:
+			print('\nThis record is not relevant to the statement.')
+			continue
 	# Modify the journal
 	if confirm('Commit statement to journal? (Y/n) ', True):
 		try:
