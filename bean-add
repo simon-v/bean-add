@@ -660,15 +660,25 @@ def verify_statement():
 		if balance == data.target:
 			break
 		transactions = tx_lookup([data.transaction_account, data.statement_pattern], data.statement)
-		print()
 		# List matching records
-		for tx in transactions:
-			a = [data.journal[tx].split('\n')[0]]
-			for l in data.journal[tx].split('\n'):
-				if data.transaction_account in l:
-					a.append(condense(l)[1])
-					a[1] = abs(cast_number(a[1]))
-			print('[%s]	%s	%s %s' % (tx, a[0], a[1], data.statement_currency)) # TODO space padding
+		width = 10
+		for tx in data.statement + transactions:
+			width = max(width, len(data.journal[tx].split('\n')[0]))
+		for title, txlist in [
+			['Statement Records', data.statement],
+			['Available Records', transactions]
+		]:
+			print('\n------- %s '.ljust(width, '-') % title)
+			if txlist == []:
+				print('	(nothing)')
+				continue
+			for tx in txlist:
+				desc = data.journal[tx].split('\n')[0].ljust(width)
+				for line in data.journal[tx].split('\n')[1:]:
+					line = condense(line)
+					if line[0] == data.transaction_account:
+						_amount = undecimal(abs(cast_number(line[1])), 2)
+				print('[%s]	%s  %s	%s' % (tx, desc, _amount, data.statement_currency))
 		# Select records to add
 		print('\nSelect records to add to the statement. Type a record number already on the statement to remove it.')
 		try:
