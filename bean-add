@@ -273,7 +273,7 @@ def read_account():
 
 # Normalize amounts with unnecessary decimal places
 # number, rounding precision -> string
-def undecimal(number, precision):
+def undecimal(number, precision=2):
 	try:
 		number = cast_number(number)
 	except ValueError:
@@ -304,7 +304,7 @@ def read_amount(account):
 	else:
 		data.cur = amount[-1]
 	# Normalize numbers and process conversion rate
-	amount[0] = undecimal(amount[0], 2)
+	amount[0] = undecimal(amount[0])
 	if '@' in amount:
 		amount[-2] = undecimal(amount[-2], 3)
 		data.balance -= float(amount[0]) * float(amount[-2])
@@ -680,7 +680,7 @@ def verify_statement():
 				for line in data.journal[tx].split('\n')[1:]:
 					line = condense(line)
 					if line[0] == data.transaction_account:
-						_amount = undecimal(abs(cast_number(line[1])), 2)
+						_amount = undecimal(abs(cast_number(line[1])))
 				print('[%s]	%s  %s	%s' % (tx, desc, _amount, data.statement_currency))
 		# Select records to add
 		print('\nSelect records to add to the statement. Type a record number already on the statement to remove it.')
@@ -713,7 +713,7 @@ def verify_statement():
 		print('\nSetting transaction flags.')
 		for tx in data.statement:
 			data.journal[tx] = data.journal[tx].replace(data.statement_pattern, data.statement_replacement)
-		output = '%s * "%s"\n	%s %s %s\n	%s %s %s' % (date, desc, data.funding_account, undecimal(balance * -1, 2), data.statement_currency, data.transaction_account, undecimal(balance, 2), data.statement_currency)
+		output = '%s * "%s"\n	%s %s %s\n	%s %s %s' % (date, desc, data.funding_account, undecimal(balance * -1), data.statement_currency, data.transaction_account, undecimal(balance), data.statement_currency)
 		insert_transaction(output)
 		# Mark the verification as finished
 		data.target = 0
