@@ -119,6 +119,9 @@ for line in tx_file.split('\n'):
 		# Add account name to account list
 		elif _data[1] == 'open':
 			data.accounts.append(_data[2])
+		# Remove closed accounts from completion
+		elif _data[1] == 'close' and _data[2] in data.accounts:
+			data.accounts.remove(_data[2])
 		# Cache command data
 		elif _data[1] == 'balance':
 			data.defaults['__balance__'] = [_data[2]]
