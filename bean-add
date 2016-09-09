@@ -279,7 +279,7 @@ def undecimal(number, precision=2):
 	except ValueError:
 		print('\nThis is not a number.')
 		raise KeyboardInterrupt
-	if type(number) == type(0.0):
+	if type(number) == float:
 		number = round(number, precision)
 		if len(str(number).split('.')[1]) == 1:
 			number = str(number) + '0'
@@ -425,7 +425,7 @@ def seek_to_transaction(autoseek=None):
 
 # Return a list of txids which contain all of the passed strings
 def tx_lookup(patterns, prune_txids=[]):
-	if type(patterns) == type(''):
+	if type(patterns) == str:
 		patterns = [patterns]
 	results = []
 	for i in range(len(data.journal)):
