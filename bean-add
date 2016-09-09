@@ -585,6 +585,40 @@ def print_journal():
 		tx_number = '>>>>>>>' if tx == data.txid else '[%s]' % tx
 		print('%s	%s' % (tx_number, tx_string))
 
+# Attempt to deduce an implied amount: int txid -> bool success
+def deduce_implied_amount(txid):
+	_tx = data.journal[txid].split('\n')
+	lineid = -1
+	amount = 0
+	for lineno in range(len(_tx)):
+		line = condense(_tx[lineno])
+		# Ignore anything that isn't a transaction leg
+		if line[0] not in data.accounts:
+			continue
+		if len(line) == 1:
+			if lineid != -1:
+				print('\nError: More than one implied amount in record %s' % txid)
+				return False
+			else:
+				lineid = lineno
+		else:
+			cur = line[-1]
+			if '@' in line and len(line) == 5:
+				line[-2] = undecimal(line[-2], 3)
+				amount -= float(line[1]) * float(line[-2])
+			else:
+				amount -= float(line[1])
+			amount = cast_number(amount)
+	if amount != 0:
+		_tx[lineno] = _tx[lineno] + ' %s %s' % (undecimal(amount), cur)
+	else:
+		print('\nCould not figure out implied amount in record %s' % txid)
+		return False
+	data.journal[txid] = '\n'.join(_tx)
+	print('\nImplied amounts corrected in record %s:\n' % txid)
+	print(data.journal[txid])
+	return True
+
 # Calculate the balance of an account
 def calculate_balance(account, txlist=None):
 	if txlist is None:
@@ -600,16 +634,20 @@ def calculate_balance(account, txlist=None):
 			amounts[line[4]] = cast_number(line[3])
 			continue
 		# Else, add the amount to the balance
-		for line in lines[1:]:
-			line = condense(line)
+		for _line in lines[1:]:
+			line = condense(_line)
 			# Transaction leg flags are irrelevant
 			if line[0] == '!':
 				del(line[0])
 			# Line is too short to be useful
 			if len(line) < 3:
 				if line[0] == account:
-					print('Warning: Implied amounts are not supported! Skipping record %s.' % tx)
-				continue
+					if not deduce_implied_amount(tx):
+						continue
+					else:
+						# Replace the record with its updated version
+						lineid = lines.index(_line)
+						line = condense(data.journal[tx].split('\n')[lineid])
 			if line[0] == account:
 				amounts[line[2]] = cast_number(amounts[line[2]] + float(line[1]))
 	return amounts
