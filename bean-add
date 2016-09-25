@@ -565,7 +565,7 @@ def edit_transaction():
 	except:
 		print('\nCould not start the editor: %s\n' % sys.exc_info()[1])
 	with open(tempfile, 'r') as tmp_file:
-		_tx = ''.join(tmp_file.readlines())
+		_tx = ''.join(tmp_file.readlines()).strip('\n')
 	if _tx == data.journal[data.txid]:
 		print('Nothing changed.')
 	else:
