@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # bean-add - A beancount transaction entry assistant
 # Author: Simon Volpert <simon@simonvolpert.com>
 # License: "Do what you feel is right, but don't be a jerk" public license.
