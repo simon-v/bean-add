@@ -303,6 +303,8 @@ def read_amount(account):
 		amount.append(data.cur)
 	else:
 		data.cur = amount[-1]
+		if data.cur not in data.currencies:
+			data.currencies.append(data.cur)
 	# Normalize numbers and process conversion rate
 	amount[0] = undecimal(amount[0])
 	if '@' in amount:
