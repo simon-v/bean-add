@@ -785,10 +785,14 @@ while True:
 		except KeyboardInterrupt:
 			cmd = 'q'
 	if cmd in ['w', 'wq']:
-		with open(data.file_name, 'w') as source_file:
-			source_file.write('\n\n'.join(data.journal) + '\n')
-			print('\n%s record(s) written' % len(data.journal))
-			data.saved = data.journal.copy()
+		try:
+			with open(data.file_name, 'w') as source_file:
+				source_file.write('\n\n'.join(data.journal) + '\n')
+				print('\n%s record(s) written' % len(data.journal))
+				data.saved = data.journal.copy()
+		except:
+			print('\nCould not write the file: %s' % sys.exc_info()[1])
+			continue
 		if cmd == 'wq':
 			sys.exit()
 	elif cmd == 'q':
