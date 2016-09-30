@@ -91,8 +91,10 @@ def condense(line):
 try:
 	with open(data.file_name, 'r') as source_file:
 		tx_file = source_file.read()
+except FileNotFoundError:
+	tx_file = ''
 except:
-	sys.exit('Could not open the file `%s`.' % data.file_name)
+	sys.exit('Could not open the file: %s' % sys.exc_info()[1])
 
 description = ''
 for line in tx_file.split('\n'):
@@ -144,8 +146,6 @@ for line in tx_file.split('\n'):
 # Prepare file for transaction insertion
 data.journal = tx_file.split('\n\n')
 data.journal = [ i.strip() for i in data.journal ]
-# Modification tracking
-data.saved = data.journal.copy()
 # Remove empty records
 _badblocks = []
 for i in range(len(data.journal)):
@@ -153,6 +153,9 @@ for i in range(len(data.journal)):
 		_badblocks.insert(0, i)
 for i in _badblocks:
 		del data.journal[i]
+
+# Start modification tracking
+data.saved = data.journal.copy()
 
 # Set up the completer
 readline.parse_and_bind('tab: complete')
@@ -168,7 +171,10 @@ print('%s record(s) processed' % len(data.journal))
 if len(data.accounts) > 0:
 	print('%s account(s), %s unique description(s), %s currency sign(s), %s tag(s) loaded' % (len(data.accounts), len(data.defaults), len(data.currencies), len(data.tags)))
 else:
-	print('File contains no account definitions.')
+	if tx_file == '':
+		print('File does not exist, or is empty.')
+	else:
+		print('File contains no account definitions.')
 	if not confirm('Proceed with editing? (y/N) ', False):
 		sys.exit()
 if data.journal != data.saved:
@@ -182,7 +188,7 @@ if data.date_delimiter != '-':
 	data.date_prompt = data.date_delimiter.join(['%Y', '%m', '%d'])
 
 # Init date and currencies
-data.cur = data.currencies[0]
+data.cur = 'USD' if data.currencies == [] else data.currencies[0]
 
 # Insert a transaction in an appropriate place in the file: str(transaction) -> int(index)
 def insert_transaction(tx):
@@ -377,6 +383,9 @@ def add_remove_tag():
 # Seek to a specific record in the journal file
 def seek_to_transaction(autoseek=None):
 	while True:
+		if data.journal == []:
+			print('\nThe journal is empty.')
+			return
 		if autoseek is None:
 			# Manual seeking input
 			if data.txid >= 0:
@@ -525,6 +534,9 @@ def read_balance_transaction():
 def read_pad_transaction():
 	print('\nAdding a new pad statement.')
 	data.date = read_date(data.date)
+	# Print a helpful hint
+	if '__pad__' not in data.defaults:
+		print('\nEnter the source and destination accounts.')
 	defaults = get_default_accounts('__pad__')
 	if defaults == []:
 		account1 = read_account()
@@ -658,6 +670,8 @@ def calculate_balance(account, txlist=None):
 def print_account_balances():
 	try:
 		account = read_account()
+		if account is None:
+			raise KeyboardInterrupt
 	except KeyboardInterrupt:
 		print('\nCancelled.')
 		return
