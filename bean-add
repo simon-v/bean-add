@@ -787,7 +787,9 @@ print('\nChanges stay in memory until you [w]rite them out.')
 print('Type `h` or `?` for a list of available commands.')
 
 while True:
-	if data.paranoid_write and data.journal != data.saved:
+	if data.paranoid_write and not data.external_write and data.journal != data.saved:
+		cmd = 'w'
+	elif data.paranoid_write and data.external_write and externalize_transactions() != data.external_journal:
 		cmd = 'w'
 	else:
 		try:
