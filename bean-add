@@ -23,6 +23,7 @@ class data(object):
 	# Journal/transactions
 	journal = []
 	saved = []
+	external_journal = []
 	file_name = sys.argv[1]
 	defaults = {}
 	restore = []
@@ -53,6 +54,7 @@ class data(object):
 	date_delimiter = '-'
 	use_defaults = None
 	paranoid_write = False
+	external_write = False
 
 # Set global constants
 tempfile = '/tmp/bean-add.%s.tmp.bnct' % os.environ['USER']
@@ -772,6 +774,14 @@ def verify_statement():
 		# Mark the verification as finished
 		data.target = 0
 
+# Move any new transactions to the external journal
+def externalize_transactions():
+	journal = []
+	for _tx in data.journal:
+		if _tx not in data.saved:
+			journal.append(_tx)
+	return journal
+
 # Main data entry loop
 print('\nChanges stay in memory until you [w]rite them out.')
 print('Type `h` or `?` for a list of available commands.')
@@ -785,20 +795,39 @@ while True:
 		except KeyboardInterrupt:
 			cmd = 'q'
 	if cmd in ['w', 'wq']:
+		if data.external_write:
+			file_name = data.file_name + '.new'
+			data.external_journal = externalize_transactions()
+			journal = data.external_journal
+		else:
+			file_name = data.file_name
+			journal = data.journal
 		try:
-			with open(data.file_name, 'w') as source_file:
-				source_file.write('\n\n'.join(data.journal) + '\n')
-				print('\n%s record(s) written' % len(data.journal))
-				data.saved = data.journal.copy()
+			with open(file_name, 'w') as source_file:
+				source_file.write('\n\n'.join(journal) + '\n')
+				print('\n%s record(s) written' % len(journal))
 		except:
 			print('\nCould not write the file: %s' % sys.exc_info()[1])
 			continue
+		else:
+			if not data.external_write:
+				data.saved = data.journal.copy()
 		if cmd == 'wq':
 			sys.exit()
 	elif cmd == 'q':
-		if data.journal != data.saved:
+		if not data.external_write and data.journal != data.saved:
 			if not confirm('The journal file was modified. Do you really want to DESTROY ALL CHANGES and quit? (y/N) ', False):
 				continue
+		elif data.external_write:
+			journal = externalize_transactions()
+			modified = False
+			for _tx in journal:
+				if _tx not in data.external_journal:
+					modified = True
+					break
+			if modified:
+				if not confirm('There are unsaved transactions in the external file buffer. Do you really want to DESTROY ALL CHANGES and quit? (y/N) ', False):
+					continue
 		elif data.target != 0:
 			if not confirm('Statement verification in progress. Do you really want to DESTROY ALL CHANGES and quit? (y/N) ', False):
 				continue
@@ -878,6 +907,7 @@ while True:
 		print('os	sort transactions by date (%s)' % ('enabled' if data.sort_by_date else 'disabled'))
 		print('oa	reuse last used accounts in new transactions (%s)' % ('ask' if data.use_defaults is None else 'always' if data.use_defaults else 'never'))
 		print('ow	write journal after every change (%s)' % ('enabled' if data.paranoid_write else 'disabled'))
+		print('oe	write changes to an external file (%s)' % ('enabled' if data.external_write else 'disabled'))
 	elif cmd == 'os':
 		data.sort_by_date = not data.sort_by_date
 		print('\nSorting by date %s.' % ('enabled' if data.sort_by_date else 'disabled'))
@@ -887,6 +917,9 @@ while True:
 	elif cmd == 'ow':
 		data.paranoid_write = not data.paranoid_write
 		print('\nWriting journal after every change is %s.' % ('enabled' if data.paranoid_write else 'disabled'))
+	elif cmd == 'oe':
+		data.external_write = not data.external_write
+		print('Writing changes to an external file is now %s.' % ('enabled' if data.external_write else 'disabled'))
 	elif cmd == 'h' or cmd == '?':
 		print('''Available commands:
 n	new transaction
