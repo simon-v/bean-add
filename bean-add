@@ -107,8 +107,23 @@ for line in tx_file.split('\n'):
 			del(data.defaults[description])
 		description = ''
 		continue
-	# Skip comments
+	# Skip comments, but make use of the option strings
 	elif line.startswith(';'):
+		if line.startswith(';*bean-add* '):
+			for i in line.split()[1:]:
+				if i == 'a':
+					data.use_defaults = True
+				elif i == 'aa':
+					data.use_defaults = False
+				elif i == 's':
+					data.sort_by_date = False
+				elif i == 'w':
+					data.paranoid_write = True
+				elif i == 'e':
+					data.external_write = True
+				else:
+					print('Unrecognized option: %s' % i)
+			print('Loaded options from journal file.\n')
 		continue
 	_data = condense(line)
 	try:
@@ -906,6 +921,7 @@ while True:
 		verify_statement()
 	elif cmd == 'o':
 		print('Available option commands:')
+		print('oo	write current options to the journal')
 		print('os	sort transactions by date (%s)' % ('enabled' if data.sort_by_date else 'disabled'))
 		print('oa	reuse last used accounts in new transactions (%s)' % ('ask' if data.use_defaults is None else 'always' if data.use_defaults else 'never'))
 		print('ow	write journal after every change (%s)' % ('enabled' if data.paranoid_write else 'disabled'))
@@ -922,6 +938,23 @@ while True:
 	elif cmd == 'oe':
 		data.external_write = not data.external_write
 		print('Writing changes to an external file is now %s.' % ('enabled' if data.external_write else 'disabled'))
+	elif cmd == 'oo':
+		# Generate the option string
+		optstring = ';*bean-add*'
+		optstring += '' if data.sort_by_date else ' s'
+		optstring += '' if data.use_defaults is None else ' a' if data.use_defaults else ' aa'
+		optstring += ' w' if data.paranoid_write else ''
+		optstring += ' e' if data.external_write else ''
+		# Apply the option string
+		if data.journal[0].startswith(';*bean-add* '):
+			data.journal[0] = optstring
+		else:
+			data.journal.insert(0, optstring)
+		# Delete all other option strings
+		for _tx in data.journal[1:]:
+			if _tx.startswith(';*bean-add* '):
+				data.journal.remove(_tx)
+		print('\nOptions saved to the journal as record 0.')
 	elif cmd == 'h' or cmd == '?':
 		print('''Available commands:
 n	new transaction
