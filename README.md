@@ -1,7 +1,7 @@
 # bean-add
 ## A beancount transaction entry assistant
 
-Bean-add is a relatively simple tool designed to ease adding transactions to your beancount [http://furius.ca/beancount/] journal. While both vi and EMACS have extensions for dealing with ledger and beancount files, some people prefer to edit their text with Nano.
+Bean-add is a relatively simple tool designed to ease adding transactions to your beancount (http://furius.ca/beancount/) journal. While both vi and EMACS have extensions for dealing with ledger and beancount files, some people prefer to edit their text with Nano.
 
 To begin, run `bean-add` with your journal file name as the argument. The journal file will be parsed, and you will be presented with a command prompt, not unlike that of fdisk or parted.
 
@@ -29,19 +29,19 @@ Type `o` to view a list of option commands that modify the way bean-add works an
 
 Some degree of scripting is possible by piping input into `bean-add`. For example, if you know that your bank charges you $1.95 every month for holding a checking account (and most banks do), then you could write a script, replicating your keystrokes, similar to:
 
-```
-#!/bin/sh
-echo 'n
-
-Bank service charge
-y
-1.95 USD
-
-
-wq' | bean-add journal.bnct
-```
+    #!/bin/sh
+    echo 'n
+    
+    Bank service charge
+    y
+    1.95 USD
+    
+    
+    wq' | bean-add journal.bnct
 
 And then have `cron` or another scheduler execute it every month, on the 1st, thus saving you the effort.
+
+Another use for scripting has been proposed in the comments on the issue regarding [split-file beancount journals](https://github.com/simon-v/bean-add/issues/3#issuecomment-250917599).
 
 `bean-add` provides a basic capability to perform credit card statement verification. To begin, type `v`, then feed in the name of the account which contains the transactions on the statement (likely, something like `Liabilities:CreditCard`), the name of the account from which the statement is paid (likely, something like `Assets:Bank:Checking`) and the statement's grand total. Select the records that appear on the statement by typing their numbers. Typing a record number that is already in the statement will remove it. For this to work as expected, be sure to `f`lag every record that hasn't yet appeared on a statement; Only flagged records are considered for addition.
 
@@ -49,4 +49,4 @@ If, at some point during statement verification, you discover an error in one of
 
 Once the sum of balances of all transactions in the statement matches the statement's target, you will be prompted for the statement's date and description. `bean-add` will then unset the flags of all records on the statement to prevent them from being used on another statement and add the statement's own record.
 
-The program is released under the "Do what you feel is right, but don't be a jerk" public license, and it comes without any kind of warranty.
+The program is released under the "Do what you feel is right, but don't be a jerk" public license, and it comes without any kind of warranty. Pay attention. Keep backups.
