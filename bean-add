@@ -848,22 +848,25 @@ while True:
 		if cmd == 'wq':
 			sys.exit()
 	elif cmd == 'q':
-		if not data.external_write and data.journal != data.saved:
-			if not confirm('The journal file was modified. Do you really want to DESTROY ALL CHANGES and quit? (y/N) ', False):
-				continue
-		elif data.external_write:
-			journal = externalize_transactions()
-			modified = False
-			for _tx in journal:
-				if _tx not in data.external_journal:
-					modified = True
-					break
-			if modified:
-				if not confirm('There are unsaved transactions in the external file buffer. Do you really want to DESTROY ALL CHANGES and quit? (y/N) ', False):
+		try:
+			if not data.external_write and data.journal != data.saved:
+				if not confirm('The journal file was modified. Do you really want to DESTROY ALL CHANGES and quit? (y/N) ', False):
 					continue
-		elif data.target != 0:
-			if not confirm('Statement verification in progress. Do you really want to DESTROY ALL CHANGES and quit? (y/N) ', False):
-				continue
+			elif data.external_write:
+				journal = externalize_transactions()
+				modified = False
+				for _tx in journal:
+					if _tx not in data.external_journal:
+						modified = True
+						break
+				if modified:
+					if not confirm('There are unsaved transactions in the external file buffer. Do you really want to DESTROY ALL CHANGES and quit? (y/N) ', False):
+						continue
+			elif data.target != 0:
+				if not confirm('Statement verification in progress. Do you really want to DESTROY ALL CHANGES and quit? (y/N) ', False):
+					continue
+		except KeyboardInterrupt:
+			pass
 		sys.exit()
 	elif cmd == 'c':
 		with open(tempfile, 'w') as tmp_file:
