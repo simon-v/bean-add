@@ -349,15 +349,23 @@ def toggle_flag():
 	else:
 		data.flag = False
 	if data.flag:
-		data.flag = False
 		data.journal[data.txid] = data.journal[data.txid].replace(' ! ', ' * ')
-		print('\nTransaction flag unset.')
 	else:
-		data.flag = True
 		data.journal[data.txid] = data.journal[data.txid].replace(' * ', ' ! ')
-		print('\nTransaction flag set.')
+	print('\nTransaction flag %sset.' % ('un' if data.flag else ''))
+	data.flag = not data.flag
 	print()
 	print(data.journal[data.txid])
+
+# Toggle the flags on individual transaction legs
+def toggle_flag_with_legs():
+	print('\nFlag which transaction legs?')
+	account = read_account()
+	if ' * ' in data.journal[data.txid]:
+		data.journal[data.txid] = data.journal[data.txid].replace(account, '! %s' % account).replace('! !', '!')
+	else:
+		data.journal[data.txid] = data.journal[data.txid].replace('! %s' % account, account)
+	toggle_flag()
 
 # Add or remove transaction tags
 def add_remove_tag():
@@ -889,6 +897,11 @@ while True:
 			print('\nTransaction entry cancelled.')
 	elif cmd == 'f':
 		toggle_flag()
+	elif cmd == 'ff':
+		try:
+			toggle_flag_with_legs()
+		except KeyboardInterrupt:
+			print('\nCancelled.')
 	elif cmd == 't':
 		add_remove_tag()
 	elif cmd == 's':
@@ -967,6 +980,7 @@ while True:
 		print('''Available commands:
 n	new transaction
 f	toggle transaction flag
+ff	flag a transaction including its legs
 t	add or remove tags
 s	seek to another record
 sa	seek one record forward
