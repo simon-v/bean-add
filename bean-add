@@ -654,7 +654,7 @@ def deduce_implied_amount(txid):
 	return True
 
 # Calculate the balance of an account
-def calculate_balance(account, txlist=None):
+def calculate_balance(account, txlist=None, statement_verification_quirks=False):
 	if txlist is None:
 		txlist = list(range(len(data.journal)))
 	amounts = {}
@@ -669,7 +669,19 @@ def calculate_balance(account, txlist=None):
 		if len(line) == 5 and line[1] == 'balance' and line[2] == account:
 			amounts[line[4]] = cast_number(line[3])
 			continue
-		# Else, add the amount to the balance
+		# If statement verification, look for the first flagged leg
+		if statement_verification_quirks:
+			flagid = -1
+			for _line in lines[1:]:
+				line = condense(_line)
+				if line[0] == '!' and flagid == -1:
+					flagid = lineid = lines.index(_line)
+					break
+			if flagid > -1:
+				line = condense(data.journal[tx].split('\n')[flagid])[1:]
+				amounts[line[2]] = cast_number(amounts[line[2]] + float(line[1]))
+				continue
+		# Else, just add the amount to the balance
 		for _line in lines[1:]:
 			line = condense(_line)
 			if line[0] == '!':
@@ -724,7 +736,7 @@ def verify_statement():
 			return
 	while True:
 		# Tally the balance
-		balance = abs(calculate_balance(data.transaction_account, data.statement)[data.statement_currency])
+		balance = abs(calculate_balance(data.transaction_account, data.statement, True)[data.statement_currency])
 		print('\nTotal: %s %s (target: %s %s, difference: %s %s)' % (balance, data.statement_currency, data.target, data.statement_currency, cast_number(balance - data.target), data.statement_currency))
 		if balance == data.target:
 			break
@@ -743,10 +755,7 @@ def verify_statement():
 				continue
 			for tx in txlist:
 				desc = data.journal[tx].split('\n')[0].ljust(width)
-				for line in data.journal[tx].split('\n')[1:]:
-					line = condense(line)
-					if line[0] == data.transaction_account:
-						_amount = undecimal(abs(cast_number(line[1])))
+				_amount = abs(calculate_balance(data.transaction_account, [tx], True)[data.statement_currency])
 				print('[%s]	%s  %s	%s' % (tx, desc, _amount, data.statement_currency))
 		# Select records to add
 		print('\nSelect records to add to the statement. Type a record number already on the statement to remove it.')
@@ -777,8 +786,12 @@ def verify_statement():
 			print('Postponing statement verification.')
 			return
 		print('\nSetting transaction flags.')
+		lookup_string = '! %s' % data.transaction_account
 		for tx in data.statement:
-			data.journal[tx] = data.journal[tx].replace(data.statement_pattern, data.statement_replacement)
+			if lookup_string in data.journal[tx]:
+				data.journal[tx] = data.journal[tx].replace(lookup_string, data.transaction_account, 1)
+			if lookup_string not in data.journal[tx]:
+				data.journal[tx] = data.journal[tx].replace(data.statement_pattern, data.statement_replacement)
 		output = '%s * "%s"\n	%s %s %s\n	%s %s %s' % (date, desc, data.funding_account, undecimal(balance * -1), data.statement_currency, data.transaction_account, undecimal(balance), data.statement_currency)
 		insert_transaction(output)
 		# Mark the verification as finished
