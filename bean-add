@@ -624,11 +624,12 @@ def print_journal():
 		tx_number = '>>>>>>>' if tx == data.txid else '[%s]' % tx
 		print('%s	%s' % (tx_number, tx_string))
 
-# Attempt to deduce an implied amount: int txid -> bool modifications made
+# Attempt to deduce an implied amount: int txid -> bool transaction is correct
 def deduce_implied_amount(txid):
 	_tx = data.journal[txid].split('\n')
 	lineid = -1
 	amount = 0
+	cur = ''
 	for lineno in range(len(_tx)):
 		line = condense(_tx[lineno])
 		# Ignore anything that isn't a transaction leg
@@ -638,11 +639,14 @@ def deduce_implied_amount(txid):
 			continue
 		if len(line) == 1:
 			if lineid != -1:
-				print('\nError: More than one implied amount in record %s' % txid)
+				print('\nError: More than one implied amount in record %s.' % txid)
 				return False
 			else:
 				lineid = lineno
 		else:
+			if cur != line[-1] and cur != '':
+				print('\nError: More than one implied currency in record %s.' % txid)
+				return False
 			cur = line[-1]
 			if '@' in line and len(line) == 5:
 				line[-2] = undecimal(line[-2], 3)
@@ -651,11 +655,11 @@ def deduce_implied_amount(txid):
 				amount -= float(line[1])
 			amount = cast_number(amount)
 	if lineid == -1:
-		return
+		return True
 	if amount != 0:
 		_tx[lineno] = _tx[lineno] + ' %s %s' % (undecimal(amount), cur)
 	else:
-		print('\nCould not figure out implied amount in record %s' % txid)
+		print('\nCould not figure out implied amount in record %s.' % txid)
 		return False
 	data.journal[txid] = '\n'.join(_tx)
 	print('Implied amounts corrected in record %s.' % txid)
@@ -670,7 +674,8 @@ def calculate_balance(account, txlist=None, statement_verification_quirks=False)
 		amounts[currency] = 0
 	for tx in txlist:
 		if account in data.journal[tx]:
-			deduce_implied_amount(tx)
+			if not deduce_implied_amount(tx):
+				continue
 		lines = data.journal[tx].split('\n')
 		line = condense(lines[0])
 		# If the record is a balance statement, use that
