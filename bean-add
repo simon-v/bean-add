@@ -55,6 +55,7 @@ class data(object):
 	use_defaults = None
 	paranoid_write = False
 	external_write = False
+	context = 10
 
 # Set global constants
 tempfile = '/tmp/bean-add.%s.tmp.bnct' % os.environ['USER']
@@ -154,7 +155,7 @@ for line in tx_file.split('\n'):
 			# Cache any tags present
 			if '#' in line:
 				for word in _data:
-					if '#' in word:
+					if word.startswith('#'):
 						if not word[1:] in data.tags:
 							data.tags.append(word[1:])
 						data.defaults['__tag__'] = word[1:]
@@ -166,12 +167,8 @@ for line in tx_file.split('\n'):
 data.journal = tx_file.split('\n\n')
 data.journal = [ i.strip() for i in data.journal ]
 # Remove empty records
-_badblocks = []
-for i in range(len(data.journal)):
-	if data.journal[i] == '':
-		_badblocks.insert(0, i)
-for i in _badblocks:
-		del data.journal[i]
+while '' in data.journal:
+	data.journal.remove('')
 
 # Start modification tracking
 data.saved = data.journal.copy()
@@ -548,12 +545,12 @@ def read_normal_transaction():
 			del(_transaction[ -1])
 		else:
 			output += '	%s %s\n' % (account, amount)
-	data.defaults[description] = _transaction
 	# The transaction is empty, no money moved anywhere
 	if _transaction == []:
 		print('\nTransaction entry aborted.')
 	else:
 		# Update defaults and insert the transaction
+		data.defaults[description] = _transaction
 		insert_transaction(output.strip())
 
 # Read a balance assertion transaction
@@ -636,8 +633,8 @@ def print_journal():
 	if data.txid == -1:
 		print('\nNo current record.')
 		return
-	start = max(data.txid - 10, 0)
-	end = min(data.txid + 10, len(data.journal))
+	start = max(data.txid - data.context, 0)
+	end = min(data.txid + data.context, len(data.journal))
 	for tx in range(start, end):
 		tx_string = data.journal[tx].split('\n')[0]
 		tx_number = '>>>>>>>' if tx == data.txid else '[%s]' % tx
