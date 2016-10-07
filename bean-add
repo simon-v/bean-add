@@ -657,7 +657,7 @@ def deduce_implied_amount(txid):
 	if lineid == -1:
 		return True
 	if amount != 0:
-		_tx[lineno] = _tx[lineno] + ' %s %s' % (undecimal(amount), cur)
+		_tx[lineid] = _tx[lineid] + ' %s %s' % (undecimal(amount), cur)
 	else:
 		print('\nCould not figure out implied amount in record %s.' % txid)
 		return False
