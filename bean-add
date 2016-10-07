@@ -151,12 +151,14 @@ for line in tx_file.split('\n'):
 			data.date_delimiter = _data[0][4]
 			description = line[13:].split('#')[0].strip('" ')
 			data.defaults[description] = []
+			# Cache any tags present
 			if '#' in line:
 				for word in _data:
 					if '#' in word:
 						if not word[1:] in data.tags:
 							data.tags.append(word[1:])
 						data.defaults['__tag__'] = word[1:]
+	# Pass through malformed (or unrecognized) lines without stopping
 	except IndexError:
 		continue
 
@@ -188,12 +190,15 @@ print('%s record(s) processed' % len(data.journal))
 if len(data.accounts) > 0:
 	print('%s account(s), %s unique description(s), %s currency sign(s), %s tag(s) loaded' % (len(data.accounts), len(data.defaults), len(data.currencies), len(data.tags)))
 else:
+	# Empty file
 	if tx_file == '':
 		print('File does not exist, or is empty.')
+	# Not empty, but unuseful file
 	else:
 		print('File contains no account definitions.')
 	if not confirm('Proceed with editing? (y/N) ', False):
 		sys.exit()
+# This will never trigger after commit 4830cde. Reconsider.
 if data.journal != data.saved:
 	print('Automatic normalizations applied.')
 	data.saved = data.journal.copy()
@@ -408,6 +413,7 @@ def add_remove_tag():
 # Seek to a specific record in the journal file
 def seek_to_transaction(autoseek=None):
 	while True:
+		# Early return
 		if data.journal == []:
 			print('\nThe journal is empty.')
 			return
@@ -423,12 +429,14 @@ def seek_to_transaction(autoseek=None):
 				print('\nSeeking cancelled.')
 				return
 		else:
+			# Scripted seeking
 			reading = autoseek
 		try:
 			_txid = int(reading)
 		except ValueError:
 			print('\nSeeking cancelled.')
 			return
+		# Relative value
 		if reading.startswith('+') or reading.startswith('-'):
 			if data.txid == -1:
 				if autoseek is not None:
@@ -439,6 +447,7 @@ def seek_to_transaction(autoseek=None):
 					return
 			else:
 				_txid += data.txid
+		# Beginning of journal
 		if _txid < 0:
 			if autoseek is not None:
 				print('\nYou are at the first record.')
@@ -446,6 +455,7 @@ def seek_to_transaction(autoseek=None):
 			else:
 				print('\nSeeking cancelled.')
 				return
+		# End of journal
 		elif _txid > len(data.journal) - 1:
 			if autoseek is not None:
 				print('\nYou are at the last record.')
@@ -453,8 +463,10 @@ def seek_to_transaction(autoseek=None):
 			else:
 				print('\nSeeking cancelled.')
 				return
+		# Explicit and absolute value
 		else:
 			break
+	# Change to the specified record
 	print('\nRecord %s:\n' % _txid)
 	print(data.journal[_txid])
 	data.txid = _txid
@@ -518,6 +530,7 @@ def read_normal_transaction():
 		output += '%s %s "%s"\n' % (data.date, '!' if data.flag else '*' , description)
 	defaults = get_default_accounts(description)
 	while True:
+		# Use defaults, if available, then proceed to manual account input
 		if len(defaults) > 0:
 			account = defaults.pop(0)
 		else:
@@ -529,15 +542,18 @@ def read_normal_transaction():
 				break
 		_transaction.append(account)
 		amount = read_amount(account)
+		# Zero amounts are meaningless in this context
 		if amount.startswith('0 '):
 			print('Removing zero-amount `%s` from transaction.' % account)
 			del(_transaction[ -1])
 		else:
 			output += '	%s %s\n' % (account, amount)
 	data.defaults[description] = _transaction
+	# The transaction is empty, no money moved anywhere
 	if _transaction == []:
 		print('\nTransaction entry aborted.')
 	else:
+		# Update defaults and insert the transaction
 		insert_transaction(output.strip())
 
 # Read a balance assertion transaction
@@ -597,22 +613,25 @@ def edit_transaction():
 	if data.txid < 0:
 		print('\nNothing to edit, no current record.')
 		return
+	# Save the transaction in a temp file
 	with open(tempfile, 'w') as tmp_file:
 		tmp_file.write(data.journal[data.txid])
 	try:
 		subprocess.call([os.environ['EDITOR'], tempfile])
 	except:
 		print('\nCould not start the editor: %s\n' % sys.exc_info()[1])
+	# Reload the transaction from the file
 	with open(tempfile, 'r') as tmp_file:
 		_tx = ''.join(tmp_file.readlines()).strip('\n')
 	if _tx == data.journal[data.txid]:
 		print('Nothing changed.')
 	else:
+	# Update the record
 		data.journal[data.txid] = _tx
 		print('Record updated.')
 	os.unlink(tempfile)
 
-# Print the context to the current transaction (+-10 transactions)
+# Print the context to the current transaction (default: +-10 transactions)
 def print_journal():
 	if data.txid == -1:
 		print('\nNo current record.')
@@ -637,6 +656,7 @@ def deduce_implied_amount(txid):
 			del(line[0])
 		if line[0] not in data.accounts:
 			continue
+		# Find the leg that needs to be deduced
 		if len(line) == 1:
 			if lineid != -1:
 				print('\nError: More than one implied amount in record %s.' % txid)
@@ -654,31 +674,37 @@ def deduce_implied_amount(txid):
 			else:
 				amount -= float(line[1])
 			amount = cast_number(amount)
+	# The record is perfectly fine as-is
 	if lineid == -1:
 		return True
+	# Something needs to be done
 	if amount != 0:
 		_tx[lineid] = _tx[lineid] + ' %s %s' % (undecimal(amount), cur)
 	else:
 		print('\nCould not figure out implied amount in record %s.' % txid)
 		return False
+	# Update the record
 	data.journal[txid] = '\n'.join(_tx)
 	print('Implied amounts corrected in record %s.' % txid)
 	return True
 
 # Calculate the balance of an account
 def calculate_balance(account, txlist=None, statement_verification_quirks=False):
+	# If no list of transactions to consider is given, default to the entire journal
 	if txlist is None:
 		txlist = list(range(len(data.journal)))
 	amounts = {}
 	for currency in data.currencies:
 		amounts[currency] = 0
+	# Go through the transaction lits
 	for tx in txlist:
+		# See if it need corrections
 		if account in data.journal[tx]:
 			if not deduce_implied_amount(tx):
 				continue
 		lines = data.journal[tx].split('\n')
-		line = condense(lines[0])
 		# If the record is a balance statement, use that
+		line = condense(lines[0])
 		if len(line) == 5 and line[1] == 'balance' and line[2] == account:
 			amounts[line[4]] = cast_number(line[3])
 			continue
@@ -732,6 +758,7 @@ def update_statement_refs(txid, insertion):
 def verify_statement():
 	# If wasn't working on a statement before
 	if data.target == 0 or not confirm('Continue ongoing statement verification? (Y/n) ', True):
+		# Get some general information
 		try:
 			data.statement = []
 			print('\nEnter the account the statement refers to.')
@@ -754,7 +781,7 @@ def verify_statement():
 		if balance == data.target:
 			break
 		transactions = tx_lookup([data.transaction_account, data.statement_pattern], data.statement)
-		# List matching records
+		# List matching records neatly justified
 		width = 10
 		for tx in data.statement + transactions:
 			width = max(width, len(data.journal[tx].split('\n')[0]))
@@ -770,7 +797,7 @@ def verify_statement():
 				desc = data.journal[tx].split('\n')[0].ljust(width)
 				_amount = abs(calculate_balance(data.transaction_account, [tx], True)[data.statement_currency])
 				print('[%s]	%s  %s	%s' % (tx, desc, _amount, data.statement_currency))
-		# Select records to add
+		# Select records to add or remove
 		print('\nSelect records to add to the statement. Type a record number already on the statement to remove it.')
 		try:
 			reading = int(input('Enter a record number: ').strip())
@@ -782,6 +809,7 @@ def verify_statement():
 		except KeyboardInterrupt:
 			print('\n\nPostponing statement verification.')
 			return
+		# Add or remove records
 		if reading in data.statement:
 			data.statement.remove(reading)
 		elif reading in transactions:
@@ -801,10 +829,13 @@ def verify_statement():
 		print('\nSetting transaction flags.')
 		lookup_string = '! %s' % data.transaction_account
 		for tx in data.statement:
+			# Unflag one of the legs first
 			if lookup_string in data.journal[tx]:
 				data.journal[tx] = data.journal[tx].replace(lookup_string, data.transaction_account, 1)
+			# And if it was the last one, unflag the transaction also
 			if lookup_string not in data.journal[tx]:
 				data.journal[tx] = data.journal[tx].replace(data.statement_pattern, data.statement_replacement)
+		# Add the statement transaction
 		output = '%s * "%s"\n	%s %s %s\n	%s %s %s' % (date, desc, data.funding_account, undecimal(balance * -1), data.statement_currency, data.transaction_account, undecimal(balance), data.statement_currency)
 		insert_transaction(output)
 		# Mark the verification as finished
@@ -823,15 +854,18 @@ print('\nChanges stay in memory until you [w]rite them out.')
 print('Type `h` or `?` for a list of available commands.')
 
 while True:
+	# Check journal modifications for paranoid write mode
 	if data.paranoid_write and not data.external_write and data.journal != data.saved:
 		cmd = 'w'
 	elif data.paranoid_write and data.external_write and externalize_transactions() != data.external_journal:
 		cmd = 'w'
+	# Get a command
 	else:
 		try:
 			cmd = input('\nEnter command (h for help) ')
 		except KeyboardInterrupt:
 			cmd = 'q'
+	# Write the journal
 	if cmd in ['w', 'wq']:
 		if data.external_write:
 			file_name = data.file_name + '.new'
@@ -852,6 +886,7 @@ while True:
 				data.saved = data.journal.copy()
 		if cmd == 'wq':
 			sys.exit()
+	# Quit
 	elif cmd == 'q':
 		try:
 			if not data.external_write and data.journal != data.saved:
@@ -870,9 +905,11 @@ while True:
 			elif data.target != 0:
 				if not confirm('Statement verification in progress. Do you really want to DESTROY ALL CHANGES and quit? (y/N) ', False):
 					continue
+		# Treat a second CTRL-C as a confirmation
 		except KeyboardInterrupt:
 			pass
 		sys.exit()
+	# Run bean-check
 	elif cmd == 'c':
 		with open(tempfile, 'w') as tmp_file:
 			tmp_file.write('\n\n'.join(data.journal) + '\n')
@@ -883,35 +920,43 @@ while True:
 		else:
 			print('\nValidation finished.')
 		os.unlink(tempfile)
+	# New transaction
 	elif cmd == 'n':
 		try:
 			read_normal_transaction()
 		except KeyboardInterrupt:
 			print('\nTransaction entry cancelled.')
+	# New balance assertion
 	elif cmd == 'B':
 		try:
 			read_balance_transaction()
 		except KeyboardInterrupt:
 			print('\nTransaction entry cancelled.')
+	# New padding transaction
 	elif cmd == 'P':
 		try:
 			read_pad_transaction()
 		except KeyboardInterrupt:
 			print('\nTransaction entry cancelled.')
+	# New note transaction
 	elif cmd == 'N':
 		try:
 			read_note_transaction()
 		except KeyboardInterrupt:
 			print('\nTransaction entry cancelled.')
+	# Toggle flag
 	elif cmd == 'f':
 		toggle_flag()
+	# Toggle deep flag
 	elif cmd == 'ff':
 		try:
 			toggle_flag_with_legs()
 		except KeyboardInterrupt:
 			print('\nCancelled.')
+	# Edit tags
 	elif cmd == 't':
 		add_remove_tag()
+	# Seeking
 	elif cmd == 's':
 		seek_to_transaction()
 	elif cmd == 'sa':
@@ -922,8 +967,10 @@ while True:
 		seek_to_transaction('0')
 	elif cmd == 'se':
 		seek_to_transaction(str(len(data.journal) - 1))
+	# Lookup
 	elif cmd == 'l':
 		find_transactions()
+	# Delete record
 	elif cmd == 'r':
 		if data.txid >= 0:
 			data.restore.append(data.journal.pop(data.txid))
@@ -935,19 +982,25 @@ while True:
 				data.txid -= 1
 		else:
 			print('\nNothing to delete, no current transaction.')
+	# Undelete record
 	elif cmd == 'u':
 		if len(data.restore) > 0:
 			insert_transaction(data.restore.pop())
 		else:
 			print('\nNothing to undo, the restore buffer is empty.')
+	# External edit
 	elif cmd == 'e':
 		edit_transaction()
+	# Show context
 	elif cmd == 'j':
 		print_journal()
+	# Tally account balances
 	elif cmd == 'b':
 		print_account_balances()
+	# Begin statement verification
 	elif cmd == 'v':
 		verify_statement()
+	# Show options
 	elif cmd == 'o':
 		print('Available option commands:')
 		print('oo	write current options to the journal')
@@ -955,18 +1008,23 @@ while True:
 		print('oa	reuse last used accounts in new transactions (%s)' % ('ask' if data.use_defaults is None else 'always' if data.use_defaults else 'never'))
 		print('ow	write journal after every change (%s)' % ('enabled' if data.paranoid_write else 'disabled'))
 		print('oe	write changes to an external file (%s)' % ('enabled' if data.external_write else 'disabled'))
+	# Option: sort by date
 	elif cmd == 'os':
 		data.sort_by_date = not data.sort_by_date
 		print('\nSorting by date %s.' % ('enabled' if data.sort_by_date else 'disabled'))
+	# Option: accept defaults
 	elif cmd == 'oa':
 		data.use_defaults = None if data.use_defaults == False else not data.use_defaults
 		print('\nThe policy on reusing accounts for new transactions is now `%s`.' % ('ask' if data.use_defaults is None else 'always' if data.use_defaults else 'never'))
+	# Option: paranoid write
 	elif cmd == 'ow':
 		data.paranoid_write = not data.paranoid_write
 		print('\nWriting journal after every change is %s.' % ('enabled' if data.paranoid_write else 'disabled'))
+	# Option: external write
 	elif cmd == 'oe':
 		data.external_write = not data.external_write
 		print('Writing changes to an external file is now %s.' % ('enabled' if data.external_write else 'disabled'))
+	# Save options to the journal
 	elif cmd == 'oo':
 		# Generate the option string
 		optstring = ';*bean-add*'
@@ -984,6 +1042,7 @@ while True:
 			if _tx.startswith(';*bean-add* '):
 				data.journal.remove(_tx)
 		print('\nOptions saved to the journal as record 0.')
+	# Help
 	elif cmd == 'h' or cmd == '?':
 		print('''Available commands:
 n	new transaction
@@ -1011,5 +1070,6 @@ w	write journal file
 q	quit
 wq	write journal file and quit immediately
 h,?	show this help message''')
+	# Say what
 	else:
 		print('Unknown command.')
