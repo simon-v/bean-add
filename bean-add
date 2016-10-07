@@ -716,7 +716,7 @@ def print_account_balances():
 	print('\nBalances for %s:' % account)
 	for currency in data.currencies:
 		if amounts[currency] != 0:
-			print('%s %s' % (amounts[currency], currency))
+			print('%s %s' % (undecimal(amounts[currency]), currency))
 
 # Nudge txids in the statement following a journal modification
 def update_statement_refs(txid, insertion):
