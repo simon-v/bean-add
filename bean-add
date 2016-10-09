@@ -318,7 +318,7 @@ def read_amount(account):
 	# Read an amount
 	if account in data.accounts:
 		account = '`%s`' % account
-	amount = input('Enter the amount for %s (including currency symbol) [%s %s]: ' % (account, data.balance, data.cur))
+	amount = input('Enter the amount for %s (including currency symbol) [%s %s]: ' % (account, undecimal(data.balance), data.cur))
 	if amount == '':
 		amount = [data.balance, data.cur]
 	else:
