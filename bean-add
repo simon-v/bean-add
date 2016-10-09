@@ -100,6 +100,7 @@ except:
 	sys.exit('Could not open the file: %s' % sys.exc_info()[1])
 
 description = ''
+lastdate = '0'
 for line in tx_file.split('\n'):
 	line = line.strip()
 	if line == '':
@@ -124,7 +125,7 @@ for line in tx_file.split('\n'):
 					data.external_write = True
 				else:
 					print('Unrecognized option: %s' % i)
-			print('Loaded options from journal file.\n')
+			print('Loaded options from journal file.')
 		continue
 	_data = condense(line)
 	try:
@@ -149,6 +150,12 @@ for line in tx_file.split('\n'):
 			data.defaults['__pad__'] = [_data[2], _data[3]]
 		# Record a description
 		elif _data[1] in '!*':
+			_date = _data[0][0:10]
+			if data.sort_by_date and _date < lastdate:
+				print('Sorting by date disabled due to inconsistent ordering at %s.' % _date)
+				data.sort_by_date = False
+			else:
+				lastdate = _date
 			data.date_delimiter = _data[0][4]
 			description = line[13:].split('#')[0].strip('" ')
 			data.defaults[description] = []
@@ -187,7 +194,7 @@ def complete(text, state):
 readline.set_completer(complete)
 
 # Print some statistics
-print('%s record(s) processed' % len(data.journal))
+print('\n%s record(s) processed' % len(data.journal))
 if len(data.accounts) > 0:
 	print('%s account(s), %s unique description(s), %s currency sign(s), %s tag(s) loaded' % (len(data.accounts), len(data.defaults), len(data.currencies), len(data.tags)))
 else:
