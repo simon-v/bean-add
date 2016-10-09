@@ -166,12 +166,16 @@ for line in tx_file.split('\n'):
 # Prepare file for transaction insertion
 data.journal = tx_file.split('\n\n')
 data.journal = [ i.strip() for i in data.journal ]
+# Initialize modification tracking
+data.saved = data.journal.copy()
 # Remove empty records
 while '' in data.journal:
 	data.journal.remove('')
 
-# Start modification tracking
-data.saved = data.journal.copy()
+# Notify that some trivial fixes were made
+if data.journal != data.saved:
+	print('Automatic normalizations applied.')
+	data.saved = data.journal.copy()
 
 # Set up the completer
 readline.parse_and_bind('tab: complete')
@@ -195,10 +199,6 @@ else:
 		print('File contains no account definitions.')
 	if not confirm('Proceed with editing? (y/N) ', False):
 		sys.exit()
-# This will never trigger after commit 4830cde. Reconsider.
-if data.journal != data.saved:
-	print('Automatic normalizations applied.')
-	data.saved = data.journal.copy()
 
 # Date delimiter handling
 if data.date_delimiter != '-':
