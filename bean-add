@@ -1,10 +1,11 @@
 #!/usr/bin/python3
 # bean-add - A beancount transaction entry assistant
 # Author: Simon Volpert <simon@simonvolpert.com>
-# License: "Do what you feel is right, but don't be a jerk" public license.
-# See the README.md file for additional information
+# This program is free software, released under the Apache License, Version 2.0. See the LICENSE file for more information
+# Consult the README file for usage instructions and other helpful hints
 
-usage = 'Usage: bean-add FILENAME'
+usage = '''usage: bean-add FILENAME
+See the README file for more information.'''
 
 import readline
 import sys

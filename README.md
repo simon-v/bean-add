@@ -49,4 +49,6 @@ If, at some point during statement verification, you discover an error in one of
 
 Once the sum of balances of all transactions in the statement matches the statement's target, you will be prompted for the statement's date and description. `bean-add` will then unset the flags of all records on the statement to prevent them from being used on another statement and add the statement's own record.
 
-The program is released under the "Do what you feel is right, but don't be a jerk" public license, and it comes without any kind of warranty. Pay attention. Keep backups.
+This program is free software, released under the Apache License, Version 2.0. See the LICENSE file for more information.
+
+The program's canonical project page resides at http://github.com/simon-v/bean-add/
