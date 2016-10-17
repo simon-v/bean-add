@@ -37,7 +37,6 @@ class data(object):
 	description = ''
 	cur = ''
 	balance = 0
-	flag = False
 	tag = 'bean-add'
 	txid = -1
 	date = datetime.date.today().isoformat()
@@ -352,23 +351,25 @@ def read_amount(account):
 # Toggle transaction flag
 def toggle_flag():
 	if data.txid < 0:
-		print('\nNothing to flag, no current transaction.')
+		print('\nNothing to flag, no current record.')
 		return
-	if ' ! ' in data.journal[data.txid]:
-		data.flag = True
-	else:
-		data.flag = False
-	if data.flag:
-		data.journal[data.txid] = data.journal[data.txid].replace(' ! ', ' * ')
-	else:
+	if ' * ' in data.journal[data.txid]:
 		data.journal[data.txid] = data.journal[data.txid].replace(' * ', ' ! ')
-	print('\nTransaction flag %sset.' % ('un' if data.flag else ''))
-	data.flag = not data.flag
-	print()
+		flagged = True
+	elif ' ! ' in data.journal[data.txid]:
+		data.journal[data.txid] = data.journal[data.txid].replace(' ! ', ' * ')
+		flagged = False
+	else:
+		print('\nRecord type does not support flags.')
+		return
+	print('\nTransaction flag %sset.\n' % ('un' if not flagged else ''))
 	print(data.journal[data.txid])
 
 # Toggle the flags on individual transaction legs
 def toggle_flag_with_legs():
+	if ' * ' not in data.journal[data.txid] and ' ! ' not in data.journal[data.txid]:
+		print('\nRecord type does not support flags.')
+		return
 	print('\nFlag which transaction legs?')
 	account = read_account()
 	if ' * ' in data.journal[data.txid]:
@@ -380,7 +381,7 @@ def toggle_flag_with_legs():
 # Add or remove transaction tags
 def add_remove_tag():
 	if data.txid < 0:
-		print('\nNothing to tag, no current transaction.')
+		print('\nNothing to tag, no current record.')
 		return
 	# Set completion
 	data.vocab = data.tags
@@ -532,7 +533,7 @@ def read_normal_transaction():
 		print('\nTransaction entry aborted.')
 		return
 	else:
-		output += '%s %s "%s"\n' % (data.date, '!' if data.flag else '*' , description)
+		output += '%s * "%s"\n' % (data.date, description)
 	defaults = get_default_accounts(description)
 	while True:
 		# Use defaults, if available, then proceed to manual account input
