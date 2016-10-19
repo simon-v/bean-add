@@ -801,7 +801,7 @@ def verify_statement():
 				continue
 			for tx in txlist:
 				desc = data.journal[tx].split('\n')[0].ljust(width)
-				_amount = abs(calculate_balance(data.transaction_account, [tx], True)[data.statement_currency])
+				_amount = undecimal(abs(calculate_balance(data.transaction_account, [tx], True)[data.statement_currency]))
 				print('[%s]	%s  %s	%s' % (tx, desc, _amount, data.statement_currency))
 		# Select records to add or remove
 		print('\nSelect records to add to the statement. Type a record number already on the statement to remove it.')
