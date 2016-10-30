@@ -33,6 +33,19 @@ class data(object):
 	currencies = []
 	tags = []
 	vocab = []
+	history = {
+		'command': [],
+		'date': [],
+		'description': [],
+		'account': [],
+		'amount': [],
+		'tag': [],
+		'seek': [],
+		'lookup': [],
+		'note': [],
+		'txids': []
+	}
+	history_context = 'command'
 	# Current transaction
 	description = ''
 	cur = ''
@@ -193,6 +206,16 @@ def complete(text, state):
 
 readline.set_completer(complete)
 
+# Set up histories
+def set_history_context(context):
+	data.history[data.history_context] = []
+	for i in range(readline.get_current_history_length()):
+		data.history[data.history_context].append(readline.get_history_item(i + 1))
+	readline.clear_history()
+	for i in data.history[context]:
+		readline.add_history(i)
+	data.history_context = context
+
 # Print some statistics
 print('\n%s record(s) processed' % len(data.journal))
 if len(data.accounts) > 0:
@@ -246,6 +269,7 @@ def read_date(default):
 	# Unset completion
 	data.vocab = []
 	readline.set_completer_delims('')
+	set_history_context('date')
 	# Get a valid date
 	while True:
 		reading = input('Enter transaction date (%s, or +/-days) [%s]: ' % (data.date_prompt, default))
@@ -265,13 +289,16 @@ def read_date(default):
 				date = strpdate(reading)
 			except ValueError:
 				continue
-		return date.isoformat()
+		date = date.isoformat()
+		readline.replace_history_item(readline.get_current_history_length() - 1, date)
+		return date
 
 # Read a description -> str(description)
 def read_description():
 	# Set completion
 	data.vocab = data.defaults.keys()
 	readline.set_completer_delims('')
+	set_history_context('description')
 	# Get a non-empty description
 	while True:
 		reading = input('Enter transaction description [%s]: ' % data.description).strip(' "')
@@ -286,11 +313,12 @@ def read_description():
 
 # Read a valid account name
 def read_account():
+	# Set completion
+	data.vocab = data.accounts
+	readline.set_completer_delims('')
+	set_history_context('account')
 	# Read a valid account
 	while True:
-		# Set completion
-		data.vocab = data.accounts
-		readline.set_completer_delims('')
 		reading = input('Enter an account name (tab to complete, enter to fininsh): ')
 		if reading == '':
 			return None
@@ -322,6 +350,7 @@ def read_amount(account):
 	# Set completion
 	data.vocab = data.currencies
 	readline.set_completer_delims(' ')
+	set_history_context('amount')
 	# Read an amount
 	if account in data.accounts:
 		account = '`%s`' % account
@@ -386,6 +415,7 @@ def add_remove_tag():
 	# Set completion
 	data.vocab = data.tags
 	readline.set_completer_delims('')
+	set_history_context('tag')
 	# Get and normalize a tag
 	try:
 		_tag = input('Enter a tag [%s]: ' % data.defaults['__tag__'])
@@ -425,6 +455,10 @@ def seek_to_transaction(autoseek=None):
 			return
 		if autoseek is None:
 			# Manual seeking input
+			set_history_context('seek')
+			# Unset completion
+			data.vocab = []
+			readline.set_completer_delims('')
 			if data.txid >= 0:
 				print('\nCurrently at record %s.' % data.txid)
 			else:
@@ -496,6 +530,10 @@ def tx_lookup(patterns, prune_txids=[]):
 
 # Find transactions that contain a string
 def find_transactions():
+	# Unset completion
+	data.vocab = []
+	readline.set_completer_delims('')
+	set_history_context('lookup')
 	try:
 		reading = input('Enter a search string: ').strip('\n')
 	except KeyboardInterrupt:
@@ -599,6 +637,7 @@ def read_note_transaction():
 	# Unset completion
 	data.vocab = []
 	readline.set_completer_delims('')
+	set_history_context('note')
 	print('\nAdding a new note statement.')
 	data.date = read_date(data.date)
 	defaults = get_default_accounts('__note__')
@@ -780,6 +819,7 @@ def verify_statement():
 		except KeyboardInterrupt:
 			print('\nCancelled.')
 			return
+	set_history_context('txids')
 	while True:
 		# Tally the balance
 		balance = abs(calculate_balance(data.transaction_account, data.statement, True)[data.statement_currency])
@@ -867,6 +907,8 @@ while True:
 		cmd = 'w'
 	# Get a command
 	else:
+		# Set history
+		set_history_context('command')
 		try:
 			cmd = input('\nEnter command (h for help) ')
 		except KeyboardInterrupt:
