@@ -272,7 +272,7 @@ def read_date(default):
 	set_history_context('date')
 	# Get a valid date
 	while True:
-		reading = input('Enter transaction date (%s, or +/-days) [%s]: ' % (data.date_prompt, default))
+		reading = input('Enter transaction date (%s, or %%d, or +/-days) [%s]: ' % (data.date_prompt, default))
 		# Accepting the default
 		if reading == '':
 			return default
@@ -281,6 +281,13 @@ def read_date(default):
 		if reading.startswith('+') or reading.startswith('-'):
 			try:
 				date += datetime.timedelta(int(reading))
+			except ValueError:
+				continue
+		# Partial notation (day only)
+		elif len(reading) == 1 or len(reading) == 2:
+			today = datetime.date.today()
+			try:
+				date = datetime.date(today.year, today.month, int(reading))
 			except ValueError:
 				continue
 		# Absolute date
