@@ -68,6 +68,7 @@ class data(object):
 	use_defaults = None
 	paranoid_write = False
 	external_write = False
+	date_preview = True
 	context = 10
 
 # Set global constants
@@ -136,6 +137,8 @@ for line in tx_file.split('\n'):
 					data.paranoid_write = True
 				elif i == 'e':
 					data.external_write = True
+				elif i == 'd':
+					data.date_preview = False
 				else:
 					print('Unrecognized option: %s' % i)
 			print('Loaded options from journal file.')
@@ -298,6 +301,9 @@ def read_date(default):
 				continue
 		date = date.isoformat()
 		readline.replace_history_item(readline.get_current_history_length() - 1, date)
+		if data.date_preview:
+			default = date
+			continue
 		return date
 
 # Read a description -> str(description)
@@ -1063,6 +1069,7 @@ while True:
 		print('oa	reuse last used accounts in new transactions (%s)' % ('ask' if data.use_defaults is None else 'always' if data.use_defaults else 'never'))
 		print('ow	write journal after every change (%s)' % ('enabled' if data.paranoid_write else 'disabled'))
 		print('oe	write changes to an external file (%s)' % ('enabled' if data.external_write else 'disabled'))
+		print('od	preview non-absoulute dates during input (%s)' % ('enabled' if data.date_preview else 'disabled'))
 	# Option: sort by date
 	elif cmd == 'os':
 		data.sort_by_date = not data.sort_by_date
@@ -1079,6 +1086,10 @@ while True:
 	elif cmd == 'oe':
 		data.external_write = not data.external_write
 		print('Writing changes to an external file is now %s.' % ('enabled' if data.external_write else 'disabled'))
+	# Option: date preview
+	elif cmd == 'od':
+		data.date_preview = not data.date_preview
+		print('Previewing of non-absolute dates during input is now %s.' % ('enabled' if data.date_preview else 'disabled'))
 	# Save options to the journal
 	elif cmd == 'oo':
 		# Generate the option string
@@ -1087,6 +1098,7 @@ while True:
 		optstring += '' if data.use_defaults is None else ' a' if data.use_defaults else ' aa'
 		optstring += ' w' if data.paranoid_write else ''
 		optstring += ' e' if data.external_write else ''
+		optstring += '' if data.date_preview else ' d'
 		# Apply the option string
 		if data.journal[0].startswith(';*bean-add* '):
 			data.journal[0] = optstring
