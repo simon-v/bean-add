@@ -288,9 +288,9 @@ def read_date(default):
 				continue
 		# Partial notation (day only)
 		elif len(reading) == 1 or len(reading) == 2:
-			today = datetime.date.today()
+			today = default.split(data.date_delimiter)
 			try:
-				date = datetime.date(today.year, today.month, int(reading))
+				date = datetime.date(int(today[0]), int(today[1]), int(reading))
 			except ValueError:
 				continue
 		# Absolute date
