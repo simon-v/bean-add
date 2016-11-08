@@ -300,7 +300,6 @@ def read_date(default):
 			except ValueError:
 				continue
 		date = date.isoformat()
-		readline.replace_history_item(readline.get_current_history_length() - 1, date)
 		if data.date_preview:
 			default = date
 			continue
