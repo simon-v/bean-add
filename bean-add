@@ -267,6 +267,28 @@ def insert_transaction(tx):
 def strpdate(d):
 	return datetime.datetime.strptime(d, data.date_prompt).date()
 
+# Figure out the full date from a day-only input
+def sliding_window(day):
+    today = strpdate(data.date)
+    if today.day == day:
+        return today
+    future = today
+    for future_delta in range(32):
+        future = future + datetime.timedelta(days=1)
+        if future.day == day:
+            break
+    past = today
+    for past_delta in range(32):
+        past = past - datetime.timedelta(days=1)
+        if past.day == day:
+            break
+    if past_delta <= future_delta and past_delta < 31:
+        return past
+    elif future_delta < past_delta:
+        return future
+    elif past_delta == future_delta == 31:
+        return None
+
 # Read and validate a date: str(default) -> str(date)
 def read_date(default):
 	# Unset completion
@@ -290,7 +312,7 @@ def read_date(default):
 		elif len(reading) == 1 or len(reading) == 2:
 			today = default.split(data.date_delimiter)
 			try:
-				date = datetime.date(int(today[0]), int(today[1]), int(reading))
+				date = sliding_window(int(reading))
 			except ValueError:
 				continue
 		# Absolute date
