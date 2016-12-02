@@ -71,6 +71,7 @@ class data(object):
 	external_write = False
 	date_preview = True
 	context = 10
+	auto_flag = []
 
 # Set global constants
 tempfile = '/tmp/bean-add.%s.tmp.bnct' % os.environ['USER']
@@ -129,6 +130,7 @@ for line in tx_file.split('\n'):
 	# Skip comments, but make use of the option strings
 	elif line.startswith(';'):
 		if line.startswith(';*bean-add* '):
+			_auto_flag = False
 			for i in line.split()[1:]:
 				if i == 'a':
 					data.use_defaults = True
@@ -142,6 +144,12 @@ for line in tx_file.split('\n'):
 					data.external_write = True
 				elif i == 'd':
 					data.date_preview = False
+				elif i == 'f':
+					_auto_flag = True
+					continue
+				elif _auto_flag:
+					data.auto_flag.append(i)
+					_auto_flag = False
 				else:
 					print('Unrecognized option: %s' % i)
 			print('Loaded options from journal file.')
@@ -636,6 +644,11 @@ def read_normal_transaction():
 		# Update defaults and insert the transaction
 		data.defaults[description] = _transaction
 		insert_transaction(output.strip())
+		# Auto-flag if appropriate
+		for _account in data.auto_flag:
+			if _account in output:
+				toggle_flag()
+				break
 
 # Read a balance assertion transaction
 def read_balance_transaction():
@@ -1099,6 +1112,7 @@ while True:
 		print('ow	write journal after every change (%s)' % ('enabled' if data.paranoid_write else 'disabled'))
 		print('oe	write changes to an external file (%s)' % ('enabled' if data.external_write else 'disabled'))
 		print('od	preview non-absoulute dates during input (%s)' % ('enabled' if data.date_preview else 'disabled'))
+		print('of	automatically flag transactions containing (%s)' % (None if data.auto_flag == [] else ', '.join(data.auto_flag)))
 	# Option: sort by date
 	elif cmd == 'os':
 		data.sort_by_date = not data.sort_by_date
@@ -1119,6 +1133,21 @@ while True:
 	elif cmd == 'od':
 		data.date_preview = not data.date_preview
 		print('Previewing of non-absolute dates during input is now %s.' % ('enabled' if data.date_preview else 'disabled'))
+	elif cmd == 'of':
+		try:
+			_account = read_account()
+			if _account is None:
+				raise KeyboardInterrupt
+			if _account in data.auto_flag:
+				print('Removed from auto-flag list.')
+				data.auto_flag.remove(_account)
+			else:
+				print('Added to auto-flag list.')
+				data.auto_flag.append(_account)
+				data.auto_flag.sort()
+			print('\nAccounts to trigger automatic flagging:\n	%s' % (None if data.auto_flag == [] else '\n	'.join(data.auto_flag)))
+		except KeyboardInterrupt:
+			print('\nCancelled.')
 	# Save options to the journal
 	elif cmd == 'oo':
 		# Generate the option string
@@ -1128,6 +1157,8 @@ while True:
 		optstring += ' w' if data.paranoid_write else ''
 		optstring += ' e' if data.external_write else ''
 		optstring += '' if data.date_preview else ' d'
+		for _account in data.auto_flag:
+			optstring += ' f %s' % _account
 		# Apply the option string
 		if data.journal[0].startswith(';*bean-add* '):
 			data.journal[0] = optstring

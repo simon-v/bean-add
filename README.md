@@ -45,6 +45,8 @@ Another use for scripting has been proposed in the comments on the issue regardi
 
 `bean-add` provides a basic capability to perform credit card statement verification. To begin, type `v`, then feed in the name of the account which contains the transactions on the statement (likely, something like `Liabilities:CreditCard`), the name of the account from which the statement is paid (likely, something like `Assets:Bank:Checking`) and the statement's grand total. Select the records that appear on the statement by typing their numbers. Typing a record number that is already in the statement will remove it. For this to work as expected, be sure to `f`lag every record that hasn't yet appeared on a statement; Only flagged records are considered for addition. In addition, if the record contains multiple legs that are not paid out at the same time, make sure to also flag each of those legs (the `ff` command is helpful here); The flags will be used to track the legs' "paid" status.
 
+To make things easier for you, the `of` option exists, which automatically flags new transactions that contain any of the specified accounts.
+
 If, at some point during statement verification, you discover an error in one of the records, you can interrupt the process by pressing `Control-C`. When you next press `v`, you will be offered to continue from where you left off.
 
 Once the sum of balances of all transactions in the statement matches the statement's target, you will be prompted for the statement's date and description. `bean-add` will then unset the flags of all records on the statement to prevent them from being used on another statement and add the statement's own record.
