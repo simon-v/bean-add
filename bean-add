@@ -28,6 +28,7 @@ class data(object):
 	file_name = sys.argv[1]
 	defaults = {}
 	restore = []
+	mtime = 0
 	# Completion
 	accounts = []
 	currencies = []
@@ -109,6 +110,7 @@ def condense(line):
 try:
 	with open(data.file_name, 'r') as source_file:
 		tx_file = source_file.read()
+		data.mtime = os.stat(data.file_name).st_mtime
 except FileNotFoundError:
 	tx_file = ''
 except:
@@ -950,6 +952,10 @@ while True:
 			cmd = 'q'
 	# Write the journal
 	if cmd in ['w', 'wq']:
+		if data.mtime != os.stat(data.file_name).st_mtime:
+			print('\nWARNING: The journal file was modified on disk after opening; The journal is most likely inconsistent.')
+			if not data.external_write and not confirm('Do you really want to overwrite it? (y/N) ', False):
+				continue
 		if data.external_write:
 			file_name = data.file_name + '.new'
 			data.external_journal = externalize_transactions()
@@ -961,6 +967,7 @@ while True:
 			with open(file_name, 'w') as source_file:
 				source_file.write('\n\n'.join(journal) + '\n')
 				print('\n%s record(s) written' % len(journal))
+				data.mtime = os.stat(data.file_name).st_mtime
 		except:
 			print('\nCould not write the file: %s' % sys.exc_info()[1])
 			continue
