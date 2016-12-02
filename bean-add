@@ -93,7 +93,8 @@ def confirm(prompt='', default_yes=None):
 
 # Cast a number into the appropriate format: number -> int or rounded float
 def cast_number(number):
-	return int(number) if int(float(number)) == float(number) else round(float(number), 2)
+	number = float(number)
+	return int(number) if int(number) == number else round(number, 2)
 
 # Condense whitespace and return a list
 def condense(line):
