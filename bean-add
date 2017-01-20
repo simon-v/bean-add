@@ -107,6 +107,11 @@ def condense(line):
 			_data.append(i)
 	return _data
 
+# Naive word pluralization
+def pluralize(number, word):
+	number = str(number)
+	return '%s %s' % ( number, word if number.endswith('1') or number.endswith('11') else word + 's' )
+
 # Read and process journal file
 try:
 	with open(data.file_name, 'r') as source_file:
@@ -231,9 +236,13 @@ def set_history_context(context):
 	data.history_context = context
 
 # Print some statistics
-print('\n%s record(s) processed' % len(data.journal))
+print('\n%s processed' % pluralize(len(data.journal), 'record'))
 if len(data.accounts) > 0:
-	print('%s account(s), %s unique description(s), %s currency sign(s), %s tag(s) loaded' % (len(data.accounts), len(data.defaults), len(data.currencies), len(data.tags)))
+	print('%s, %s, %s and %s loaded' % (
+		pluralize(len(data.accounts), 'account name'),
+		pluralize(len(data.defaults), 'unique description'),
+		pluralize(len(data.currencies), 'currency sign'),
+		pluralize(len(data.tags), 'tag')))
 else:
 	# Empty file
 	if tx_file == '':
@@ -979,7 +988,7 @@ while True:
 		try:
 			with open(file_name, 'w') as source_file:
 				source_file.write('\n\n'.join(journal) + '\n')
-				print('\n%s record(s) written' % len(journal))
+				print('\n%s written' % pluralize(len(journal), 'record'))
 				data.mtime = os.stat(data.file_name).st_mtime
 		except:
 			print('\nCould not write the file: %s' % sys.exc_info()[1])
