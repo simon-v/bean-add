@@ -367,12 +367,12 @@ def read_description():
 
 # Read a valid account name
 def read_account():
-	# Set completion
-	data.vocab = data.accounts
-	readline.set_completer_delims('')
-	set_history_context('account')
-	# Read a valid account
 	while True:
+		# Set completion
+		data.vocab = data.accounts
+		readline.set_completer_delims('')
+		set_history_context('account')
+		# Read a valid account
 		reading = input('Enter an account name (tab to complete, enter to fininsh): ')
 		if reading == '':
 			return None
