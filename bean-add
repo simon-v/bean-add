@@ -709,6 +709,22 @@ def read_note_transaction():
 	output = '%s note %s "%s"' % (data.date, account, description)
 	insert_transaction(output)
 
+# Remove a transaction
+def remove_transaction(silent_drop):
+	if data.txid >= 0:
+		if silent_drop:
+			del(data.journal[data.txid])
+		else:
+			data.restore.append(data.journal.pop(data.txid))
+			print('\nDeleted record %s' % data.txid)
+		if data.txid in data.statement:
+			data.statement.remove(data.txid)
+		update_statement_refs(data.txid, False)
+		if data.txid >= len(data.journal):
+			data.txid -= 1
+	else:
+		print('\nNothing to delete, no current transaction.')
+
 # Edit the current transaction with an external editor
 def edit_transaction():
 	if 'EDITOR' not in os.environ or os.environ['EDITOR'] == '':
@@ -731,8 +747,9 @@ def edit_transaction():
 		print('Nothing changed.')
 	else:
 	# Update the record
-		data.journal[data.txid] = _tx
-		print('Record updated.')
+		remove_transaction(True)
+		print('\nRecord updated.')
+		insert_transaction(_tx)
 	os.unlink(tempfile)
 
 # Print the context to the current transaction (default: +-10 transactions)
@@ -1084,16 +1101,7 @@ while True:
 		find_transactions()
 	# Delete record
 	elif cmd == 'r':
-		if data.txid >= 0:
-			data.restore.append(data.journal.pop(data.txid))
-			print('\nDeleted record %s' % data.txid)
-			if data.txid in data.statement:
-				data.statement.remove(data.txid)
-			update_statement_refs(data.txid, False)
-			if data.txid >= len(data.journal):
-				data.txid -= 1
-		else:
-			print('\nNothing to delete, no current transaction.')
+		remove_transaction(False)
 	# Undelete record
 	elif cmd == 'u':
 		if len(data.restore) > 0:

@@ -9,7 +9,7 @@ Type `h` for a list of available commands.
 
 To add a new transaction, type `n`. Enter the transaction's details: date, description, and the participating accounts and their amounts. You can press `tab` during entry to trigger completion. If there was a transaction with matching description in the past (and there almost always is), you will be presented with an option to reuse the accounts for the new transaction.
 
-If, during transaction entry, you enter an amount of zero for any of the accounts, that account will be removed from the transaction, allowing you to correct any mistakes on the fly. For more elaborate corrections, use the `e` command. If you plan on using this feature, make sure `$EDITOR` is set to your preferred editor.
+If, during transaction entry, you enter an amount of zero for any of the accounts, that account will be removed from the transaction, allowing you to correct any mistakes on the fly. For more elaborate corrections, use the `e` command. If you plan on using this feature, make sure `$EDITOR` is set to your preferred editor. The transaction will be reinserted into an appropriate place in the journal when you finish editing.
 
 Once you are done with the transaction entry, it will be inserted chronologically into your file and you will be returned to the command prompt. Note that this assumes that your beancount file is sorted by date; If it isn't, the results will be unpredictable. Fortunately, this sorting method can be disabled through the options (see below).
 
@@ -19,7 +19,7 @@ Type `f` to flag the transaction. Type `t` to add or remove transaction tags.
 
 You can navigate to another record in the journal file with `s`. This is useful if you suddenly remember you forgot some minor detail in a previous transaction. There are also shortcuts available for seeking one record forward and backwards, as well as to the beginning and end of the journal file. To find the record number you want, you can either type `l` to search for records that contain a certain string, or `j` to examine the transaction's immediate context. You can also type `b` to attempt to calculate the final balance of an account on the fly.
 
-To remove a record from the journal file, type `r`. To undo a recent removal, type `u`. You can also use these two commands in a succession to reinsert a transaction in an appropriate place after editing it, if so desired.
+To remove a record from the journal file, type `r`. To undo a recent removal, type `u`.
 
 When you are done entering your transactions, type `w` to write the journal file to disk and `q` to quit.
 
