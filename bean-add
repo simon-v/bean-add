@@ -453,12 +453,12 @@ def toggle_flag_with_legs():
 	if ' * ' not in data.journal[data.txid] and ' ! ' not in data.journal[data.txid]:
 		print('\nRecord type does not support flags.')
 		return
-	print('\nFlag which transaction legs?')
-	account = read_account()
 	if ' * ' in data.journal[data.txid]:
+		print('\nFlag which transaction legs?')
+		account = read_account()
 		data.journal[data.txid] = data.journal[data.txid].replace(account, '! %s' % account).replace('! !', '!')
 	else:
-		data.journal[data.txid] = data.journal[data.txid].replace('! %s' % account, account)
+		data.journal[data.txid] = data.journal[data.txid].replace('	! ', '	')
 	toggle_flag()
 
 # Add or remove transaction tags
