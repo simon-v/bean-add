@@ -72,7 +72,7 @@ class data(object):
 	date_preview = True
 	context = 10
 	auto_flag = []
-	seekup_first = False
+	lookup_seek = None
 
 # Set global constants
 tempfile = '/tmp/bean-add.%s.tmp.bnct' % os.environ['USER']
@@ -151,7 +151,9 @@ for line in tx_file.split('\n'):
 				elif i == 'd':
 					data.date_preview = False
 				elif i == 'l':
-					data.seekup_first = True
+					data.lookup_seek = True
+				elif i == 'll':
+					data.lookup_seek = False
 				elif i == 'f':
 					_auto_flag = True
 					continue
@@ -586,7 +588,7 @@ def tx_lookup(patterns, prune_txids=[]):
 	return results
 
 # Find transactions that contain a string
-def find_transactions(verbose=True):
+def find_transactions():
 	# Unset completion
 	data.vocab = []
 	readline.set_completer_delims('')
@@ -600,12 +602,11 @@ def find_transactions(verbose=True):
 		print('Lookup cancelled.')
 		return
 	results = tx_lookup(reading)
-	if verbose:
-		if results == []:
-			print('\nNo results.')
-		else:
-			for i in results:
-				print('[%s]	%s' % (i, data.journal[i].split('\n')[0]))
+	if results == []:
+		print('\nNo results.')
+	else:
+		for i in results:
+			print('[%s]	%s' % (i, data.journal[i].split('\n')[0]))
 	return results
 
 # Get default accounts for a transaction
@@ -1112,16 +1113,12 @@ while True:
 		seek_to_transaction(len(data.journal) - 1)
 	# Lookup
 	elif cmd == 'l':
-		find_transactions()
-	elif cmd == 'ls':
-		results = find_transactions(False)
-		if results == []:
-			print('\nNo results.')
-		else:
-			if data.seekup_first:
-				seek_to_transaction(results[0])
-			else:
+		results = find_transactions()
+		if results != [] and data.lookup_seek is not None:
+			if data.lookup_seek:
 				seek_to_transaction(results[-1])
+			else:
+				seek_to_transaction(results[0])
 	# Delete record
 	elif cmd == 'r':
 		remove_transaction(False)
@@ -1153,7 +1150,7 @@ while True:
 		print('oe	write changes to an external file (%s)' % ('enabled' if data.external_write else 'disabled'))
 		print('od	preview non-absoulute dates during input (%s)' % ('enabled' if data.date_preview else 'disabled'))
 		print('of	automatically flag transactions containing (%s)' % (None if data.auto_flag == [] else ', '.join(data.auto_flag)))
-		print('ol	lookup result to seek to (%s)' % ('first' if data.seekup_first else 'last'))
+		print('ol	lookup result to seek to (%s)' % ('none' if data.lookup_seek is None else 'last' if data.lookup_seek else 'first'))
 	# Option: sort by date
 	elif cmd == 'os':
 		data.sort_by_date = not data.sort_by_date
@@ -1190,8 +1187,8 @@ while True:
 		except KeyboardInterrupt:
 			print('\nCancelled.')
 	elif cmd == 'ol':
-		data.seekup_first = not data.seekup_first
-		print('Seeking to the %s lookup result.' % ('first' if data.seekup_first else 'last'))
+		data.lookup_seek = True if data.lookup_seek is None else False if data.lookup_seek else None
+		print('\nSeeking to lookup result is set to %s.' % ('none' if data.lookup_seek is None else 'last' if data.lookup_seek else 'first'))
 	# Save options to the journal
 	elif cmd == 'oo':
 		# Generate the option string
@@ -1201,7 +1198,7 @@ while True:
 		optstring += ' w' if data.paranoid_write else ''
 		optstring += ' e' if data.external_write else ''
 		optstring += '' if data.date_preview else ' d'
-		optstring += ' l' if data.seekup_first else ''
+		optstring += '' if data.lookup_seek is None else ' l' if data.lookup_seek else ' ll'
 		for _account in data.auto_flag:
 			optstring += ' f %s' % _account
 		# Apply the option string
@@ -1227,7 +1224,6 @@ sd	seek one record backwards
 sq	seek to the first record
 se	seek to the last record
 l	look up records containing a string
-ls	look up and seek to the %s record containing a string
 j	show the context of the current record
 b	show the balance of an account
 r	remove the current record
@@ -1242,7 +1238,7 @@ o	view or change options
 w	write journal file
 q	quit
 wq	write journal file and quit immediately
-h,?	show this help message''' % ('first' if data.seekup_first else 'last'))
+h,?	show this help message''')
 	# Say what
 	else:
 		print('Unknown command.')
