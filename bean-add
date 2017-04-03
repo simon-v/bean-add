@@ -524,7 +524,7 @@ def seek_to_transaction(autoseek=None):
 				return
 		else:
 			# Scripted seeking
-			reading = autoseek
+			reading = str(autoseek)
 		try:
 			_txid = int(reading)
 		except ValueError:
@@ -1094,13 +1094,13 @@ while True:
 	elif cmd == 's':
 		seek_to_transaction()
 	elif cmd == 'sa':
-		seek_to_transaction('-1')
+		seek_to_transaction(-1)
 	elif cmd == 'sd':
 		seek_to_transaction('+1')
 	elif cmd == 'sq':
-		seek_to_transaction('0')
+		seek_to_transaction(0)
 	elif cmd == 'se':
-		seek_to_transaction(str(len(data.journal) - 1))
+		seek_to_transaction(len(data.journal) - 1)
 	# Lookup
 	elif cmd == 'l':
 		find_transactions()
