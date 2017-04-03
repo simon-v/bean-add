@@ -72,6 +72,7 @@ class data(object):
 	date_preview = True
 	context = 10
 	auto_flag = []
+	seekup_first = False
 
 # Set global constants
 tempfile = '/tmp/bean-add.%s.tmp.bnct' % os.environ['USER']
@@ -149,6 +150,8 @@ for line in tx_file.split('\n'):
 					data.external_write = True
 				elif i == 'd':
 					data.date_preview = False
+				elif i == 'l':
+					data.seekup_first = True
 				elif i == 'f':
 					_auto_flag = True
 					continue
@@ -583,7 +586,7 @@ def tx_lookup(patterns, prune_txids=[]):
 	return results
 
 # Find transactions that contain a string
-def find_transactions():
+def find_transactions(verbose=True):
 	# Unset completion
 	data.vocab = []
 	readline.set_completer_delims('')
@@ -596,8 +599,14 @@ def find_transactions():
 	if reading == '':
 		print('Lookup cancelled.')
 		return
-	for i in tx_lookup(reading):
-		print('[%s]	%s' % (i, data.journal[i].split('\n')[0]))
+	results = tx_lookup(reading)
+	if verbose:
+		if results == []:
+			print('\nNo results.')
+		else:
+			for i in results:
+				print('[%s]	%s' % (i, data.journal[i].split('\n')[0]))
+	return results
 
 # Get default accounts for a transaction
 def get_default_accounts(description):
@@ -1104,6 +1113,15 @@ while True:
 	# Lookup
 	elif cmd == 'l':
 		find_transactions()
+	elif cmd == 'ls':
+		results = find_transactions(False)
+		if results == []:
+			print('\nNo results.')
+		else:
+			if data.seekup_first:
+				seek_to_transaction(results[0])
+			else:
+				seek_to_transaction(results[-1])
 	# Delete record
 	elif cmd == 'r':
 		remove_transaction(False)
@@ -1135,6 +1153,7 @@ while True:
 		print('oe	write changes to an external file (%s)' % ('enabled' if data.external_write else 'disabled'))
 		print('od	preview non-absoulute dates during input (%s)' % ('enabled' if data.date_preview else 'disabled'))
 		print('of	automatically flag transactions containing (%s)' % (None if data.auto_flag == [] else ', '.join(data.auto_flag)))
+		print('ol	lookup result to seek to (%s)' % ('first' if data.seekup_first else 'last'))
 	# Option: sort by date
 	elif cmd == 'os':
 		data.sort_by_date = not data.sort_by_date
@@ -1170,6 +1189,9 @@ while True:
 			print('\nAccounts to trigger automatic flagging:\n	%s' % (None if data.auto_flag == [] else '\n	'.join(data.auto_flag)))
 		except KeyboardInterrupt:
 			print('\nCancelled.')
+	elif cmd == 'ol':
+		data.seekup_first = not data.seekup_first
+		print('Seeking to the %s lookup result.' % ('first' if data.seekup_first else 'last'))
 	# Save options to the journal
 	elif cmd == 'oo':
 		# Generate the option string
@@ -1179,6 +1201,7 @@ while True:
 		optstring += ' w' if data.paranoid_write else ''
 		optstring += ' e' if data.external_write else ''
 		optstring += '' if data.date_preview else ' d'
+		optstring += ' l' if data.seekup_first else ''
 		for _account in data.auto_flag:
 			optstring += ' f %s' % _account
 		# Apply the option string
@@ -1204,6 +1227,7 @@ sd	seek one record backwards
 sq	seek to the first record
 se	seek to the last record
 l	look up transactions containing a string
+ls	look up and seek to the %s record containing a string
 j	show the context of the current transaction
 b	show the balance of an account
 r	remove the current transaction
@@ -1218,7 +1242,7 @@ o	view or change options
 w	write journal file
 q	quit
 wq	write journal file and quit immediately
-h,?	show this help message''')
+h,?	show this help message''' % ('first' if data.seekup_first else 'last'))
 	# Say what
 	else:
 		print('Unknown command.')
