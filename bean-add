@@ -732,7 +732,7 @@ def remove_transaction(silent_drop):
 		if data.txid >= len(data.journal):
 			data.txid -= 1
 	else:
-		print('\nNothing to delete, no current transaction.')
+		print('\nNothing to delete, no current record.')
 
 # Edit the current transaction with an external editor
 def edit_transaction():
@@ -1043,7 +1043,7 @@ while True:
 						modified = True
 						break
 				if modified:
-					if not confirm('There are unsaved transactions in the external file buffer. Do you really want to DESTROY ALL CHANGES and quit? (y/N) ', False):
+					if not confirm('There are unsaved records in the external file buffer. Do you really want to DESTROY ALL CHANGES and quit? (y/N) ', False):
 						continue
 			elif data.target != 0:
 				if not confirm('Statement verification in progress. Do you really want to DESTROY ALL CHANGES and quit? (y/N) ', False):
@@ -1226,13 +1226,13 @@ sa	seek one record forward
 sd	seek one record backwards
 sq	seek to the first record
 se	seek to the last record
-l	look up transactions containing a string
+l	look up records containing a string
 ls	look up and seek to the %s record containing a string
-j	show the context of the current transaction
+j	show the context of the current record
 b	show the balance of an account
-r	remove the current transaction
-u	undo transaction removal
-e	edit the current transaction with your preferred editor
+r	remove the current record
+u	undo record removal
+e	edit the current record with your preferred editor
 v	verify a statement
 B	new balance assertion
 P	new pad statement
