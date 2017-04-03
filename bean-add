@@ -1157,7 +1157,7 @@ while True:
 		print('\nSorting by date %s.' % ('enabled' if data.sort_by_date else 'disabled'))
 	# Option: accept defaults
 	elif cmd == 'oa':
-		data.use_defaults = None if data.use_defaults == False else not data.use_defaults
+		data.use_defaults = True if data.use_defaults is None else False if data.use_defaults else None
 		print('\nThe policy on reusing accounts for new transactions is now `%s`.' % ('ask' if data.use_defaults is None else 'always' if data.use_defaults else 'never'))
 	# Option: paranoid write
 	elif cmd == 'ow':
@@ -1166,11 +1166,11 @@ while True:
 	# Option: external write
 	elif cmd == 'oe':
 		data.external_write = not data.external_write
-		print('Writing changes to an external file is now %s.' % ('enabled' if data.external_write else 'disabled'))
+		print('\nWriting changes to an external file is now %s.' % ('enabled' if data.external_write else 'disabled'))
 	# Option: date preview
 	elif cmd == 'od':
 		data.date_preview = not data.date_preview
-		print('Previewing of non-absolute dates during input is now %s.' % ('enabled' if data.date_preview else 'disabled'))
+		print('\nPreviewing of non-absolute dates during input is now %s.' % ('enabled' if data.date_preview else 'disabled'))
 	elif cmd == 'of':
 		try:
 			_account = read_account()
