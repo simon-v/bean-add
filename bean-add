@@ -111,7 +111,7 @@ def condense(line):
 # Naive word pluralization
 def pluralize(number, word):
 	number = str(number)
-	return '%s %s' % ( number, word if number.endswith('1') or number.endswith('11') else word + 's' )
+	return '%s %s' % ( number, word if number.endswith('1') and not number.endswith('11') else word + 's' )
 
 # Read and process journal file
 try:
