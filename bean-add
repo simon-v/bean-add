@@ -986,6 +986,21 @@ def externalize_transactions():
 			journal.append(_tx)
 	return journal
 
+# Duplicate the current transaction at another date
+def duplicate_transaction():
+	if data.txid == -1:
+		print('\nNo current record.')
+		return
+	_tx = data.journal[data.txid]
+	# If the record does not start with a date, just copy it to the end of the file
+	if _tx[0] not in '0123456789':
+		print('\nTransaction added as record %s\n\n%s' % (len(data.journal), _tx))
+		data.journal.append(_tx)
+	else:
+		new_date = read_date(data.date)
+		new_tx = new_date + data.journal[data.txid][10:]
+		insert_transaction(new_tx)
+
 # Main data entry loop
 print('\nChanges stay in memory until you [w]rite them out.')
 print('Type `h` or `?` for a list of available commands.')
@@ -1128,6 +1143,12 @@ while True:
 			insert_transaction(data.restore.pop())
 		else:
 			print('\nNothing to undo, the restore buffer is empty.')
+	# Duplicate record
+	elif cmd == 'd':
+		try:
+			duplicate_transaction()
+		except KeyboardInterrupt:
+			print('\nCancelled.')
 	# External edit
 	elif cmd == 'e':
 		edit_transaction()
@@ -1215,6 +1236,7 @@ while True:
 	elif cmd == 'h' or cmd == '?':
 		print('''Available commands:
 n	new transaction
+d	duplicate the current transaction at another date
 f	toggle transaction flag
 ff	flag a transaction including its legs
 t	add or remove tags
