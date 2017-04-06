@@ -73,6 +73,7 @@ class data(object):
 	context = 10
 	auto_flag = []
 	lookup_seek = None
+	max_expr_length = 40
 
 # Set global constants
 tempfile = '/tmp/bean-add.%s.tmp.bnct' % os.environ['USER']
@@ -396,13 +397,30 @@ def undecimal(number, precision=2):
 	try:
 		number = cast_number(number)
 	except ValueError:
-		print('\nThis is not a number.')
+		print('\nThis is not a valid number.')
 		raise KeyboardInterrupt
 	if type(number) == float:
 		number = round(number, precision)
 		if len(str(number).split('.')[1]) == 1:
 			number = str(number) + '0'
 	return str(number)
+
+# Calculate simple arithmetic expressions
+def evaluate(expression):
+	try:
+		expression = str(expression)
+		# Restrict to nothing but numbers and basic arithmetic operators and attempt to limit computation cost
+		if len(expression) > data.max_expr_length:
+			raise ValueError
+		if '**' in expression:
+			raise ValueError
+		for n in expression:
+			if n not in '0123456789.+-*/()':
+				raise ValueError
+		return eval(expression)
+	except:
+		print('\nInvalid arithmetic expression.')
+		raise KeyboardInterrupt
 
 # Read and normalize transaction amount
 def read_amount(account):
@@ -426,9 +444,9 @@ def read_amount(account):
 		if data.cur not in data.currencies:
 			data.currencies.append(data.cur)
 	# Normalize numbers and process conversion rate
-	amount[0] = undecimal(amount[0])
+	amount[0] = undecimal(evaluate(amount[0]))
 	if '@' in amount:
-		amount[-2] = undecimal(amount[-2], 3)
+		amount[-2] = undecimal(evaluate(amount[-2]), 3)
 		data.balance -= float(amount[0]) * float(amount[-2])
 	else:
 		data.balance -= float(amount[0])
