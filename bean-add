@@ -216,6 +216,23 @@ data.saved = data.journal.copy()
 # Remove empty records
 while '' in data.journal:
 	data.journal.remove('')
+# Move balance statements to the beginning of each day
+for i in range(len(data.journal)):
+	if data.journal[i][0] in '0123456789' and data.journal[i][10:19] == ' balance ':
+		_date = data.journal[i][0:10]
+		_tx = i
+		while True:
+			# Seek backwards until the first non-comment transaction or another balance statement with an earlier date
+			_tx -= 1
+			if data.journal[_tx][0] not in '0123456789':
+				continue
+			if not data.journal[_tx].startswith(_date) or data.journal[_tx][10:19] == ' balance ':
+				# Attempt to move the balance statement up
+				if _tx == i - 1:
+					break
+				data.journal.insert(_tx + 1, data.journal[i])
+				del(data.journal[i + 1])
+				break
 
 # Notify that some trivial fixes were made
 if data.journal != data.saved:
