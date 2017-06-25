@@ -934,6 +934,7 @@ def verify_statement():
 			data.statement = []
 			print('\nEnter the account the statement refers to.')
 			data.transaction_account = read_account()
+			neg = -1 if data.transaction_account.startswith('Liabilities:') or data.transaction_account.startswith('Income:') else 1
 			print('\nEnter the account which funds the statement.')
 			data.funding_account = read_account()
 			print()
@@ -948,7 +949,7 @@ def verify_statement():
 	set_history_context('txids')
 	while True:
 		# Tally the balance
-		balance = abs(calculate_balance(data.transaction_account, data.statement, True)[data.statement_currency])
+		balance = calculate_balance(data.transaction_account, data.statement, True)[data.statement_currency] * neg
 		print('\nTotal: %s %s (target: %s %s, difference: %s %s)' % (balance, data.statement_currency, data.target, data.statement_currency, cast_number(balance - data.target), data.statement_currency))
 		if balance == data.target:
 			break
@@ -967,7 +968,7 @@ def verify_statement():
 				continue
 			for tx in txlist:
 				desc = data.journal[tx].split('\n')[0].ljust(width)
-				_amount = undecimal(abs(calculate_balance(data.transaction_account, [tx], True)[data.statement_currency]))
+				_amount = undecimal(calculate_balance(data.transaction_account, [tx], True)[data.statement_currency] * neg)
 				print('[%s]	%s  %s	%s' % (tx, desc, _amount, data.statement_currency))
 		# Select records to add or remove
 		print('\nSelect records to add to the statement. Type a record number already on the statement to remove it.')
