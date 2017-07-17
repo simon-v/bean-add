@@ -934,7 +934,6 @@ def verify_statement():
 			data.statement = []
 			print('\nEnter the account the statement refers to.')
 			data.transaction_account = read_account()
-			neg = -1 if data.transaction_account.startswith('Liabilities:') or data.transaction_account.startswith('Income:') else 1
 			print('\nEnter the account which funds the statement.')
 			data.funding_account = read_account()
 			print()
@@ -946,6 +945,7 @@ def verify_statement():
 		except KeyboardInterrupt:
 			print('\nCancelled.')
 			return
+	neg = -1 if data.transaction_account.startswith('Liabilities:') or data.transaction_account.startswith('Income:') else 1
 	set_history_context('txids')
 	while True:
 		# Tally the balance
