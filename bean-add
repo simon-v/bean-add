@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # bean-add - A beancount transaction entry assistant
 # Author: Simon Volpert <simon@simonvolpert.com>
 # This program is free software, released under the Apache License, Version 2.0. See the LICENSE file for more information
@@ -513,7 +513,7 @@ def add_remove_tag():
 	# Get and normalize a tag
 	try:
 		_tag = input('Enter a tag [%s]: ' % data.defaults['__tag__'])
-	except KeyboardInterrupt:
+	except (KeyboardInterrupt, EOFError):
 		print('\nTagging cancelled.')
 		return
 	_tag = _tag.strip('# ')
@@ -559,7 +559,7 @@ def seek_to_transaction(autoseek=None):
 				print('\nNo current record.')
 			try:
 				reading = input('Enter record number (0-%s, or +/-COUNT): ' % (len(data.journal) - 1))
-			except KeyboardInterrupt:
+			except (KeyboardInterrupt, EOFError):
 				print('\nSeeking cancelled.')
 				return
 		else:
@@ -630,7 +630,7 @@ def find_transactions():
 	set_history_context('lookup')
 	try:
 		reading = input('Enter a search string: ').strip('\n')
-	except KeyboardInterrupt:
+	except (KeyboardInterrupt, EOFError):
 		print('Lookup cancelled.')
 		return
 	if reading == '':
@@ -906,7 +906,7 @@ def print_account_balances():
 		account = read_account()
 		if account is None:
 			raise KeyboardInterrupt
-	except KeyboardInterrupt:
+	except (KeyboardInterrupt, EOFError):
 		print('\nCancelled.')
 		return
 	amounts = calculate_balance(account)
@@ -942,7 +942,7 @@ def verify_statement():
 			if data.target == 0:
 				raise KeyboardInterrupt
 			data.statement_currency = amount.split()[1]
-		except KeyboardInterrupt:
+		except (KeyboardInterrupt, EOFError):
 			print('\nCancelled.')
 			return
 	neg = -1 if data.transaction_account.startswith('Liabilities:') or data.transaction_account.startswith('Income:') else 1
@@ -979,7 +979,7 @@ def verify_statement():
 		except ValueError:
 			print('\nInvalid record number.')
 			continue
-		except KeyboardInterrupt:
+		except (KeyboardInterrupt, EOFError):
 			print('\n\nPostponing statement verification.')
 			return
 		# Add or remove records
@@ -996,7 +996,7 @@ def verify_statement():
 		try:
 			date = read_date(data.date)
 			desc = read_description()
-		except KeyboardInterrupt:
+		except (KeyboardInterrupt, EOFError):
 			print('Postponing statement verification.')
 			return
 		print('\nSetting transaction flags.')
@@ -1053,7 +1053,7 @@ while True:
 		set_history_context('command')
 		try:
 			cmd = input('\nEnter command (h for help) ')
-		except KeyboardInterrupt:
+		except (KeyboardInterrupt, EOFError):
 			cmd = 'q'
 	# Write the journal
 	if cmd in ['w', 'wq']:
@@ -1101,7 +1101,7 @@ while True:
 				if not confirm('Statement verification in progress. Do you really want to DESTROY ALL CHANGES and quit? (y/N) ', False):
 					continue
 		# Treat a second CTRL-C as a confirmation
-		except KeyboardInterrupt:
+		except (KeyboardInterrupt, EOFError):
 			pass
 		sys.exit()
 	# Run bean-check
@@ -1119,25 +1119,25 @@ while True:
 	elif cmd == 'n':
 		try:
 			read_normal_transaction()
-		except KeyboardInterrupt:
+		except (KeyboardInterrupt, EOFError):
 			print('\nTransaction entry cancelled.')
 	# New balance assertion
 	elif cmd == 'B':
 		try:
 			read_balance_transaction()
-		except KeyboardInterrupt:
+		except (KeyboardInterrupt, EOFError):
 			print('\nTransaction entry cancelled.')
 	# New padding transaction
 	elif cmd == 'P':
 		try:
 			read_pad_transaction()
-		except KeyboardInterrupt:
+		except (KeyboardInterrupt, EOFError):
 			print('\nTransaction entry cancelled.')
 	# New note transaction
 	elif cmd == 'N':
 		try:
 			read_note_transaction()
-		except KeyboardInterrupt:
+		except (KeyboardInterrupt, EOFError):
 			print('\nTransaction entry cancelled.')
 	# Toggle flag
 	elif cmd == 'f':
@@ -1146,7 +1146,7 @@ while True:
 	elif cmd == 'ff':
 		try:
 			toggle_flag_with_legs()
-		except KeyboardInterrupt:
+		except (KeyboardInterrupt, EOFError):
 			print('\nCancelled.')
 	# Edit tags
 	elif cmd == 't':
@@ -1183,7 +1183,7 @@ while True:
 	elif cmd == 'd':
 		try:
 			duplicate_transaction()
-		except KeyboardInterrupt:
+		except (KeyboardInterrupt, EOFError):
 			print('\nCancelled.')
 	# External edit
 	elif cmd == 'e':
@@ -1241,7 +1241,7 @@ while True:
 				data.auto_flag.append(_account)
 				data.auto_flag.sort()
 			print('\nAccounts to trigger automatic flagging:\n	%s' % (None if data.auto_flag == [] else '\n	'.join(data.auto_flag)))
-		except KeyboardInterrupt:
+		except (KeyboardInterrupt, EOFError):
 			print('\nCancelled.')
 	elif cmd == 'ol':
 		data.lookup_seek = True if data.lookup_seek is None else False if data.lookup_seek else None
