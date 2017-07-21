@@ -55,6 +55,7 @@ class data(object):
 	txid = -1
 	date = datetime.date.today().isoformat()
 	date_prompt = '%Y-%m-%d'
+	lookup_string = ''
 	# Statements
 	statement = []
 	statement_pattern = ' ! '
@@ -623,25 +624,74 @@ def tx_lookup(patterns, prune_txids=[]):
 	return results
 
 # Find transactions that contain a string
-def find_transactions():
+def find_transactions(autoseek=None):
 	# Unset completion
 	data.vocab = []
 	readline.set_completer_delims('')
 	set_history_context('lookup')
-	try:
-		reading = input('Enter a search string: ').strip('\n')
-	except (KeyboardInterrupt, EOFError):
-		print('Lookup cancelled.')
+	# Autoseeking without doing a lookup first
+	if autoseek is not None and data.lookup_string == '':
+		print('\nNo lookup pattern.')
 		return
+	# Get a lookup pattern or reuse the previous one if autoseeking
+	if autoseek is None:
+		try:
+			reading = input('Enter a search string: ').strip('\n')
+		except (KeyboardInterrupt, EOFError):
+			print('\nLookup cancelled.')
+			return
+	else:
+		reading = data.lookup_string
 	if reading == '':
 		print('Lookup cancelled.')
 		return
 	results = tx_lookup(reading)
+	# Use default lookup-seek option
+	if autoseek is None and reading != data.lookup_string:
+		autoseek = data.lookup_seek
+		data.lookup_string = reading
 	if results == []:
 		print('\nNo results.')
+		return
+	# Check for autoseek
+	_txid = -1
+	if autoseek is not None:
+		# Last result
+		if autoseek is True:
+			_txid = results[-1]
+		# First result
+		elif autoseek is False:
+			_txid = results[0]
+		# Next and previous results
+		elif autoseek == 1 or autoseek == -1:
+			_txid = data.txid
+			while _txid >= 0 and _txid < len(data.journal):
+				_txid += autoseek
+				if _txid in results:
+					break
+			if _txid == len(data.journal):
+				if data.txid > results[-1]:
+					print('\nNo more results.')
+				else:
+					print('\nYou are on the last result.')
+				return
+			elif _txid == -1:
+				if data.txid < results[0]:
+					print('\nNo more results.')
+				else:
+					print('\nYou are on the first result.')
+				return
 	else:
-		for i in results:
+		_txid = data.txid
+	# Print the transaction list
+	for i in results:
+		if _txid == i:
+			print('>>>>>>>	%s' % (data.journal[i].split('\n')[0]))
+		else:
 			print('[%s]	%s' % (i, data.journal[i].split('\n')[0]))
+	# Seek to the proper record
+	if autoseek is not None:
+		seek_to_transaction(_txid)
 	return results
 
 # Get default accounts for a transaction
@@ -1164,12 +1214,11 @@ while True:
 		seek_to_transaction(len(data.journal) - 1)
 	# Lookup
 	elif cmd == 'l':
-		results = find_transactions()
-		if results != [] and data.lookup_seek is not None:
-			if data.lookup_seek:
-				seek_to_transaction(results[-1])
-			else:
-				seek_to_transaction(results[0])
+		find_transactions()
+	elif cmd == 'ld':
+		find_transactions(1)
+	elif cmd == 'la':
+		find_transactions(-1)
 	# Delete record
 	elif cmd == 'r':
 		remove_transaction(False)
@@ -1282,6 +1331,8 @@ sd	seek one record backwards
 sq	seek to the first record
 se	seek to the last record
 l	look up records containing a string
+ld	go one lookup result forward
+la	go one lookup result backwards
 j	show the context of the current record
 b	show the balance of an account
 r	remove the current record
