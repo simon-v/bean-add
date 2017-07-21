@@ -272,7 +272,7 @@ else:
 	# Empty file
 	if tx_file == '':
 		print('File does not exist, or is empty.')
-	# Not empty, but unuseful file
+	# Not empty, but un-useful file
 	else:
 		print('File contains no account definitions.')
 	if not confirm('Proceed with editing? (y/N) ', False):
@@ -653,7 +653,7 @@ def find_transactions(autoseek=None):
 	else:
 		reading = data.lookup_string
 	if reading == '':
-		print('Lookup cancelled.')
+		print('\nLookup cancelled.')
 		return
 	results = tx_lookup(reading)
 	# Use default lookup-seek option
@@ -859,7 +859,7 @@ def edit_transaction():
 		else:
 			# ...Update in-place otherwise
 			data.journal[data.txid] = _tx
-		print('\nRecord updated.')
+		print('Record updated.')
 	os.unlink(tempfile)
 
 # Print the context to the current transaction (default: +-10 transactions)
@@ -1046,7 +1046,7 @@ def verify_statement():
 			print('\nInvalid record number.')
 			continue
 		except KeyboardInterrupt:
-			print('\n\nPostponing statement verification.')
+			print('\nPostponing statement verification.')
 			return
 		except EOFError:
 			data.eof = True
@@ -1066,7 +1066,7 @@ def verify_statement():
 			date = read_date(data.date)
 			desc = read_description()
 		except KeyboardInterrupt:
-			print('Postponing statement verification.')
+			print('\nPostponing statement verification.')
 			return
 		except EOFError:
 			data.eof = True
@@ -1121,6 +1121,7 @@ while True:
 		cmd = 'w'
 	elif data.eof:
 		cmd = 'q'
+		print()
 		data.eof = False
 	# Get a command
 	else:
@@ -1129,6 +1130,7 @@ while True:
 		try:
 			cmd = input('\nEnter command (h for help) ')
 		except (KeyboardInterrupt, EOFError):
+			print()
 			cmd = 'q'
 	# Write the journal
 	if cmd in ['w', 'wq']:
