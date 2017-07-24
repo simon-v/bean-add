@@ -54,3 +54,5 @@ Once the sum of balances of all transactions in the statement matches the statem
 This program is free software, released under the Apache License, Version 2.0. See the LICENSE file for more information.
 
 The program's canonical project page resides at http://github.com/simon-v/bean-add/
+
+I gratefully accept appreciation for my work in material form at __13JSnRst7PJiMUr6fyVAkFWTwf9XKivWLh__.
