@@ -821,14 +821,14 @@ def remove_transaction(silent_drop):
 			del(data.journal[data.txid])
 		else:
 			data.restore.append(data.journal.pop(data.txid))
-			print('\nDeleted record %s' % data.txid)
+			print('\nRemoved record %s' % data.txid)
 		if data.txid in data.statement:
 			data.statement.remove(data.txid)
 		update_statement_refs(data.txid, False)
 		if data.txid >= len(data.journal):
 			data.txid -= 1
 	else:
-		print('\nNothing to delete, no current record.')
+		print('\nNothing to remove, no current record.')
 
 # Edit the current transaction with an external editor
 def edit_transaction():
@@ -1256,10 +1256,10 @@ while True:
 		find_transactions(1)
 	elif cmd == 'la':
 		find_transactions(-1)
-	# Delete record
+	# Remove record
 	elif cmd == 'r':
 		remove_transaction(False)
-	# Undelete record
+	# Unremove record
 	elif cmd == 'u':
 		if len(data.restore) > 0:
 			insert_transaction(data.restore.pop())
