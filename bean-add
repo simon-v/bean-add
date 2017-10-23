@@ -51,6 +51,7 @@ class data(object):
 	description = ''
 	cur = ''
 	balance = 0
+	known_balances = {}
 	tag = 'bean-add'
 	txid = -1
 	date = datetime.date.today().isoformat()
@@ -972,11 +973,19 @@ def print_account_balances():
 	except EOFError:
 		data.eof = True
 		return
-	amounts = calculate_balance(account)
+	balances = data.known_balances[account].copy() if account in data.known_balances else None
+	data.known_balances[account] = calculate_balance(account)
+	if balances is None:
+		balances = data.known_balances[account].copy()
 	print('\nBalances for %s:' % account)
 	for currency in data.currencies:
-		if amounts[currency] != 0:
-			print('%s %s' % (undecimal(amounts[currency]), currency))
+		difference = data.known_balances[account][currency] - balances[currency]
+		if difference == 0:
+			if data.known_balances[account][currency] != 0:
+				print('%s %s' % (undecimal(data.known_balances[account][currency]), currency))
+		else:
+			difference = '%s%s' % ('+' if difference > 0 else '', undecimal(difference))
+			print('%s %s (%s %s)' % (undecimal(data.known_balances[account][currency]), currency, difference, currency))
 
 # Nudge txids in the statement following a journal modification
 def update_statement_refs(txid, insertion):
