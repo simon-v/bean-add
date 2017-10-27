@@ -723,15 +723,15 @@ def get_default_accounts(description):
 		return []
 
 # Enter a normal transaction
-def read_normal_transaction():
+def read_normal_transaction(description=None):
 	output = ''
 	_transaction = []
 	data.balance = 0
 	data.date = read_date(data.date)
-	description = read_description()
 	if description is None:
-		print('\nTransaction entry aborted.')
-		return
+		description = read_description()
+	if description is None:
+		raise KeyboardInterrupt
 	else:
 		output += '%s * "%s"\n' % (data.date, description)
 	defaults = get_default_accounts(description)
@@ -756,7 +756,7 @@ def read_normal_transaction():
 			output += '	%s %s\n' % (account, amount)
 	# The transaction is empty, no money moved anywhere
 	if _transaction == []:
-		print('\nTransaction entry aborted.')
+		raise KeyboardInterrupt
 	else:
 		# Update defaults and insert the transaction
 		data.defaults[description] = _transaction
@@ -1211,6 +1211,26 @@ while True:
 			print('\nTransaction entry cancelled.')
 		except EOFError:
 			data.eof = True
+	# New transaction sequence
+	elif cmd == 'nn':
+		tx_count = 0
+		defaults = data.use_defaults
+		try:
+			read_normal_transaction()
+			# Set to auto-accept as much as possible
+			data.use_defaults = True
+			while True:
+				tx_count += 1
+				print('\nAdding transaction #%s\n' % (tx_count + 1))
+				read_normal_transaction(data.description)
+		except KeyboardInterrupt:
+			print('\nTransaction entry cancelled.')
+		except EOFError:
+			data.eof = True
+		finally:
+			print('\n%s added.' % pluralize(tx_count, 'transaction'))
+			# Restore original behavior
+			data.use_defaults = defaults
 	# New balance assertion
 	elif cmd == 'B':
 		try:
@@ -1373,6 +1393,7 @@ while True:
 	elif cmd == 'h' or cmd == '?':
 		print('''Available commands:
 n	new transaction
+nn	add a sequence of near-identical transactions
 d	duplicate the current transaction at another date
 f	toggle transaction flag
 ff	flag a transaction including its legs

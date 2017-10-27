@@ -3,11 +3,13 @@
 
 Bean-add is a relatively simple tool designed to ease adding transactions to your beancount (http://furius.ca/beancount/) journal. While both vi and EMACS have extensions for dealing with ledger and beancount files, some people prefer to edit their text with Nano.
 
-To begin, run `bean-add` with your journal file name as the argument. The journal file will be parsed, and you will be presented with a command prompt, not unlike that of fdisk or parted.
+To begin, run `bean-add` with your journal file name as the argument. The journal file will be parsed, and you will be presented with a command prompt, not unlike that of `fdisk` or `parted`.
 
 Type `h` for a list of available commands.
 
 To add a new transaction, type `n`. Enter the transaction's details: date, description, and the participating accounts and their amounts. You can press `tab` during entry to trigger completion. If there was a transaction with matching description in the past (and there almost always is), you will be presented with an option to reuse the accounts for the new transaction.
+
+To add a sequence of almost identical transactions, type `nn`; You will only be prompted for the date and the amounts. Press `Control-C` to end this process.
 
 If, during transaction entry, you enter an amount of zero for any of the accounts, that account will be removed from the transaction, allowing you to correct any mistakes on the fly. For more elaborate corrections, use the `e` command. If you plan on using this feature, make sure `$EDITOR` is set to your preferred editor. The transaction will be reinserted into an appropriate place in the journal when you finish editing.
 
@@ -50,6 +52,8 @@ To make things easier for you, the `of` option exists, which automatically flags
 If, at some point during statement verification, you discover an error in one of the records, you can interrupt the process by pressing `Control-C`. When you next press `v`, you will be offered to continue from where you left off.
 
 Once the sum of balances of all transactions in the statement matches the statement's target, you will be prompted for the statement's date and description. `bean-add` will then unset the flags of all records on the statement to prevent them from being used on another statement and add the statement's own record.
+
+***
 
 This program is free software, released under the Apache License, Version 2.0. See the LICENSE file for more information.
 
