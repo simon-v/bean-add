@@ -361,6 +361,8 @@ def read_date(default):
 				date = sliding_window(int(reading))
 			except ValueError:
 				continue
+			if date is None:
+				continue
 		# Absolute date
 		else:
 			try:
