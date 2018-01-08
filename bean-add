@@ -901,9 +901,10 @@ def deduce_implied_amount(txid):
 			else:
 				lineid = lineno
 		else:
+			# FIXME multiple currencies are not supported
 			if cur != line[-1] and cur != '':
-				print('\nError: More than one implied currency in record %s.' % txid)
-				return False
+				print('\nWarning: Multiple transactional currencies in record %s.' % txid)
+				return True
 			cur = line[-1]
 			if '@' in line and len(line) == 5:
 				line[-2] = undecimal(line[-2], 3)
@@ -933,13 +934,17 @@ def calculate_balance(account, txlist=None, statement_verification_quirks=False)
 	amounts = {}
 	for currency in data.currencies:
 		amounts[currency] = 0
-	# Go through the transaction lits
+	# Go through the transaction list
 	for tx in txlist:
 		# See if it need corrections
 		if account in data.journal[tx]:
 			if not deduce_implied_amount(tx):
 				continue
 		lines = data.journal[tx].split('\n')
+		for _line in lines:
+			if account in _line and len(_line) < 3:
+				if not deduce_implied_amount(tx):
+					continue
 		# If the record is a balance statement, use that
 		line = condense(lines[0])
 		if len(line) == 5 and line[1] == 'balance' and line[2] == account:
@@ -954,6 +959,9 @@ def calculate_balance(account, txlist=None, statement_verification_quirks=False)
 					flagid = lineid = lines.index(_line)
 					break
 			if flagid > -1:
+				if len(line) < 3:
+					print('Missing amount ignored in record %s.' % tx)
+					continue
 				line = condense(data.journal[tx].split('\n')[flagid])[1:]
 				amounts[line[2]] = cast_number(amounts[line[2]] + float(line[1]))
 				continue
@@ -963,6 +971,9 @@ def calculate_balance(account, txlist=None, statement_verification_quirks=False)
 			if line[0] == '!':
 				del(line[0])
 			if line[0] == account:
+				if len(line) < 3:
+					print('Missing amount ignored in record %s.' % tx)
+					continue
 				amounts[line[2]] = cast_number(amounts[line[2]] + float(line[1]))
 	return amounts
 
