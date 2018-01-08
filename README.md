@@ -59,4 +59,4 @@ This program is free software, released under the Apache License, Version 2.0. S
 
 The program's canonical project page resides at https://github.com/simon-v/bean-add/
 
-I gratefully accept appreciation for my work in material form at __13JSnRst7PJiMUr6fyVAkFWTwf9XKivWLh__.
+I gratefully accept appreciation for my work in material form at __[bitcoincash:qp0q05mx8d7akfwrndsnns9hjf3g4dnpx5ucez59qv](bitcoincash:qp0q05mx8d7akfwrndsnns9hjf3g4dnpx5ucez59qv)__.
