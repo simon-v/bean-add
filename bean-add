@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # bean-add - A beancount transaction entry assistant
 # Author: Simon Volpert <simon@simonvolpert.com>
+# Project page: https://github.com/simon-v/bean-add/
 # This program is free software, released under the Apache License, Version 2.0. See the LICENSE file for more information
 # Consult the README file for usage instructions and other helpful hints
 
@@ -620,13 +621,15 @@ def seek_to_transaction(autoseek=None):
 def tx_lookup(patterns, prune_txids=[]):
 	if type(patterns) == str:
 		patterns = [patterns]
+	patterns = [ x.lower() for x in patterns ]
 	results = []
 	for i in range(len(data.journal)):
 		if i not in prune_txids:
 			match = True
+			record = data.journal[i].lower()
 			for pattern in patterns:
 				# Use an AND keyword joining
-				if pattern not in data.journal[i]:
+				if pattern not in record:
 					match = False
 					break
 			if match:
