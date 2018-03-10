@@ -1150,6 +1150,8 @@ while True:
 		data.eof = False
 	# Get a command
 	else:
+		# Unset completion
+		data.vocab = []
 		# Set history
 		set_history_context('command')
 		try:
