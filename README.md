@@ -1,7 +1,7 @@
 # bean-add
 ## A beancount transaction entry assistant
 
-Bean-add is a relatively simple tool designed to ease adding transactions to your beancount (http://furius.ca/beancount/) journal. While both vi and EMACS have extensions for dealing with ledger and beancount files, some people prefer to edit their text with Nano.
+Bean-add is a relatively simple tool designed to ease adding transactions to your [beancount](http://furius.ca/beancount/) journal. While both vi and EMACS have extensions for dealing with ledger and beancount files, some people prefer to edit their text with Nano.
 
 To begin, run `bean-add` with your journal file name as the argument. The journal file will be parsed, and you will be presented with a command prompt, not unlike that of `fdisk` or `parted`.
 
@@ -57,6 +57,6 @@ Once the sum of balances of all transactions in the statement matches the statem
 
 This program is free software, released under the Apache License, Version 2.0. See the LICENSE file for more information.
 
-The program's canonical project page resides at https://github.com/simon-v/bean-add/
+The program's canonical project page resides at https://simonvolpert.com/bean-add/
 
 I gratefully accept appreciation for my work in material form at __[bitcoincash:qp0q05mx8d7akfwrndsnns9hjf3g4dnpx5ucez59qv](bitcoincash:qp0q05mx8d7akfwrndsnns9hjf3g4dnpx5ucez59qv)__.
