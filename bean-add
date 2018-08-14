@@ -122,7 +122,7 @@ def condense(line):
 # Naive word pluralization
 def pluralize(number, word):
 	number = str(number)
-	return '%s %s' % ( number, word if number.endswith('1') and not number.endswith('11') else word + 's' )
+	return '%s %s' % (number, word if number.endswith('1') and not number.endswith('11') else word + 's')
 
 
 # Read and process journal file
@@ -221,7 +221,7 @@ for line in tx_file.split('\n'):
 
 # Prepare file for transaction insertion
 data.journal = tx_file.split('\n\n')
-data.journal = [ i.strip() for i in data.journal ]
+data.journal = [i.strip() for i in data.journal]
 # Initialize modification tracking
 data.saved = data.journal.copy()
 # Remove empty records
@@ -646,7 +646,7 @@ def seek_to_transaction(autoseek=None):
 def tx_lookup(patterns, prune_txids=[]):
 	if type(patterns) == str:
 		patterns = [patterns]
-	patterns = [ x.lower() for x in patterns ]
+	patterns = [x.lower() for x in patterns]
 	results = []
 	for i in range(len(data.journal)):
 		if i not in prune_txids:
@@ -782,7 +782,7 @@ def read_normal_transaction(description=None):
 		# Zero amounts are meaningless in this context
 		if amount.startswith('0 '):
 			print('Removing zero-amount `%s` from transaction.' % account)
-			del(_transaction[ -1])
+			del(_transaction[-1])
 		else:
 			output += '	%s %s\n' % (account, amount)
 	# The transaction is empty, no money moved anywhere
@@ -1104,7 +1104,7 @@ def verify_statement():
 		print('\nSelect records to add to the statement. Type a record number already on the statement to remove it.')
 		try:
 			reading = int(input('Enter a record number: ').strip())
-			if reading < 0 or reading > len(data.journal) -1:
+			if reading < 0 or reading > len(data.journal) - 1:
 				raise ValueError
 		except ValueError:
 			print('\nInvalid record number.')
