@@ -1088,7 +1088,7 @@ def verify_statement():
 	# Modify the journal
 	if confirm('Commit statement to journal? (Y/n) ', True):
 		try:
-			date = read_date(data.date)
+			data.date = read_date(data.date)
 			desc = read_description()
 		except KeyboardInterrupt:
 			print('\nPostponing statement verification.')
@@ -1106,7 +1106,7 @@ def verify_statement():
 			if lookup_string not in data.journal[tx]:
 				data.journal[tx] = data.journal[tx].replace(data.statement_pattern, data.statement_replacement)
 		# Add the statement transaction
-		output = '%s * "%s"\n	%s %s %s\n	%s %s %s' % (date, desc, data.funding_account, undecimal(balance * -1), data.statement_currency, data.transaction_account, undecimal(balance), data.statement_currency)
+		output = '%s * "%s"\n	%s %s %s\n	%s %s %s' % (data.date, desc, data.funding_account, undecimal(balance * -1), data.statement_currency, data.transaction_account, undecimal(balance), data.statement_currency)
 		insert_transaction(output)
 		# Mark the verification as finished
 		data.target = 0
@@ -1130,8 +1130,8 @@ def duplicate_transaction():
 		print('\nTransaction added as record %s\n\n%s' % (len(data.journal), _tx))
 		data.journal.append(_tx)
 	else:
-		new_date = read_date(data.date)
-		new_tx = new_date + data.journal[data.txid][10:]
+		data.date = read_date(data.date)
+		new_tx = data.date + data.journal[data.txid][10:]
 		insert_transaction(new_tx)
 
 # Main data entry loop
