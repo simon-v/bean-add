@@ -20,6 +20,7 @@ if len(sys.argv) < 2:
 elif sys.argv[1] == '-h' or sys.argv[1] == '--help':
 	sys.exit(usage)
 
+
 # Init transaction data
 class data(object):
 	# Journal/transactions
@@ -79,8 +80,10 @@ class data(object):
 	lookup_seek = None
 	max_expr_length = 40
 
+
 # Set global constants
 tempfile = '/tmp/bean-add.%s.tmp.bnct' % os.environ['USER']
+
 
 # Ask for confirmation: str(prompt) -> bool(result)
 def confirm(prompt='', default_yes=None):
@@ -99,10 +102,12 @@ def confirm(prompt='', default_yes=None):
 		elif ch == 'n':
 			return False
 
+
 # Cast a number into the appropriate format: number -> int or rounded float
 def cast_number(number):
 	number = float(number)
 	return int(number) if int(number) == number else round(number, 2)
+
 
 # Condense whitespace and return a list
 def condense(line):
@@ -113,10 +118,12 @@ def condense(line):
 			_data.append(i)
 	return _data
 
+
 # Naive word pluralization
 def pluralize(number, word):
 	number = str(number)
 	return '%s %s' % ( number, word if number.endswith('1') and not number.endswith('11') else word + 's' )
+
 
 # Read and process journal file
 try:
@@ -246,11 +253,14 @@ if data.journal != data.saved:
 # Set up the completer
 readline.parse_and_bind('tab: complete')
 
+
 def complete(text, state):
 	results = [x for x in data.vocab if x.startswith(text)] + [None]
 	return results[state]
 
+
 readline.set_completer(complete)
+
 
 # Set up histories
 def set_history_context(context):
@@ -261,6 +271,7 @@ def set_history_context(context):
 	for i in data.history[context]:
 		readline.add_history(i)
 	data.history_context = context
+
 
 # Print some statistics
 print('\n%s processed' % pluralize(len(data.journal), 'record'))
@@ -289,6 +300,7 @@ if data.date_delimiter != '-':
 # Init date and currencies
 data.cur = 'USD' if data.currencies == [] else data.currencies[0]
 
+
 # Insert a transaction in an appropriate place in the file: str(transaction) -> int(index)
 def insert_transaction(tx):
 	_found = False
@@ -310,9 +322,11 @@ def insert_transaction(tx):
 	data.txid = _txid
 	update_statement_refs(_txid, True)
 
+
 # Date from string wrapper: str(date) -> date(date)
 def strpdate(d):
 	return datetime.datetime.strptime(d, data.date_prompt).date()
+
 
 # Figure out the full date from a day-only input
 def sliding_window(day):
@@ -335,6 +349,7 @@ def sliding_window(day):
         return future
     elif past_delta == future_delta == 31:
         return None
+
 
 # Read and validate a date: str(default) -> str(date)
 def read_date(default):
@@ -376,6 +391,7 @@ def read_date(default):
 			continue
 		return date
 
+
 # Read a description -> str(description)
 def read_description():
 	# Set completion
@@ -393,6 +409,7 @@ def read_description():
 		else:
 			data.description = reading
 			return reading
+
 
 # Read a valid account name
 def read_account():
@@ -414,6 +431,7 @@ def read_account():
 			data.accounts.append(reading)
 		return reading
 
+
 # Normalize amounts with unnecessary decimal places
 # number, rounding precision -> string
 def undecimal(number, precision=2):
@@ -427,6 +445,7 @@ def undecimal(number, precision=2):
 		if len(str(number).split('.')[1]) == 1:
 			number = str(number) + '0'
 	return str(number)
+
 
 # Calculate simple arithmetic expressions
 def evaluate(expression):
@@ -444,6 +463,7 @@ def evaluate(expression):
 	except:
 		print('\nInvalid arithmetic expression.')
 		raise KeyboardInterrupt
+
 
 # Read and normalize transaction amount
 def read_amount(account):
@@ -477,6 +497,7 @@ def read_amount(account):
 	# Finalize and return
 	return ' '.join(amount)
 
+
 # Toggle transaction flag
 def toggle_flag():
 	if data.txid < 0:
@@ -494,6 +515,7 @@ def toggle_flag():
 	print('\nTransaction flag %sset.\n' % ('un' if not flagged else ''))
 	print(data.journal[data.txid])
 
+
 # Toggle the flags on individual transaction legs
 def toggle_flag_with_legs():
 	if ' * ' not in data.journal[data.txid] and ' ! ' not in data.journal[data.txid]:
@@ -506,6 +528,7 @@ def toggle_flag_with_legs():
 	else:
 		data.journal[data.txid] = data.journal[data.txid].replace('	! ', '	')
 	toggle_flag()
+
 
 # Add or remove transaction tags
 def add_remove_tag():
@@ -548,6 +571,7 @@ def add_remove_tag():
 		data.journal[data.txid] = _transaction
 	print()
 	print(data.journal[data.txid])
+
 
 # Seek to a specific record in the journal file
 def seek_to_transaction(autoseek=None):
@@ -617,6 +641,7 @@ def seek_to_transaction(autoseek=None):
 	print(data.journal[_txid])
 	data.txid = _txid
 
+
 # Return a list of txids which contain all of the passed strings
 def tx_lookup(patterns, prune_txids=[]):
 	if type(patterns) == str:
@@ -635,6 +660,7 @@ def tx_lookup(patterns, prune_txids=[]):
 			if match:
 				results.append(i)
 	return results
+
 
 # Find transactions that contain a string
 def find_transactions(autoseek=None):
@@ -710,6 +736,7 @@ def find_transactions(autoseek=None):
 		seek_to_transaction(_txid)
 	return results
 
+
 # Get default accounts for a transaction
 def get_default_accounts(description):
 	if description in data.defaults:
@@ -724,6 +751,7 @@ def get_default_accounts(description):
 			return []
 	else:
 		return []
+
 
 # Enter a normal transaction
 def read_normal_transaction(description=None):
@@ -770,6 +798,7 @@ def read_normal_transaction(description=None):
 				toggle_flag()
 				break
 
+
 # Read a balance assertion transaction
 def read_balance_transaction():
 	print('\nAdding a new balance assertion.')
@@ -784,6 +813,7 @@ def read_balance_transaction():
 	amount = read_amount(account)
 	output = '%s balance %s %s' % (data.date, account, amount)
 	insert_transaction(output)
+
 
 # Read a pad statement
 def read_pad_transaction():
@@ -801,6 +831,7 @@ def read_pad_transaction():
 		account1, account2 = defaults
 	output = '%s pad %s %s' % (data.date, account1, account2)
 	insert_transaction(output)
+
 
 # Read a note statement
 def read_note_transaction():
@@ -820,6 +851,7 @@ def read_note_transaction():
 	output = '%s note %s "%s"' % (data.date, account, description)
 	insert_transaction(output)
 
+
 # Remove a transaction
 def remove_transaction(silent_drop):
 	if data.txid >= 0:
@@ -835,6 +867,7 @@ def remove_transaction(silent_drop):
 			data.txid -= 1
 	else:
 		print('\nNothing to remove, no current record.')
+
 
 # Edit the current transaction with an external editor
 def edit_transaction():
@@ -868,6 +901,7 @@ def edit_transaction():
 		print('Record updated.')
 	os.unlink(tempfile)
 
+
 # Print the context to the current transaction (default: +-10 transactions)
 def print_journal():
 	if data.txid == -1:
@@ -879,6 +913,7 @@ def print_journal():
 		tx_string = data.journal[tx].split('\n')[0]
 		tx_number = '>>>>>>>' if tx == data.txid else '[%s]' % tx
 		print('%s	%s' % (tx_number, tx_string))
+
 
 # Attempt to deduce an implied amount: int txid -> bool transaction is correct
 def deduce_implied_amount(txid):
@@ -925,6 +960,7 @@ def deduce_implied_amount(txid):
 	data.journal[txid] = '\n'.join(_tx)
 	print('Implied amounts corrected in record %s.' % txid)
 	return True
+
 
 # Calculate the balance of an account
 def calculate_balance(account, txlist=None, statement_verification_quirks=False):
@@ -977,6 +1013,7 @@ def calculate_balance(account, txlist=None, statement_verification_quirks=False)
 				amounts[line[2]] = cast_number(amounts[line[2]] + float(line[1]))
 	return amounts
 
+
 # Count and print the balances for an account
 def print_account_balances():
 	try:
@@ -1003,6 +1040,7 @@ def print_account_balances():
 			difference = '%s%s' % ('+' if difference > 0 else '', undecimal(difference))
 			print('%s %s (%s %s)' % (undecimal(data.known_balances[account][currency]), currency, difference, currency))
 
+
 # Nudge txids in the statement following a journal modification
 def update_statement_refs(txid, insertion):
 	for tx in range(len(data.statement)):
@@ -1012,6 +1050,7 @@ def update_statement_refs(txid, insertion):
 		else:
 			if data.statement[tx] > txid:
 				data.statement[tx] -= 1
+
 
 # Verify a statement
 def verify_statement():
@@ -1111,6 +1150,7 @@ def verify_statement():
 		# Mark the verification as finished
 		data.target = 0
 
+
 # Move any new transactions to the external journal
 def externalize_transactions():
 	journal = []
@@ -1118,6 +1158,7 @@ def externalize_transactions():
 		if _tx not in data.saved:
 			journal.append(_tx)
 	return journal
+
 
 # Duplicate the current transaction at another date
 def duplicate_transaction():
@@ -1133,6 +1174,7 @@ def duplicate_transaction():
 		data.date = read_date(data.date)
 		new_tx = data.date + data.journal[data.txid][10:]
 		insert_transaction(new_tx)
+
 
 # Main data entry loop
 print('\nChanges stay in memory until you [w]rite them out.')
