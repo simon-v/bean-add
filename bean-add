@@ -372,7 +372,6 @@ def read_date(default):
 				continue
 		# Partial notation (day only)
 		elif len(reading) == 1 or len(reading) == 2:
-			today = default.split(data.date_delimiter)
 			try:
 				date = sliding_window(int(reading))
 			except ValueError:
@@ -992,7 +991,7 @@ def calculate_balance(account, txlist=None, statement_verification_quirks=False)
 			for _line in lines[1:]:
 				line = condense(_line)
 				if line[0] == '!' and flagid == -1:
-					flagid = lineid = lines.index(_line)
+					flagid = lines.index(_line)
 					break
 			if flagid > -1:
 				if len(line) < 3:
