@@ -889,7 +889,7 @@ def edit_transaction():
 	if _tx == data.journal[data.txid]:
 		print('Nothing changed.')
 	else:
-	# Update the record
+		# Update the record
 		if data.journal[data.txid][0:10] != _tx[0:10]:
 			# Reinsert the transaction where appropriate if the date changed...
 			remove_transaction(True)
