@@ -715,8 +715,8 @@ def edit_transaction():
 		tmp_file.write(data.journal[data.txid])
 	try:
 		subprocess.call([os.environ['EDITOR'], tempfile])
-	except:
-		print('\nCould not start the editor: %s\n' % sys.exc_info()[1])
+	except Exception as exc:
+		print('\nCould not start the editor: %s\n' % exc)
 	# Reload the transaction from the file
 	with open(tempfile, 'r') as tmp_file:
 		_tx = ''.join(tmp_file.readlines()).strip('\n')
@@ -1022,8 +1022,8 @@ try:
 		data.mtime = os.stat(data.file_name).st_mtime
 except FileNotFoundError:
 	tx_file = ''
-except:
-	sys.exit('Could not open the file: %s' % sys.exc_info()[1])
+except Exception as exc:
+	sys.exit('Could not open the file: %s' % exc)
 
 description = ''
 lastdate = '0'
@@ -1215,8 +1215,8 @@ while True:
 				source_file.write('\n\n'.join(journal) + '\n')
 				print('\n%s written' % pluralize(len(journal), 'record'))
 				data.mtime = os.stat(data.file_name).st_mtime
-		except:
-			print('\nCould not write the file: %s' % sys.exc_info()[1])
+		except Exception as exc:
+			print('\nCould not write the file: %s' % exc)
 			continue
 		else:
 			if not data.external_write:
@@ -1252,8 +1252,8 @@ while True:
 			tmp_file.write('\n\n'.join(data.journal) + '\n')
 		try:
 			subprocess.call(['bean-check', tempfile])
-		except:
-			print('\nCould not start the validator: %s' % sys.exc_info()[1])
+		except Exception as exc:
+			print('\nCould not start the validator: %s' % exc)
 		else:
 			print('\nValidation finished.')
 		os.unlink(tempfile)
