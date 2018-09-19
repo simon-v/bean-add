@@ -14,11 +14,13 @@ import os
 # Set global constants
 tempfile = '/tmp/bean-add.%s.tmp.bnct' % os.environ['USER']
 
-usage = '''usage: bean-add [-n] FILENAME
-See the README file for more information.
+usage = '''Usage: bean-add [-n] FILENAME
+Add or edit transactions in the beancount journal FILENAME.
 
-Recognized command line arguments:
--n      enter a new transaction with today's date immediately'''
+  -n           immediately enter a new transaction with today's date
+  -h, --help   show this help message
+
+See the README file for more information.'''
 
 
 # Init transaction data
