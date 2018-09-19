@@ -3,6 +3,8 @@
 
 Bean-add is a relatively simple tool designed to ease adding transactions to your [beancount](http://furius.ca/beancount/) journal. While both vi and EMACS have extensions for dealing with ledger and beancount files, some people prefer to edit their text with Nano.
 
+### Basic Usage
+
 To begin, run `bean-add` with your journal file name as the argument. The journal file will be parsed, and you will be presented with a command prompt, not unlike that of `fdisk` or `parted`.
 
 Type `h` for a list of available commands.
@@ -29,6 +31,8 @@ Type `c` at any point to validate the journal file with `bean-check`. If you pla
 
 Type `o` to view a list of option commands that modify the way bean-add works and their current settings.
 
+### Advanced Usage
+
 Some degree of scripting is possible by piping input into `bean-add`. For example, if you know that your bank charges you $1.95 every month for holding a checking account (and most banks do), then you could write a script, replicating your keystrokes, similar to:
 
     #!/bin/sh
@@ -53,7 +57,9 @@ If, at some point during statement verification, you discover an error in one of
 
 Once the sum of balances of all transactions in the statement matches the statement's target, you will be prompted for the statement's date and description. `bean-add` will then unset the flags of all records on the statement to prevent them from being used on another statement and add the statement's own record.
 
-***
+You can use the `-n` command line switch to skip right to entering a new transaction with today's date immediately on startup.
+
+### Other Notes
 
 This program is free software, released under the Apache License, Version 2.0. See the LICENSE file for more information.
 
