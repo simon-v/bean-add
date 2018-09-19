@@ -24,7 +24,7 @@ class data(object):
 	journal = []
 	saved = []
 	external_journal = []
-	file_name = sys.argv[1]
+	file_name = ''
 	defaults = {}
 	restore = []
 	mtime = 0
@@ -1016,6 +1016,7 @@ elif sys.argv[1] == '-h' or sys.argv[1] == '--help':
 	sys.exit(usage)
 
 # Read and process journal file
+data.file_name = sys.argv[1]
 try:
 	with open(data.file_name, 'r') as source_file:
 		tx_file = source_file.read()
