@@ -1018,9 +1018,11 @@ def duplicate_transaction():
 
 # Process command line arguments
 if len(sys.argv) < 2:
-	sys.exit(usage)
+	print(usage)
+	sys.exit(1)
 elif sys.argv[1] == '-h' or sys.argv[1] == '--help':
-	sys.exit(usage)
+	print(usage)
+	sys.exit()
 elif '-n' in sys.argv:
 	sys.argv.remove('-n')
 	data.auto_new = True
@@ -1034,7 +1036,8 @@ try:
 except FileNotFoundError:
 	tx_file = ''
 except Exception as exc:
-	sys.exit('Could not open the file: %s' % exc)
+	print('Could not open the file: %s' % exc)
+	sys.exit(2)
 
 description = ''
 lastdate = '0'
