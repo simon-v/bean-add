@@ -14,8 +14,11 @@ import os
 # Set global constants
 tempfile = '/tmp/bean-add.%s.tmp.bnct' % os.environ['USER']
 
-usage = '''usage: bean-add FILENAME
-See the README file for more information.'''
+usage = '''usage: bean-add [-n] FILENAME
+See the README file for more information.
+
+Recognized command line arguments:
+-n      enter a new transaction with today's date immediately'''
 
 
 # Init transaction data
@@ -76,6 +79,7 @@ class data(object):
 	auto_flag = []
 	lookup_seek = None
 	max_expr_length = 40
+	auto_new = False
 
 
 # Ask for confirmation: str(prompt) -> bool(result)
@@ -591,7 +595,8 @@ def read_normal_transaction(description=None):
 	output = ''
 	_transaction = []
 	data.balance = 0
-	data.date = read_date(data.date)
+	if not data.auto_new:
+		data.date = read_date(data.date)
 	if description is None:
 		description = read_description()
 	if description is None:
@@ -1014,6 +1019,9 @@ if len(sys.argv) < 2:
 	sys.exit(usage)
 elif sys.argv[1] == '-h' or sys.argv[1] == '--help':
 	sys.exit(usage)
+elif '-n' in sys.argv:
+	sys.argv.remove('-n')
+	data.auto_new = True
 
 # Read and process journal file
 data.file_name = sys.argv[1]
@@ -1187,6 +1195,10 @@ while True:
 		cmd = 'q'
 		print()
 		data.eof = False
+	# Pass-through transaction entry
+	elif data.auto_new:
+		print('\nAdding a new transaction with today\'s date.\n')
+		cmd = 'n'
 	# Get a command
 	else:
 		# Unset completion
@@ -1266,6 +1278,9 @@ while True:
 			print('\nTransaction entry cancelled.')
 		except EOFError:
 			data.eof = True
+		# Unset pass-through transaction entry
+		if data.auto_new:
+			data.auto_new = False
 	# New transaction sequence
 	elif cmd == 'nn':
 		tx_count = 0
