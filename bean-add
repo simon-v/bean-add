@@ -1362,6 +1362,10 @@ while True:
 		find_transactions(1)
 	elif cmd == 'la':
 		find_transactions(-1)
+	elif cmd == 'le':
+		find_transactions(True)
+	elif cmd == 'lq':
+		find_transactions(False)
 	# Remove record
 	elif cmd == 'r':
 		remove_transaction(False)
@@ -1481,6 +1485,8 @@ se	seek to the last record
 l	look up records containing a string
 ld	go one lookup result forward
 la	go one lookup result backwards
+le	go to the last lookup result
+lq	go to the first lookup result
 j	show the context of the current record
 b	show the balance of an account
 r	remove the current record
