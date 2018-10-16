@@ -920,7 +920,7 @@ def verify_statement():
 	while True:
 		# Tally the balance
 		balance = calculate_balance(data.transaction_account, data.statement, True)[data.statement_currency] * neg
-		print('\nTotal: %s %s (target: %s %s, difference: %s %s)' % (balance, data.statement_currency, data.target, data.statement_currency, cast_number(balance - data.target), data.statement_currency))
+		print('\nTotal: %s %s (target: %s %s, difference: %s %s)' % (undecimal(balance), data.statement_currency, undecimal(data.target), data.statement_currency, undecimal(balance - data.target), data.statement_currency))
 		if balance == data.target:
 			break
 		transactions = tx_lookup([data.transaction_account, data.statement_pattern], data.statement)
