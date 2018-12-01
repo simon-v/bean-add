@@ -148,6 +148,10 @@ def insert_transaction(tx):
 		# Ignore records that don't start with a date
 		if data.journal[_txid][0] not in '0123456789':
 			continue
+		# Insert balance statements in as the first transaction of the date
+		if tx[10:19] == ' balance ' and data.journal[_txid][0:10] == tx[0:10]:
+			_found = True
+			break
 		# Seek forward to first bigger date
 		if data.journal[_txid][0:10] > tx[0:10]:
 			_found = True
