@@ -466,16 +466,16 @@ def seek_to_transaction(autoseek=None):
 				print('\nYou are at the first record.')
 				return
 			else:
-				print('\nSeeking cancelled.')
-				return
+				_txid = 0
+				break
 		# End of journal
 		elif _txid > len(data.journal) - 1:
 			if autoseek is not None:
 				print('\nYou are at the last record.')
 				return
 			else:
-				print('\nSeeking cancelled.')
-				return
+				_txid = len(data.journal) -1
+				break
 		# Explicit and absolute value
 		else:
 			break
