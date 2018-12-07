@@ -144,16 +144,16 @@ def set_history_context(context):
 # Insert a transaction in an appropriate place in the file: str(transaction) -> int(index)
 def insert_transaction(tx):
 	_found = False
-	for _txid in range(len(data.journal)):
+	for _txid, jtx in enumerate(data.journal):
 		# Ignore records that don't start with a date
-		if data.journal[_txid][0] not in '0123456789':
+		if jtx[0] not in '0123456789':
 			continue
 		# Insert balance statements in as the first transaction of the date
-		if tx[10:19] == ' balance ' and data.journal[_txid][0:10] == tx[0:10]:
+		if tx[10:19] == ' balance ' and jtx[0:10] == tx[0:10]:
 			_found = True
 			break
 		# Seek forward to first bigger date
-		if data.journal[_txid][0:10] > tx[0:10]:
+		if jtx[0:10] > tx[0:10]:
 			_found = True
 			break
 	if _found and data.sort_by_date:
@@ -491,10 +491,10 @@ def tx_lookup(patterns, prune_txids=[]):
 		patterns = [patterns]
 	patterns = [x.lower() for x in patterns]
 	results = []
-	for i in range(len(data.journal)):
+	for i, tx in enumerate(data.journal):
 		if i not in prune_txids:
 			match = True
-			record = data.journal[i].lower()
+			record = tx.lower()
 			for pattern in patterns:
 				# Use an AND keyword joining
 				if pattern not in record:
@@ -765,8 +765,8 @@ def deduce_implied_amount(txid):
 	lineid = -1
 	amount = 0
 	cur = ''
-	for lineno in range(len(_tx)):
-		line = condense(_tx[lineno])
+	for lineno, line in enumerate(_tx):
+		line = condense(line)
 		# Ignore anything that isn't a transaction leg
 		if line[0] == '!':
 			del(line[0])
@@ -887,12 +887,12 @@ def print_account_balances():
 
 # Nudge txids in the statement following a journal modification
 def update_statement_refs(txid, insertion):
-	for tx in range(len(data.statement)):
+	for tx, statement in enumerate(data.statement):
 		if insertion:
-			if data.statement[tx] >= txid:
+			if statement >= txid:
 				data.statement[tx] += 1
 		else:
-			if data.statement[tx] > txid:
+			if statement > txid:
 				data.statement[tx] -= 1
 
 
@@ -1136,9 +1136,9 @@ data.saved = data.journal.copy()
 while '' in data.journal:
 	data.journal.remove('')
 # Move balance statements to the beginning of each day
-for i in range(len(data.journal)):
-	if data.journal[i][0] in '0123456789' and data.journal[i][10:19] == ' balance ':
-		_date = data.journal[i][0:10]
+for i, jtx in enumerate(data.journal):
+	if jtx[0] in '0123456789' and jtx[10:19] == ' balance ':
+		_date = jtx[0:10]
 		_tx = i
 		while True:
 			# Seek backwards until the first non-comment transaction or another balance statement with an earlier date
