@@ -423,6 +423,7 @@ def seek_to_transaction(autoseek=None):
 		if data.journal == []:
 			print('\nThe journal is empty.')
 			return
+		last_tx = len(data.journal) - 1
 		if autoseek is None:
 			# Manual seeking input
 			set_history_context('seek')
@@ -431,10 +432,12 @@ def seek_to_transaction(autoseek=None):
 			readline.set_completer_delims('')
 			if data.txid >= 0:
 				print('\nCurrently at record %s.' % data.txid)
+				or_count = ', or +/-COUNT'
 			else:
 				print('\nNo current record.')
+				or_count = ''
 			try:
-				reading = input('Enter record number (0-%s, or +/-COUNT): ' % (len(data.journal) - 1))
+				reading = input('Enter record number (0-%s%s): ' % (last_tx, or_count))
 			except KeyboardInterrupt:
 				print('\nSeeking cancelled.')
 				return
@@ -462,19 +465,19 @@ def seek_to_transaction(autoseek=None):
 				_txid += data.txid
 		# Beginning of journal
 		if _txid < 0:
-			if autoseek is not None:
+			if data.txid == 0:
 				print('\nYou are at the first record.')
 				return
 			else:
 				_txid = 0
 				break
 		# End of journal
-		elif _txid > len(data.journal) - 1:
-			if autoseek is not None:
+		elif _txid > last_tx:
+			if data.txid == last_tx:
 				print('\nYou are at the last record.')
 				return
 			else:
-				_txid = len(data.journal) -1
+				_txid = last_tx
 				break
 		# Explicit and absolute value
 		else:
