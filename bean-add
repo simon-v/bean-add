@@ -480,6 +480,9 @@ def seek_to_transaction(autoseek=None):
 				_txid = last_tx
 				break
 		# Explicit and absolute value
+		elif _txid == data.txid:
+			print('\nSeeking cancelled.')
+			return
 		else:
 			break
 	# Change to the specified record
