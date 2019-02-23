@@ -232,6 +232,8 @@ def read_date(default):
 		if data.date_preview:
 			default = date
 			continue
+		else:
+			print('\nAdding new transaction at %s.\n' % date)
 		return date
 
 
