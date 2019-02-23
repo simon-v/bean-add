@@ -229,11 +229,12 @@ def read_date(default):
 			except ValueError:
 				continue
 		date = date.isoformat()
-		if data.date_preview:
-			default = date
-			continue
-		else:
-			print('\nAdding new transaction at %s.\n' % date)
+		if default != date:
+			if data.date_preview:
+				default = date
+				continue
+			else:
+				print('\nAdding new transaction at %s.\n' % date)
 		return date
 
 
