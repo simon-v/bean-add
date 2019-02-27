@@ -894,6 +894,26 @@ def print_account_balances():
 			print('%s %s (%s %s)' % (undecimal(data.known_balances[account][currency]), currency, difference, currency))
 
 
+# Estimate the balance of the next statement
+def estimate_statement_amount():
+	try:
+		account = read_account()
+		if account is None:
+			raise KeyboardInterrupt
+	except KeyboardInterrupt:
+		print('\nCancelled.')
+		return
+	except EOFError:
+		data.eof = True
+		return
+	transactions = tx_lookup([account, data.statement_pattern])
+	balances = calculate_balance(account, transactions, True)
+	print('Estimated amount of the next statement:')
+	for currency in balances:
+		if balances[currency] != 0:
+			print('%s %s' % (undecimal(abs(balances[currency])), currency))
+
+
 # Nudge txids in the statement following a journal modification
 def update_statement_refs(txid, insertion):
 	for tx, statement in enumerate(data.statement):
@@ -1405,6 +1425,9 @@ while True:
 	# Tally account balances
 	elif cmd == 'b':
 		print_account_balances()
+	# Estimate statement amount
+	elif cmd == 'bv':
+		estimate_statement_amount()
 	# Begin statement verification
 	elif cmd == 'v':
 		verify_statement()
@@ -1502,6 +1525,7 @@ le	go to the last lookup result
 lq	go to the first lookup result
 j	show the context of the current record
 b	show the balance of an account
+bv	estimate the amount of the next statement
 r	remove the current record
 u	undo record removal
 e	edit the current record with your preferred editor
