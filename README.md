@@ -57,6 +57,8 @@ If, at some point during statement verification, you discover an error in one of
 
 Once the sum of balances of all transactions in the statement matches the statement's target, you will be prompted for the statement's date and description. `bean-add` will then unset the flags of all records on the statement to prevent them from being used on another statement and add the statement's own record.
 
+Type `bv` to estimate the amount of your next statement, to help you plan your budget.
+
 You can use the `-n` command line switch to skip right to entering a new transaction with today's date immediately on startup.
 
 ### Other Notes
