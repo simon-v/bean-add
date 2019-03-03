@@ -895,23 +895,29 @@ def print_account_balances():
 
 
 # Estimate the balance of the next statement
-def estimate_statement_amount():
-	try:
-		account = read_account()
-		if account is None:
-			raise KeyboardInterrupt
-	except KeyboardInterrupt:
-		print('\nCancelled.')
-		return
-	except EOFError:
-		data.eof = True
-		return
+def estimate_statement_amount(account=None):
+	interactive = True if account is None else False
+	if interactive:
+		try:
+			account = read_account()
+			if account is None:
+				raise KeyboardInterrupt
+		except KeyboardInterrupt:
+			print('\nCancelled.')
+			return
+		except EOFError:
+			data.eof = True
+			return
 	transactions = tx_lookup([account, data.statement_pattern])
 	balances = calculate_balance(account, transactions, True)
-	print('Estimated amount of the next statement:')
+	if interactive:
+		print('Estimated amount of the next statement:')
 	for currency in balances:
 		if balances[currency] != 0:
-			print('%s %s' % (undecimal(abs(balances[currency])), currency))
+			line = '%s %s' % (undecimal(abs(balances[currency])), currency)
+			if not interactive:
+				return line
+			print(line)
 
 
 # Nudge txids in the statement following a journal modification
@@ -937,6 +943,8 @@ def verify_statement():
 			print('\nEnter the account which funds the statement.')
 			data.funding_account = read_account()
 			print()
+			data.balance, data.cur = estimate_statement_amount(data.transaction_account).split()
+			data.balance = float(data.balance)
 			amount = read_amount('the statement')
 			data.target = cast_number(amount.split()[0])
 			if data.target == 0:
