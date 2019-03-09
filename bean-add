@@ -844,7 +844,7 @@ def calculate_balance(account, txlist=None, statement_verification_quirks=False)
 			flagid = -1
 			for _line in lines[1:]:
 				line = condense(_line)
-				if line[0] == '!' and flagid == -1:
+				if line[0] == '!':
 					flagid = lines.index(_line)
 					break
 			if flagid > -1:
