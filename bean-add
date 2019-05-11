@@ -233,8 +233,7 @@ def read_date(default):
 			if data.date_preview:
 				default = date
 				continue
-			else:
-				print('\nAdding new transaction at %s.\n' % date)
+			print('\nAdding new transaction at %s.\n' % date)
 		return date
 
 
@@ -245,25 +244,22 @@ def read_description():
 	readline.set_completer_delims('')
 	set_history_context('description')
 	# Get a non-empty description
-	while True:
-		reading = input('Enter transaction description [%s]: ' % data.description).strip(' "')
-		if reading == '':
-			if data.description != '':
-				return data.description
-			else:
-				return None
-		else:
-			data.description = reading
-			return reading
+	reading = input('Enter transaction description [%s]: ' % data.description).strip(' "')
+	if reading == '':
+		if data.description != '':
+			return data.description
+		return None
+	data.description = reading
+	return reading
 
 
 # Read a valid account name
 def read_account():
+	# Set completion
+	data.vocab = data.accounts
+	readline.set_completer_delims('')
+	set_history_context('account')
 	while True:
-		# Set completion
-		data.vocab = data.accounts
-		readline.set_completer_delims('')
-		set_history_context('account')
 		# Read a valid account
 		reading = input('Enter an account name (tab to complete, enter to fininsh): ')
 		if reading == '':
@@ -321,10 +317,7 @@ def read_amount(account):
 	if account in data.accounts:
 		account = '`%s`' % account
 	amount = input('Enter the amount for %s (including currency symbol) [%s %s]: ' % (account, undecimal(data.balance), data.cur))
-	if amount == '':
-		amount = [data.balance, data.cur]
-	else:
-		amount = amount.split()
+	amount = [data.balance, data.cur] if amount == '' else amount.split()
 	# Process currency sign
 	if len(amount) == 1:
 		amount.append(data.cur)
@@ -599,10 +592,7 @@ def get_default_accounts(description):
 		_use = confirm('Use these accounts? (Y/n) ', True) if data.use_defaults is None else data.use_defaults
 		if _use:
 			return data.defaults[description].copy()
-		else:
-			return []
-	else:
-		return []
+	return []
 
 
 # Enter a normal transaction
