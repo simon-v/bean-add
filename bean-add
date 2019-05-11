@@ -380,7 +380,7 @@ def add_remove_tag():
 	set_history_context('tag')
 	# Get and normalize a tag
 	try:
-		_tag = input('Enter a tag [%s]: ' % data.defaults['__tag__'])
+		_tag = input('Enter a tag [%s]: ' % data.tag)
 	except KeyboardInterrupt:
 		print('\nTagging cancelled.')
 		return
@@ -389,9 +389,9 @@ def add_remove_tag():
 		return
 	_tag = _tag.strip('# ')
 	if _tag == '':
-		_tag = data.defaults['__tag__']
+		_tag = data.tag
 	else:
-		data.defaults['__tag__'] = _tag
+		data.tag = _tag
 	# If the tag is already there, offer to remove it instead
 	if '#' + _tag in data.journal[data.txid]:
 		if confirm('\nThe transaction already has this tag. Remove it? (Y/n) ', True):
@@ -1149,7 +1149,7 @@ for line in tx_file.split('\n'):
 					if word.startswith('#'):
 						if not word[1:] in data.tags:
 							data.tags.append(word[1:])
-						data.defaults['__tag__'] = word[1:]
+						data.tag = word[1:]
 	# Pass through malformed (or unrecognized) lines without stopping
 	except IndexError:
 		continue
