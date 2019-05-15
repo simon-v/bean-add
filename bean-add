@@ -577,11 +577,14 @@ def find_transactions(autoseek=None):
 	else:
 		_txid = data.txid
 	# Print the transaction list
-	for i in results:
-		if _txid == i:
-			print('>>>>>>>	%s' % (data.journal[i].split('\n')[0]))
-		else:
-			print('[%s]	%s' % (i, data.journal[i].split('\n')[0]))
+	try:
+		for i in results:
+			if _txid == i:
+				print('>>>>>>>	%s' % (data.journal[i].split('\n')[0]))
+			else:
+				print('[%s]	%s' % (i, data.journal[i].split('\n')[0]))
+	except KeyboardInterrupt:
+		pass
 	# Seek to the proper record
 	if autoseek is not None:
 		seek_to_transaction(_txid)
