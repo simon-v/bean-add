@@ -132,9 +132,15 @@ def complete(text, state):
 
 # Set up histories
 def set_history_context(context):
+	# Cache history for current context
 	data.history[data.history_context] = []
 	for i in range(readline.get_current_history_length()):
-		data.history[data.history_context].append(readline.get_history_item(i + 1))
+		_hist = readline.get_history_item(i + 1)
+		# Remove duplicate history items
+		if _hist in data.history[data.history_context]:
+			data.history[data.history_context].remove(_hist)
+		data.history[data.history_context].append(_hist)
+	# Populate completion history with new context
 	readline.clear_history()
 	for i in data.history[context]:
 		readline.add_history(i)
