@@ -267,7 +267,7 @@ def read_account():
 	set_history_context('account')
 	while True:
 		# Read a valid account
-		reading = input('Enter an account name (tab to complete, enter to fininsh): ')
+		reading = input('Enter an account name (tab to complete, enter to finish): ')
 		if reading == '':
 			return None
 		# Add new account option
