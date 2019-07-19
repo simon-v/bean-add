@@ -1251,7 +1251,7 @@ while True:
 		# Set history
 		set_history_context('command')
 		try:
-			cmd = input('\nEnter command (h for help) ')
+			cmd = input('\nEnter command (h for help) ').strip()
 		except (KeyboardInterrupt, EOFError):
 			print()
 			cmd = 'q'
