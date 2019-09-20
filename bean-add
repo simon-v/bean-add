@@ -664,7 +664,14 @@ def read_balance_transaction():
 	data.balance = 0
 	amount = read_amount(account)
 	output = '%s balance %s %s' % (data.date, account, amount)
+	cur = amount.split()[1]
+	balance = calculate_balance(account)[cur]
 	insert_transaction(output)
+	# Warn about mismatching balances
+	delta = float(amount.split()[0]) - balance
+	difference = 'missing' if delta < 0 else 'extra'
+	if data.date >= datetime.date.today().isoformat() and delta != 0:
+		print('\nWarning: The balance does not match ({expected} {cur} expected, {delta} {cur} {difference}).'.format(expected=undecimal(balance), difference=difference, delta=undecimal(abs(delta)), cur=cur))
 
 
 # Read a pad statement
