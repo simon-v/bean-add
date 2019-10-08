@@ -126,7 +126,7 @@ def pluralize(number, word):
 
 # Completion
 def complete(text, state):
-	results = [x for x in data.vocab if text.lower() in x.lower()] + [None]
+	results = [x for x in data.vocab if x not in ['__balance__', '__pad__', '__note__'] and x.lower().startswith(text.lower())] + [None]
 	return results[state]
 
 
