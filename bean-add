@@ -362,13 +362,14 @@ def toggle_flag():
 
 
 # Toggle the flags on individual transaction legs
-def toggle_flag_with_legs():
+def toggle_flag_with_legs(account=None):
 	if ' * ' not in data.journal[data.txid] and ' ! ' not in data.journal[data.txid]:
 		print('\nRecord type does not support flags.')
 		return
 	if ' * ' in data.journal[data.txid]:
-		print('\nFlag which transaction legs?')
-		account = read_account()
+		if account is None:
+			print('\nFlag which transaction legs?')
+			account = read_account()
 		data.journal[data.txid] = data.journal[data.txid].replace(account, '! %s' % account).replace('! !', '!')
 	else:
 		data.journal[data.txid] = data.journal[data.txid].replace('	! ', '	')
@@ -646,7 +647,11 @@ def read_normal_transaction(description=None):
 		insert_transaction(output.strip())
 		# Auto-flag if appropriate
 		for _account in data.auto_flag:
-			if _account in output:
+			_count = output.count(_account)
+			if _count > 1:
+				toggle_flag_with_legs(_account)
+				break
+			elif _count == 1:
 				toggle_flag()
 				break
 
