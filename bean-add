@@ -991,21 +991,18 @@ def verify_statement():
 			break
 		transactions = tx_lookup([data.transaction_account, data.statement_pattern], data.statement)
 		# List matching records neatly justified
-		width = 10
-		for tx in data.statement + transactions:
-			width = max(width, len(data.journal[tx].split('\n')[0]))
 		for title, txlist in [
 			['Statement Records', data.statement],
 			['Available Records', transactions]
 		]:
-			print('\n------- %s '.ljust(width, '-') % title)
+			print('\n------- %s '.ljust(data.desc_width + 10, '-') % title)
 			if txlist == []:
 				print('	(nothing)')
 				continue
 			for tx in txlist:
-				desc = data.journal[tx].split('\n')[0].ljust(width)
+				desc = data.journal[tx].split('\n')[0][:data.desc_width].ljust(data.desc_width)
 				_amount = undecimal(calculate_balance(data.transaction_account, [tx], True)[data.statement_currency] * neg)
-				print('[%s]	%s  %s	%s' % (tx, desc, _amount, data.statement_currency))
+				print('[%s]	%s  %s %s' % (tx, desc, _amount, data.statement_currency))
 		# Select records to add or remove
 		print('\nSelect records to add to the statement. Type a record number already on the statement to remove it.')
 		try:
