@@ -82,6 +82,7 @@ class data(object):
 	lookup_seek = None
 	max_expr_length = 40
 	auto_new = False
+	desc_width = 60
 
 
 # Ask for confirmation: str(prompt) -> bool(result)
@@ -579,11 +580,8 @@ def find_transactions(autoseek=None):
 		_txid = data.txid
 	# Print the transaction list
 	try:
-		for i in results:
-			if _txid == i:
-				print('>>>>>>>	%s' % (data.journal[i].split('\n')[0]))
-			else:
-				print('[%s]	%s' % (i, data.journal[i].split('\n')[0]))
+		for tx in results:
+			print_transaction(tx)
 	except KeyboardInterrupt:
 		pass
 	# Seek to the proper record
@@ -766,6 +764,24 @@ def edit_transaction():
 	os.unlink(tempfile)
 
 
+# Print a transaction in short format
+def print_transaction(tx):
+	# Padding and trimming transaction descriptions to this many characters
+	tx_string = data.journal[tx].split('\n')
+	# Also display the amount on the first leg in the preview
+	try:
+		first_account = condense(tx_string[1])
+		if first_account[0] == '!':
+			del first_account[0]
+		tx_amount = ' '.join(first_account[1:])
+	except IndexError:
+		tx_amount = ''
+	description = tx_string[0][:data.desc_width].ljust(data.desc_width)
+	# Mark current transaction
+	tx_number = '>>>>>>>' if tx == data.txid else '[%s]' % tx
+	print('%s	%s %s' % (tx_number, description, tx_amount))
+
+
 # Print the context to the current transaction (default: +-10 transactions)
 def print_journal():
 	if data.txid == -1:
@@ -774,9 +790,7 @@ def print_journal():
 	start = max(data.txid - data.context, 0)
 	end = min(data.txid + data.context, len(data.journal))
 	for tx in range(start, end):
-		tx_string = data.journal[tx].split('\n')[0]
-		tx_number = '>>>>>>>' if tx == data.txid else '[%s]' % tx
-		print('%s	%s' % (tx_number, tx_string))
+		print_transaction(tx)
 
 
 # Attempt to deduce an implied amount: int txid -> bool transaction is correct
