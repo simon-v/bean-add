@@ -83,6 +83,7 @@ class data(object):
 	max_expr_length = 40
 	auto_new = False
 	desc_width = 60
+	amount_width = 8
 
 
 # Ask for confirmation: str(prompt) -> bool(result)
@@ -765,17 +766,35 @@ def edit_transaction():
 
 
 # Print a transaction in short format
-def print_transaction(tx):
-	# Padding and trimming transaction descriptions to this many characters
+def print_transaction(tx, tx_amount=None):
 	tx_string = data.journal[tx].split('\n')
-	# Also display the amount on the first leg in the preview
+	# Display the amount on the first leg in the preview unless given an explicit amount
+	if tx_amount is None:
+		try:
+			first_account = condense(tx_string[1])
+			if first_account[0] == '!':
+				del first_account[0]
+			tx_amount = first_account[1:]
+		except IndexError:
+			tx_amount = ''
+	# Extract number from amount
 	try:
-		first_account = condense(tx_string[1])
-		if first_account[0] == '!':
-			del first_account[0]
-		tx_amount = ' '.join(first_account[1:])
+		number = tx_amount[0]
 	except IndexError:
-		tx_amount = ''
+		number = ''
+	try:
+		remainder = ' '.join(tx_amount[1:])
+	except IndexError:
+		remainder = ''
+	# Pad integer amounts
+	if '.' not in number:
+		number += '   '
+	# Pad positive amounts
+	if not number.startswith('-'):
+		number = ' ' + number
+	# Justify amount
+	tx_amount = ' '.join([number.rjust(data.amount_width), remainder])
+	# Trim and pad description
 	description = tx_string[0][:data.desc_width].ljust(data.desc_width)
 	# Mark current transaction
 	tx_number = '>>>>>>>' if tx == data.txid else '[%s]' % tx
@@ -1000,9 +1019,8 @@ def verify_statement():
 				print('	(nothing)')
 				continue
 			for tx in txlist:
-				desc = data.journal[tx].split('\n')[0][:data.desc_width].ljust(data.desc_width)
 				_amount = undecimal(calculate_balance(data.transaction_account, [tx], True)[data.statement_currency] * neg)
-				print('[%s]	%s  %s %s' % (tx, desc, _amount, data.statement_currency))
+				print_transaction(tx, [_amount, data.statement_currency])
 		# Select records to add or remove
 		print('\nSelect records to add to the statement. Type a record number already on the statement to remove it.')
 		try:
