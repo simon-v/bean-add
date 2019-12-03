@@ -797,8 +797,9 @@ def print_transaction(tx, tx_amount=None):
 	# Trim and pad description
 	description = tx_string[0][:data.desc_width].ljust(data.desc_width)
 	# Mark current transaction
-	tx_number = '>>>>>>>' if tx == data.txid else '[%s]' % tx
-	print('%s	%s %s' % (tx_number, description, tx_amount))
+	txid_width = len(str(len(data.journal)))
+	tx_number = '>' * (txid_width + 2) if tx == data.txid else '[%s]'.ljust(txid_width) % tx
+	print('%s  %s %s' % (tx_number, description, tx_amount))
 
 
 # Print the context to the current transaction (default: +-10 transactions)
