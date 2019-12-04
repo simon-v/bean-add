@@ -82,7 +82,6 @@ class data(object):
 	lookup_seek = None
 	max_expr_length = 40
 	auto_new = False
-	desc_width = 60
 	amount_width = 8
 
 
@@ -793,11 +792,12 @@ def print_transaction(tx, tx_amount=None):
 	if not number.startswith('-'):
 		number = ' ' + number
 	# Justify amount
-	tx_amount = ' '.join([number.rjust(data.amount_width), remainder])
+	tx_amount = ' '.join([number.rjust(data.amount_width), remainder[:3]])
 	# Trim and pad description
-	description = tx_string[0][:data.desc_width].ljust(data.desc_width)
-	# Mark current transaction
 	txid_width = len(str(len(data.journal)))
+	desc_width = os.get_terminal_size()[0] - txid_width - data.amount_width - 2 - 5 - 2
+	description = tx_string[0][:desc_width].ljust(desc_width)
+	# Mark current transaction
 	tx_number = '>' * (txid_width + 2) if tx == data.txid else '[%s]'.ljust(txid_width) % tx
 	print('%s  %s %s' % (tx_number, description, tx_amount))
 
@@ -1015,7 +1015,7 @@ def verify_statement():
 			['Statement Records', data.statement],
 			['Available Records', transactions]
 		]:
-			print('\n------- %s '.ljust(data.desc_width + 10, '-') % title)
+			print('\n------- %s '.ljust(os.get_terminal_size()[0] - 14, '-') % title)
 			if txlist == []:
 				print('	(nothing)')
 				continue
