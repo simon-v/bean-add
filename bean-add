@@ -578,6 +578,8 @@ def find_transactions(autoseek=None):
 	else:
 		_txid = data.txid
 	# Print the transaction list
+	if autoseek is not None:
+		data.txid = _txid
 	try:
 		for tx in results:
 			print_transaction(tx)
