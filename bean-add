@@ -470,7 +470,7 @@ def seek_to_transaction(autoseek=None):
 			else:
 				_txid += data.txid
 		# Beginning of journal
-		if _txid <= 0:
+		if _txid < 0:
 			if data.txid == 0:
 				print('\nYou are at the first record.')
 				return
@@ -478,7 +478,7 @@ def seek_to_transaction(autoseek=None):
 				_txid = 0
 				break
 		# End of journal
-		elif _txid >= last_tx:
+		elif _txid > last_tx:
 			if data.txid == last_tx:
 				print('\nYou are at the last record.')
 				return
