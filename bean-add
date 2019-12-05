@@ -798,7 +798,7 @@ def print_transaction(tx, tx_amount=None):
 	desc_width = os.get_terminal_size()[0] - txid_width - data.amount_width - 2 - 5 - 2
 	description = tx_string[0][:desc_width].ljust(desc_width)
 	# Mark current transaction
-	tx_number = '>' * (txid_width + 2) if tx == data.txid else '[%s]'.ljust(txid_width) % tx
+	tx_number = '>' * (txid_width + 2) if tx == data.txid else '[{}]'.format(tx).ljust(txid_width + 2)
 	print('%s  %s %s' % (tx_number, description, tx_amount))
 
 
@@ -1015,7 +1015,7 @@ def verify_statement():
 			['Statement Records', data.statement],
 			['Available Records', transactions]
 		]:
-			print('\n------- %s '.ljust(os.get_terminal_size()[0] - 14, '-') % title)
+			print('\n------- {} '.format(title).ljust(os.get_terminal_size()[0] + 1, '-'))
 			if txlist == []:
 				print('	(nothing)')
 				continue
