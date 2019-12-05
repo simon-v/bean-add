@@ -454,8 +454,10 @@ def seek_to_transaction(autoseek=None):
 		try:
 			_txid = int(reading)
 		except ValueError:
-			print('\nSeeking cancelled.')
-			return
+			if reading != '':
+				print('\nSeeking cancelled.')
+				return
+			_txid = data.txid
 		# Relative value
 		if reading.startswith('+') or reading.startswith('-'):
 			if data.txid == -1:
@@ -484,9 +486,6 @@ def seek_to_transaction(autoseek=None):
 				_txid = last_tx
 				break
 		# Explicit and absolute value
-		elif _txid == data.txid:
-			print('\nSeeking cancelled.')
-			return
 		else:
 			break
 	# Change to the specified record
