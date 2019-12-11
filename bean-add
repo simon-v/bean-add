@@ -82,7 +82,7 @@ class data(object):
 	lookup_seek = None
 	max_expr_length = 40
 	auto_new = False
-	amount_width = 8
+	amount_width = 1
 
 
 # Ask for confirmation: str(prompt) -> bool(result)
@@ -334,6 +334,8 @@ def read_amount(account):
 			data.currencies.append(data.cur)
 	# Normalize numbers and process conversion rate
 	amount[0] = undecimal(evaluate(amount[0]))
+	_amt = amount[0].split('.')[0] if '.' in amount[0] else amount[0]
+	data.amount_width = max(data.amount_width, len(_amt.strip('-')) + 3)
 	if '@' in amount:
 		amount[-2] = undecimal(evaluate(amount[-2]), 3)
 		data.balance -= float(amount[0]) * float(amount[-2])
@@ -1166,6 +1168,8 @@ for line in tx_file.split('\n'):
 	_data = condense(line)
 	try:
 		# Attach transaction legs to previous description
+		if _data[0] == '!':
+			del _data[0]
 		if _data[0] in data.accounts:
 			data.defaults[description].append(_data[0])
 			# Transaction leg has a currency sign
@@ -1173,6 +1177,10 @@ for line in tx_file.split('\n'):
 				_cur = _data.pop()
 				if _cur not in data.currencies:
 					data.currencies.append(_cur)
+				_amount = _data.pop().strip('-')
+				if '.' in _amount:
+					_amount = _amount.split('.')[0]
+				data.amount_width = max(data.amount_width, len(_amount))
 		# Add account name to account list
 		elif _data[1] == 'open':
 			data.accounts.append(_data[2])
@@ -1206,6 +1214,7 @@ for line in tx_file.split('\n'):
 	except IndexError:
 		continue
 
+data.amount_width += 3
 # Prepare file for transaction insertion
 data.journal = tx_file.split('\n\n')
 data.journal = [i.strip() for i in data.journal]
