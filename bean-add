@@ -779,26 +779,27 @@ def print_transaction(tx, tx_amount=None):
 			tx_amount = first_account[1:]
 		except IndexError:
 			tx_amount = ''
-	# Extract number from amount
-	try:
-		number = tx_amount[0]
-	except IndexError:
-		number = ''
-	try:
-		remainder = ' '.join(tx_amount[1:])
-	except IndexError:
-		remainder = ''
-	# Pad integer amounts
-	if '.' not in number:
-		number += '   '
-	# Pad positive amounts
-	if not number.startswith('-'):
-		number = ' ' + number
-	# Justify amount
-	tx_amount = ' '.join([number.rjust(data.amount_width), remainder[:3]])
+	if tx_string[0].split()[1] in '*!':
+		# Extract number from amount
+		try:
+			number = tx_amount[0]
+		except IndexError:
+			number = ''
+		try:
+			remainder = ' '.join(tx_amount[1:])
+		except IndexError:
+			remainder = ''
+		# Pad integer amounts
+		if '.' not in number:
+			number += '   '
+		# Pad positive amounts
+		if not number.startswith('-'):
+			number = ' ' + number
+		# Justify amount
+		tx_amount = ' '.join([number.rjust(data.amount_width), remainder[:3]])
 	# Trim and pad description
 	txid_width = len(str(len(data.journal)))
-	desc_width = os.get_terminal_size()[0] - txid_width - data.amount_width - 2 - 5 - 2
+	desc_width = os.get_terminal_size()[0] - txid_width - len(tx_amount) - 5
 	description = tx_string[0][:desc_width].ljust(desc_width)
 	# Mark current transaction
 	tx_number = '>' * (txid_width + 2) if tx == data.txid else '[{}]'.format(tx).ljust(txid_width + 2)
