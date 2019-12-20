@@ -518,8 +518,8 @@ def tx_lookup(patterns, prune_txids=[]):
 
 # Find transactions that contain a string
 def find_transactions(autoseek=None):
-	# Unset completion
-	data.vocab = []
+	# Use all possible completion contenxts for lookups
+	data.vocab = data.accounts + list(data.defaults.keys()) + ['#' + x for x in data.tags]
 	readline.set_completer_delims('')
 	set_history_context('lookup')
 	# Autoseeking without doing a lookup first
