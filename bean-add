@@ -83,6 +83,8 @@ class data(object):
 	max_expr_length = 40
 	auto_new = False
 	amount_width = 1
+	colors = False
+	last_bold = True
 
 
 # Ask for confirmation: str(prompt) -> bool(result)
@@ -803,7 +805,9 @@ def print_transaction(tx, tx_amount=None):
 	description = tx_string[0][:desc_width].ljust(desc_width)
 	# Mark current transaction
 	tx_number = '>' * (txid_width + 2) if tx == data.txid else '[{}]'.format(tx).ljust(txid_width + 2)
-	print('%s  %s %s' % (tx_number, description, tx_amount))
+	bold = '%s' if not data.colors or data.last_bold else '\33[1m%s\33[0m'
+	data.last_bold = not data.last_bold
+	print(bold % '%s  %s %s' % (tx_number, description, tx_amount))
 
 
 # Print the context to the current transaction (default: +-10 transactions)
@@ -813,6 +817,7 @@ def print_journal():
 		return
 	start = max(data.txid - data.context, 0)
 	end = min(data.txid + data.context, len(data.journal))
+	data.last_bold = True
 	for tx in range(start, end):
 		print_transaction(tx)
 
@@ -1023,6 +1028,7 @@ def verify_statement():
 			if txlist == []:
 				print('	(nothing)')
 				continue
+			data.last_bold = True
 			for tx in txlist:
 				_amount = undecimal(calculate_balance(data.transaction_account, [tx], True)[data.statement_currency] * neg)
 				print_transaction(tx, [_amount, data.statement_currency])
@@ -1156,6 +1162,8 @@ for line in tx_file.split('\n'):
 					data.lookup_seek = True
 				elif i == 'll':
 					data.lookup_seek = False
+				elif i == 'c':
+					data.colors = True
 				elif i == 'f':
 					_auto_flag = True
 					continue
@@ -1502,6 +1510,7 @@ while True:
 		print('od	preview non-absoulute dates during input (%s)' % ('enabled' if data.date_preview else 'disabled'))
 		print('of	automatically flag transactions containing (%s)' % (None if data.auto_flag == [] else ', '.join(data.auto_flag)))
 		print('ol	lookup result to seek to (%s)' % ('none' if data.lookup_seek is None else 'last' if data.lookup_seek else 'first'))
+		print('oc	colorize output (%s)' % ('enabled' if data.colors else 'disabled'))
 	# Option: sort by date
 	elif cmd == 'os':
 		data.sort_by_date = not data.sort_by_date
@@ -1522,6 +1531,10 @@ while True:
 	elif cmd == 'od':
 		data.date_preview = not data.date_preview
 		print('\nPreviewing of non-absolute dates during input is now %s.' % ('enabled' if data.date_preview else 'disabled'))
+	# Option: output colorization
+	elif cmd == 'oc':
+		data.colors = not data.colors
+		print('\nColorizing of output is now %s.' % ('enabled' if data.colors else 'disabled'))
 	elif cmd == 'of':
 		try:
 			_account = read_account()
@@ -1552,6 +1565,7 @@ while True:
 		optstring += ' e' if data.external_write else ''
 		optstring += '' if data.date_preview else ' d'
 		optstring += '' if data.lookup_seek is None else ' l' if data.lookup_seek else ' ll'
+		optstring += ' c' if data.colors else ''
 		for _account in data.auto_flag:
 			optstring += ' f %s' % _account
 		# Apply the option string
