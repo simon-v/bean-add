@@ -775,13 +775,16 @@ def print_transaction(tx, tx_amount=None):
 	# Display the amount on the first leg in the preview unless given an explicit amount
 	if tx_amount is None:
 		try:
+			# Don't bother figuring out amounts if it's not a standard transaction
+			if '!' not in tx_string[0] and '*' not in tx_string[0]:
+				raise IndexError
 			first_account = condense(tx_string[1])
 			if first_account[0] == '!':
 				del first_account[0]
 			tx_amount = first_account[1:]
 		except IndexError:
 			tx_amount = ''
-	if tx_string[0].split()[1] in '*!':
+	if tx_amount != '':
 		# Extract number from amount
 		try:
 			number = tx_amount[0]
