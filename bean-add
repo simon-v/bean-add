@@ -673,12 +673,12 @@ def read_balance_transaction():
 	amount = read_amount(account)
 	output = '%s balance %s %s' % (data.date, account, amount)
 	cur = amount.split()[1]
-	balance = calculate_balance(account)[cur]
+	balance = calculate_balance(account, before=data.date)[cur]
 	insert_transaction(output)
 	# Warn about mismatching balances
 	delta = float(amount.split()[0]) - balance
 	difference = 'missing' if delta < 0 else 'extra'
-	if data.date >= datetime.date.today().isoformat() and delta != 0:
+	if delta != 0:
 		print('\nWarning: The balance does not match ({expected} {cur} expected, {delta} {cur} {difference}).'.format(expected=undecimal(balance), difference=difference, delta=undecimal(abs(delta)), cur=cur))
 
 
@@ -873,10 +873,17 @@ def deduce_implied_amount(txid):
 
 
 # Calculate the balance of an account
-def calculate_balance(account, txlist=None, statement_verification_quirks=False):
+def calculate_balance(account, txlist=None, statement_verification_quirks=False, before=None):
 	# If no list of transactions to consider is given, default to the entire journal
 	if txlist is None:
-		txlist = list(range(len(data.journal)))
+		if before is None:
+			txlist = list(range(len(data.journal)))
+		# If end date is given, summarize only records before it
+		else:
+			txlist = []
+			for txid, tx in enumerate(data.journal):
+				if tx[:10] < before:
+					txlist.append(txid)
 	amounts = {}
 	for currency in data.currencies:
 		amounts[currency] = 0
