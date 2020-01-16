@@ -1511,7 +1511,12 @@ while True:
 		estimate_statement_amount()
 	# Begin statement verification
 	elif cmd == 'v':
+		# Disable marking of current record
+		txid_cache = data.txid
+		data.txid = -1
 		verify_statement()
+		# Restore marking of current record
+		data.txid = txid_cache
 	# Show options
 	elif cmd == 'o':
 		print('Available option commands:')
