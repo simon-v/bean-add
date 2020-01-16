@@ -1040,6 +1040,9 @@ def verify_statement():
 				continue
 			data.last_bold = True
 			for tx in txlist:
+				# Ignore commented out records
+				if data.journal[tx].startswith(';'):
+					continue
 				_amount = undecimal(calculate_balance(data.transaction_account, [tx], True)[data.statement_currency] * neg)
 				print_transaction(tx, [_amount, data.statement_currency])
 		# Select records to add or remove
