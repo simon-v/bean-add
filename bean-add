@@ -33,6 +33,7 @@ class data(object):
 	defaults = {}
 	restore = []
 	mtime = 0
+	quote_currency = ''
 	# Completion
 	accounts = []
 	currencies = []
@@ -48,7 +49,8 @@ class data(object):
 		'seek': [],
 		'lookup': [],
 		'note': [],
-		'txids': []
+		'txids': [],
+		'currency': []
 	}
 	history_context = 'command'
 	# Current transaction
@@ -1158,6 +1160,7 @@ for line in tx_file.split('\n'):
 	elif line.startswith(';'):
 		if line.startswith(';*bean-add* '):
 			_auto_flag = False
+			_quote = False
 			for i in line.split()[1:]:
 				if i == 'a':
 					data.use_defaults = True
@@ -1179,10 +1182,14 @@ for line in tx_file.split('\n'):
 					data.colors = True
 				elif i == 'f':
 					_auto_flag = True
-					continue
 				elif _auto_flag:
 					data.auto_flag.append(i)
 					_auto_flag = False
+				elif i == 'q':
+					_quote = True
+				elif _quote:
+					data.quote_currency = i
+					_quote = False
 				else:
 					print('Unrecognized option: %s' % i)
 			print('Loaded options from journal file.')
@@ -1529,6 +1536,7 @@ while True:
 		print('of	automatically flag transactions containing (%s)' % (None if data.auto_flag == [] else ', '.join(data.auto_flag)))
 		print('ol	lookup result to seek to (%s)' % ('none' if data.lookup_seek is None else 'last' if data.lookup_seek else 'first'))
 		print('oc	colorize output (%s)' % ('enabled' if data.colors else 'disabled'))
+		print('oq	quote currency for all conversions (%s)' % ('None' if data.quote_currency == '' else data.quote_currency))
 	# Option: sort by date
 	elif cmd == 'os':
 		data.sort_by_date = not data.sort_by_date
@@ -1573,6 +1581,19 @@ while True:
 	elif cmd == 'ol':
 		data.lookup_seek = True if data.lookup_seek is None else False if data.lookup_seek else None
 		print('\nSeeking to lookup result is set to %s.' % ('none' if data.lookup_seek is None else 'last' if data.lookup_seek else 'first'))
+	# Option: default quote currency
+	elif cmd == 'oq':
+		try:
+			# Set completion
+			data.vocab = data.currencies
+			readline.set_completer_delims('')
+			set_history_context('currency')
+			data.quote_currency = input('Enter new quote currency for all conversions (blank to disable): ')
+			print('\nQuote currency set to %s.' % ('None' if data.quote_currency == '' else data.quote_currency))
+		except KeyboardInterrupt:
+			print('\nCancelled.')
+		except EOFError:
+			data.eof = True
 	# Save options to the journal
 	elif cmd == 'oo':
 		# Generate the option string
@@ -1584,6 +1605,7 @@ while True:
 		optstring += '' if data.date_preview else ' d'
 		optstring += '' if data.lookup_seek is None else ' l' if data.lookup_seek else ' ll'
 		optstring += ' c' if data.colors else ''
+		optstring += ' q ' + data.quote_currency if data.quote_currency != '' else ''
 		for _account in data.auto_flag:
 			optstring += ' f %s' % _account
 		# Apply the option string
