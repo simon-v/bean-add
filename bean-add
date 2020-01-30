@@ -350,6 +350,16 @@ def read_amount(account):
 	return ' '.join(amount)
 
 
+# Read a currency sign
+def read_currency():
+	# Set completion
+	data.vocab = data.currencies
+	readline.set_completer_delims('')
+	set_history_context('currency')
+	cur = input('Enter currency symbol: ')
+	return cur
+
+
 # Toggle transaction flag
 def toggle_flag():
 	if data.txid < 0:
@@ -1584,11 +1594,8 @@ while True:
 	# Option: default quote currency
 	elif cmd == 'oq':
 		try:
-			# Set completion
-			data.vocab = data.currencies
-			readline.set_completer_delims('')
-			set_history_context('currency')
-			data.quote_currency = input('Enter new quote currency for all conversions (blank to disable): ')
+			print('Enter new quote currency for all conversions, or leave blank to disable.')
+			data.quote_currency = read_currency()
 			print('\nQuote currency set to %s.' % ('None' if data.quote_currency == '' else data.quote_currency))
 		except KeyboardInterrupt:
 			print('\nCancelled.')
