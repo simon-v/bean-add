@@ -1571,6 +1571,7 @@ while True:
 	elif cmd == 'oc':
 		data.colors = not data.colors
 		print('\nColorizing of output is now %s.' % ('enabled' if data.colors else 'disabled'))
+	# Option: auto-flagging of new records
 	elif cmd == 'of':
 		try:
 			_account = read_account()
@@ -1588,6 +1589,7 @@ while True:
 			print('\nCancelled.')
 		except EOFError:
 			data.eof = True
+	# Option: auto-seek to a lookup result
 	elif cmd == 'ol':
 		data.lookup_seek = True if data.lookup_seek is None else False if data.lookup_seek else None
 		print('\nSeeking to lookup result is set to %s.' % ('none' if data.lookup_seek is None else 'last' if data.lookup_seek else 'first'))
