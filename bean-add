@@ -901,6 +901,9 @@ def calculate_balance(account, txlist=None, statement_verification_quirks=False,
 		amounts[currency] = 0
 	# Go through the transaction list
 	for tx in txlist:
+		# Ignore comments
+		if data.journal[tx].startswith(';'):
+			continue
 		# See if it need corrections
 		if account in data.journal[tx]:
 			if not deduce_implied_amount(tx):
