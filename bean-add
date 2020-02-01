@@ -33,6 +33,7 @@ class data(object):
 	defaults = {}
 	restore = []
 	mtime = 0
+	prices = {}
 	quote_currency = ''
 	# Completion
 	accounts = []
@@ -358,6 +359,21 @@ def read_currency():
 	set_history_context('currency')
 	cur = input('Enter currency symbol: ')
 	return cur
+
+
+# Figure out the implied price of a currency
+def deduce_commodity_price(line):
+	line = condense(line)
+	p = line.index('@')
+	base_currency = line[p - 1]
+	rate, currency = line[p + 1:p + 3]
+	rate = float(rate)
+	# base_currency @ rate [currency] <= quote_currency
+	if currency == data.quote_currency:
+		data.prices[base_currency] = rate
+	# quote_currency => [base_currency] @ rate currency
+	elif base_currency == data.quote_currency:
+		data.prices[currency] = 1 / rate
 
 
 # Toggle transaction flag
@@ -964,13 +980,19 @@ def print_account_balances():
 		balances = data.known_balances[account].copy()
 	print('\nBalances for %s:' % account)
 	for currency in data.currencies:
+		value = ''
+		if data.quote_currency != '' and currency != data.quote_currency:
+			if currency not in data.prices:
+				value = '  [Unknown conversion rate]'
+			else:
+				value = '  [%s %s @ %s]' % (undecimal(balances[currency] * data.prices[currency]), data.quote_currency, data.prices[currency])
 		difference = data.known_balances[account][currency] - balances[currency]
 		if difference == 0:
 			if data.known_balances[account][currency] != 0:
-				print('%s %s' % (undecimal(data.known_balances[account][currency]), currency))
+				print('%s %s%s' % (undecimal(data.known_balances[account][currency]), currency, value))
 		else:
 			difference = '%s%s' % ('+' if difference > 0 else '', undecimal(difference))
-			print('%s %s (%s %s)' % (undecimal(data.known_balances[account][currency]), currency, difference, currency))
+			print('%s %s (%s %s)%s' % (undecimal(data.known_balances[account][currency]), currency, difference, currency, value))
 
 
 # Estimate the balance of the next statement
@@ -1208,6 +1230,9 @@ for line in tx_file.split('\n'):
 			print('Loaded options from journal file.')
 		continue
 	_data = condense(line)
+	# Process and cache commodity prices
+	if '@' in line and data.quote_currency != '':
+		deduce_commodity_price(line)
 	try:
 		# Attach transaction legs to previous description
 		if _data[0] == '!':
@@ -1255,6 +1280,7 @@ for line in tx_file.split('\n'):
 	# Pass through malformed (or unrecognized) lines without stopping
 	except IndexError:
 		continue
+
 
 data.amount_width += 3
 # Prepare file for transaction insertion
