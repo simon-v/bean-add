@@ -363,6 +363,8 @@ def read_currency():
 
 # Figure out the implied price of a currency
 def deduce_commodity_price(line):
+	if data.quote_currency == '' or '@' not in line:
+		return
 	line = condense(line)
 	p = line.index('@')
 	base_currency = line[p - 1]
@@ -1229,10 +1231,9 @@ for line in tx_file.split('\n'):
 					print('Unrecognized option: %s' % i)
 			print('Loaded options from journal file.')
 		continue
-	_data = condense(line)
 	# Process and cache commodity prices
-	if '@' in line and data.quote_currency != '':
-		deduce_commodity_price(line)
+	deduce_commodity_price(line)
+	_data = condense(line)
 	try:
 		# Attach transaction legs to previous description
 		if _data[0] == '!':
@@ -1628,6 +1629,10 @@ while True:
 			print('Enter new quote currency for all conversions, or leave blank to disable.')
 			data.quote_currency = read_currency()
 			print('\nQuote currency set to %s.' % ('None' if data.quote_currency == '' else data.quote_currency))
+			data.prices = {}
+			for tx in data.journal:
+				for line in tx.split('\n'):
+					deduce_commodity_price(line)
 		except KeyboardInterrupt:
 			print('\nCancelled.')
 		except EOFError:
