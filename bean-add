@@ -111,7 +111,7 @@ def confirm(prompt='', default_yes=None):
 # Cast a number into the appropriate format: number -> int or rounded float
 def cast_number(number):
 	number = float(number)
-	return int(number) if number.is_integer() else round(number, 2)
+	return int(number) if number.is_integer() else number
 
 
 # Condense whitespace and return a list
@@ -987,7 +987,7 @@ def print_account_balances():
 			if currency not in data.prices:
 				value = '  [Unknown conversion rate]'
 			else:
-				value = '  [%s %s @ %s]' % (undecimal(balances[currency] * data.prices[currency]), data.quote_currency, data.prices[currency])
+				value = '  [%s %s @ %s]' % (undecimal(balances[currency] * data.prices[currency]), data.quote_currency, undecimal(data.prices[currency], 3))
 		difference = data.known_balances[account][currency] - balances[currency]
 		if difference == 0:
 			if data.known_balances[account][currency] != 0:
