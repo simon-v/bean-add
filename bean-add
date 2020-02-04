@@ -317,6 +317,27 @@ def evaluate(expression):
 		raise KeyboardInterrupt
 
 
+# Add previously unseen currency signs to the completion list
+def detect_currencies(line):
+	if type(line) == str:
+		line = condense(line)
+	if '@' in line:
+		cur = line[line.index('@') -1]
+		try:
+			int(cur)
+		except ValueError:
+			if cur not in data.currencies:
+				data.currencies.append(cur)
+		except IndexError:
+			pass
+	cur = line[-1]
+	try:
+		int(line[-1])
+	except ValueError:
+		if cur not in data.currencies:
+			data.currencies.append(cur)
+
+
 # Read and normalize transaction amount
 def read_amount(account):
 	# Set completion
@@ -332,9 +353,8 @@ def read_amount(account):
 	if len(amount) == 1:
 		amount.append(data.cur)
 	else:
-		data.cur = amount[-1]
-		if data.cur not in data.currencies:
-			data.currencies.append(data.cur)
+		detect_currencies(amount)
+		deduce_commodity_price(amount)
 	# Normalize numbers and process conversion rate
 	amount[0] = undecimal(evaluate(amount[0]))
 	_amt = amount[0].split('.')[0] if '.' in amount[0] else amount[0]
@@ -1239,14 +1259,10 @@ for line in tx_file.split('\n'):
 			del _data[0]
 		if _data[0] in data.accounts:
 			data.defaults[description].append(_data[0])
-			# Transaction leg has a currency sign
-			if len(_data) == 3:
-				_cur = _data.pop()
-				if _cur not in data.currencies:
-					data.currencies.append(_cur)
-				_amount = _data.pop().strip('-')
-				if '.' in _amount:
-					_amount = _amount.split('.')[0]
+			# Detect involved currencies and amounts
+			if len(_data) > 1:
+				detect_currencies(_data)
+				_amount = str(int(float(_data[1])))
 				data.amount_width = max(data.amount_width, len(_amount))
 		# Add account name to account list
 		elif _data[1] == 'open':
