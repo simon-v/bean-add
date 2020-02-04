@@ -109,7 +109,7 @@ def confirm(prompt='', default_yes=None):
 
 
 # Cast a number into the appropriate format: number -> int or rounded float
-def cast_number(number, precision=2):
+def cast_number(number, precision=8):
 	number = round(float(number), precision)
 	return int(number) if number.is_integer() else number
 
@@ -288,7 +288,7 @@ def read_account():
 
 # Normalize amounts with unnecessary decimal places
 # number, rounding precision -> string
-def undecimal(number, precision=2):
+def undecimal(number, precision=8):
 	try:
 		number = cast_number(number, precision)
 	except ValueError:
