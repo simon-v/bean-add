@@ -986,6 +986,7 @@ def calculate_balance(account, txlist=None, statement_verification_quirks=False,
 				if len(line) < 3:
 					print('Missing amount ignored in record %s.' % tx)
 					continue
+				deduce_commodity_price(line)
 				amounts[line[2]] = cast_number(amounts[line[2]] + float(line[1]))
 	return amounts
 
