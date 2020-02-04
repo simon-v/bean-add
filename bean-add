@@ -93,19 +93,25 @@ class data(object):
 # Ask for confirmation: str(prompt) -> bool(result)
 def confirm(prompt='', default_yes=None):
 	# Unset completion
+	_vocab = data.vocab
+	_delims = readline.get_completer_delims()
 	data.vocab = []
 	readline.set_completer_delims('')
 	# Get a valid confirmation
-	while True:
+	ch = 'x'
+	while ch not in 'yn':
 		ch = input(prompt).lower()
 		if ch == '':
 			if default_yes is None:
 				continue
 			ch = 'y' if default_yes else 'n'
-		if ch == 'y':
-			return True
-		elif ch == 'n':
-			return False
+	# Reset completion
+	data.vocab = _vocab
+	readline.set_completer_delims(_delims)
+	if ch == 'y':
+		return True
+	elif ch == 'n':
+		return False
 
 
 # Cast a number into the appropriate format: number -> int or rounded float
