@@ -363,7 +363,8 @@ def read_currency():
 def deduce_commodity_price(line):
 	if data.quote_currency == '' or '@' not in line:
 		return
-	line = condense(line)
+	if type(line) == str:
+		line = condense(line)
 	p = line.index('@')
 	base_currency = line[p - 1]
 	rate, currency = line[p + 1:p + 3]
@@ -1230,8 +1231,8 @@ for line in tx_file.split('\n'):
 			print('Loaded options from journal file.')
 		continue
 	# Process and cache commodity prices
-	deduce_commodity_price(line)
 	_data = condense(line)
+	deduce_commodity_price(_data)
 	try:
 		# Attach transaction legs to previous description
 		if _data[0] == '!':
