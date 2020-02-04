@@ -1007,7 +1007,7 @@ def print_account_balances():
 				value = '  [Unknown conversion rate]'
 			else:
 				value = '  [%s %s @ %s]' % (undecimal(balances[currency] * data.prices[currency]), data.quote_currency, undecimal(data.prices[currency], 3))
-		difference = data.known_balances[account][currency] - balances[currency]
+		difference = data.known_balances[account][currency] if currency not in balances else data.known_balances[account][currency] - balances[currency]
 		if difference == 0:
 			if data.known_balances[account][currency] != 0:
 				print('%s %s%s' % (undecimal(data.known_balances[account][currency]), currency, value))
