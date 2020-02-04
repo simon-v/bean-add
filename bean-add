@@ -1343,7 +1343,11 @@ if data.date_delimiter != '-':
 	data.date_prompt = data.date_delimiter.join(['%Y', '%m', '%d'])
 
 # Init date and currencies
-data.cur = 'USD' if data.currencies == [] else data.currencies[0]
+if data.currencies == []:
+	data.cur = 'USD'
+	data.currencies.append('USD')
+else:
+	data.cur = data.currencies[0]
 
 # Main data entry loop
 print('\nChanges stay in memory until you [w]rite them out.')
