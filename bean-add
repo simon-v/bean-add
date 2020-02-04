@@ -109,8 +109,8 @@ def confirm(prompt='', default_yes=None):
 
 
 # Cast a number into the appropriate format: number -> int or rounded float
-def cast_number(number):
-	number = float(number)
+def cast_number(number, precision=2):
+	number = round(float(number), precision)
 	return int(number) if number.is_integer() else number
 
 
@@ -290,14 +290,12 @@ def read_account():
 # number, rounding precision -> string
 def undecimal(number, precision=2):
 	try:
-		number = cast_number(number)
+		number = cast_number(number, precision)
 	except ValueError:
 		print('\nThis is not a valid number.')
 		raise KeyboardInterrupt
-	if type(number) == float:
-		number = round(number, precision)
-		if len(str(number).split('.')[1]) == 1:
-			number = str(number) + '0'
+	if type(number) == float and len(str(number).split('.')[1]) == 1:
+		number = str(number) + '0'
 	return str(number)
 
 
