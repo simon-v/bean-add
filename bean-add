@@ -296,13 +296,18 @@ def read_account():
 # number, rounding precision -> string
 def undecimal(number, precision=8):
 	try:
-		number = cast_number(number, precision)
+		number = round(float(number), precision)
 	except ValueError:
 		print('\nThis is not a valid number.')
 		raise KeyboardInterrupt
-	if type(number) == float and len(str(number).split('.')[1]) == 1:
-		number = str(number) + '0'
-	return str(number)
+	number = f'{number:.8f}'.rstrip('0')
+	if number.endswith('.'):
+		number = number[0:-1]
+	elif number == '':
+		number = '0'
+	elif '.' in number and len(number.split('.')[1]) == 1:
+		number += '0'
+	return number
 
 
 # Calculate simple arithmetic expressions
@@ -315,7 +320,7 @@ def evaluate(expression):
 		if '**' in expression:
 			raise ValueError
 		for n in expression:
-			if n not in '0123456789.+-*/()':
+			if n not in '0123456789.+-*/()e':
 				raise ValueError
 		return eval(expression)
 	except (SyntaxError, ValueError, ArithmeticError):
