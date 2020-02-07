@@ -1013,6 +1013,7 @@ def print_account_balances():
 	if balances is None:
 		balances = data.known_balances[account].copy()
 	print('\nBalances for %s:' % account)
+	output = ''
 	for currency in data.currencies:
 		value = ''
 		if data.quote_currency != '' and currency != data.quote_currency:
@@ -1023,10 +1024,13 @@ def print_account_balances():
 		difference = data.known_balances[account][currency] if currency not in balances else data.known_balances[account][currency] - balances[currency]
 		if difference == 0:
 			if data.known_balances[account][currency] != 0:
-				print('%s %s%s' % (undecimal(data.known_balances[account][currency]), currency, value))
+				output += '%s %s%s\n' % (undecimal(data.known_balances[account][currency]), currency, value)
 		else:
 			difference = '%s%s' % ('+' if difference > 0 else '', undecimal(difference))
-			print('%s %s (%s %s)%s' % (undecimal(data.known_balances[account][currency]), currency, difference, currency, value))
+			output += '%s %s (%s %s)%s\n' % (undecimal(data.known_balances[account][currency]), currency, difference, currency, value)
+	if output == '':
+		output = '(nothing)'
+	print(output)
 
 
 # Estimate the balance of the next statement
