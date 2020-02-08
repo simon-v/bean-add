@@ -393,13 +393,19 @@ def read_currency():
 
 # Figure out the implied price of a currency
 def deduce_commodity_price(line):
-	if data.quote_currency == '' or '@' not in line:
+	if data.quote_currency == '':
 		return
 	if type(line) == str:
 		line = condense(line)
-	p = line.index('@')
-	base_currency = line[p - 1]
-	rate, currency = line[p + 1:p + 3]
+	if 'price' in line and line[1] == 'price':
+		base_currency = line[2]
+		rate, currency = line[3:5]
+	elif '@' in line:
+		p = line.index('@')
+		base_currency = line[p - 1]
+		rate, currency = line[p + 1:p + 3]
+	else:
+		return
 	rate = float(rate)
 	# base_currency @ rate [currency] <= quote_currency
 	if currency == data.quote_currency:
