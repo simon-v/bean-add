@@ -651,8 +651,12 @@ def find_transactions(autoseek=None):
 	# Print the transaction list
 	if autoseek is not None:
 		data.txid = _txid
+	# Show a slice of the results around the current record
+	idx = results.index(_txid)
+	start = max(0, idx - data.context)
+	end = min(len(results), idx + data.context + 1)
 	try:
-		for tx in results:
+		for tx in results[start:end]:
 			print_transaction(tx)
 	except KeyboardInterrupt:
 		pass
