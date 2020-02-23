@@ -221,7 +221,7 @@ def read_date(default):
 	set_history_context('date')
 	# Get a valid date
 	while True:
-		reading = input('Enter transaction date (%s, or %%d, or +/-days) [%s]: ' % (data.date_prompt, default))
+		reading = input('Enter transaction date (%s, or %%d, or +/-days, or "today") [%s]: ' % (data.date_prompt, default))
 		# Accepting the default
 		if reading == '':
 			return default
@@ -232,6 +232,9 @@ def read_date(default):
 				date += datetime.timedelta(int(reading))
 			except ValueError:
 				continue
+		# Explicitly today
+		elif reading == 'today':
+			date = datetime.date.today()
 		# Partial notation (day only)
 		elif len(reading) == 1 or len(reading) == 2:
 			try:
