@@ -88,6 +88,8 @@ class data(object):
 	amount_width = 1
 	colors = False
 	last_bold = True
+	precisions = {}
+	default_precision = 8
 
 
 # Ask for confirmation: str(prompt) -> bool(result)
@@ -115,7 +117,7 @@ def confirm(prompt='', default_yes=None):
 
 
 # Cast a number into the appropriate format: number -> int or rounded float
-def cast_number(number, precision=8):
+def cast_number(number, precision=data.default_precision):
 	number = round(float(number), precision)
 	return int(number) if number.is_integer() else number
 
@@ -297,7 +299,7 @@ def read_account():
 
 # Normalize amounts with unnecessary decimal places
 # number, rounding precision -> string
-def undecimal(number, precision=8):
+def undecimal(number, precision=data.default_precision):
 	try:
 		number = round(float(number), precision)
 	except ValueError:
@@ -1276,6 +1278,15 @@ for line in tx_file.split('\n'):
 				elif _quote:
 					data.quote_currency = i
 					_quote = False
+				elif i == 'p':
+					_precision = True
+				elif _precision:
+					try:
+						currency, digits = i.split(':')
+						data.precisions[currency] = int(digits)
+					except ValueError:
+						print('Malformed option: p %s' % i)
+					_precision = False
 				else:
 					print('Unrecognized option: %s' % i)
 			print('Loaded options from journal file.')
@@ -1626,6 +1637,8 @@ while True:
 		print('ol	lookup result to seek to (%s)' % ('none' if data.lookup_seek is None else 'last' if data.lookup_seek else 'first'))
 		print('oc	colorize output (%s)' % ('enabled' if data.colors else 'disabled'))
 		print('oq	quote currency for all conversions (%s)' % ('None' if data.quote_currency == '' else data.quote_currency))
+		precision_string = ', '.join(['%s:%s' % (k, v) for k, v in data.precisions.items()])
+		print('op	custom precision for commodities (%s)' % ('None' if precision_string == '' else precision_string))
 	# Option: sort by date
 	elif cmd == 'os':
 		data.sort_by_date = not data.sort_by_date
@@ -1686,6 +1699,22 @@ while True:
 			print('\nCancelled.')
 		except EOFError:
 			data.eof = True
+	# Option: custom precisions
+	elif cmd == 'op':
+		try:
+			currency = read_currency()
+			precision = int(input('Enter precision: '))
+			if precision == data.default_precision:
+				if currency in data.precisions:
+					del data.precisions[currency]
+				print(f'\nPrecision for {currency} reset to default.')
+			else:
+				data.precisions[currency] = precision
+				print(f'\nPrecision for {currency} set to {precision} decimals.')
+		except (KeyboardInterrupt, ValueError):
+			print('\nCancelled.')
+		except EOFError:
+			data.eof = True
 	# Save options to the journal
 	elif cmd == 'oo':
 		# Generate the option string
@@ -1700,6 +1729,8 @@ while True:
 		optstring += ' q ' + data.quote_currency if data.quote_currency != '' else ''
 		for _account in data.auto_flag:
 			optstring += ' f %s' % _account
+		for currency, precision in data.precisions.items():
+			optstring += f' p {currency}:{precision}'
 		# Apply the option string
 		if data.journal[0].startswith(';*bean-add* '):
 			data.journal[0] = optstring
