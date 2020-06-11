@@ -1150,6 +1150,10 @@ def verify_statement():
 		except EOFError:
 			data.eof = True
 			return
+		# Add the input to history
+		if str(reading) in data.history['seek']:
+			data.history['seek'].remove(str(reading))
+		data.history['seek'].append(str(reading))
 		# Add or remove records
 		if reading in data.statement:
 			data.statement.remove(reading)
