@@ -1370,7 +1370,7 @@ while '' in data.journal:
 	data.journal.remove('')
 # Move balance statements to the beginning of each day
 for i, jtx in enumerate(data.journal):
-	if jtx[0] in '0123456789' and jtx[10:19] == ' balance ':
+	if jtx[0] in '0123456789' and (jtx[10:19] == ' balance ' or jtx[10:17] == ' price '):
 		_date = jtx[0:10]
 		_tx = i
 		while True:
@@ -1378,7 +1378,7 @@ for i, jtx in enumerate(data.journal):
 			_tx -= 1
 			if data.journal[_tx][0] not in '0123456789':
 				continue
-			if not data.journal[_tx].startswith(_date) or data.journal[_tx][10:19] == ' balance ':
+			if not data.journal[_tx].startswith(_date) or (data.journal[_tx][10:19] == ' balance ' or data.journal[_tx][10:17] == ' price '):
 				# Attempt to move the balance statement up
 				if _tx == i - 1:
 					break
