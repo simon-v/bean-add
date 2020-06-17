@@ -168,8 +168,8 @@ def insert_transaction(tx):
 		# Ignore records that don't start with a date
 		if jtx[0] not in '0123456789':
 			continue
-		# Insert balance statements in as the first transaction of the date
-		if tx[10:19] == ' balance ' and jtx[0:10] == tx[0:10]:
+		# Insert balance and price statements as the first transaction of the date
+		if (tx[10:19] == ' balance ' or tx[10:17] == ' price ') and jtx[0:10] == tx[0:10]:
 			_found = True
 			break
 		# Seek forward to first bigger date
