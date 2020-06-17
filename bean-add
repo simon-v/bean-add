@@ -795,6 +795,22 @@ def read_note_transaction():
 	insert_transaction(output)
 
 
+# Read a price statement
+def read_price_statement():
+	# Unset completion
+	data.vocab = []
+	readline.set_completer_delims('')
+	set_history_context('currency')
+	print('\nAdding a new price statement.')
+	data.date = read_date(data.date)
+	currency = read_currency()  #XXX
+	try:
+		rate, quote_currency = read_amount('the quote').split()
+	except ValueError:
+		raise KeyboardInterrupt
+	tx = f'{data.date} price {currency} {rate} {quote_currency}'
+	insert_transaction(tx)
+
 # Remove a transaction
 def remove_transaction(silent_drop):
 	if data.txid >= 0:
@@ -1555,6 +1571,13 @@ while True:
 			print('\nTransaction entry cancelled.')
 		except EOFError:
 			data.eof = True
+	elif cmd == 'R':
+		try:
+			read_price_statement()
+		except KeyboardInterrupt:
+			print('\nTransaction entry cancelled.')
+		except EOFError:
+			data.eof = True
 	# Toggle flag
 	elif cmd == 'f':
 		toggle_flag()
@@ -1774,6 +1797,7 @@ v	verify a statement
 B	new balance assertion
 P	new pad statement
 N	new note statement
+R	new price statement
 c	run bean-check on the journal file
 o	view or change options
 w	write journal file
