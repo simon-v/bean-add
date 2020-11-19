@@ -1732,7 +1732,10 @@ while True:
 	elif cmd == 'op':
 		try:
 			currency = read_currency()
-			precision = int(input('Enter precision: '))
+			precision = input(f'Enter precision [{data.default_precision}]: ')
+			if precision == '':
+				precision = data.default_precision
+			precision = int(precision)
 			if precision == data.default_precision:
 				if currency in data.precisions:
 					del data.precisions[currency]
