@@ -382,6 +382,8 @@ def read_amount(account):
 	else:
 		data.balance -= float(amount[0])
 	data.balance = cast_number(data.balance)
+	if amount[-1] in data.precisions:
+		data.balance = round(data.balance, data.precisions[amount[-1]])
 	# Finalize and return
 	return ' '.join(amount)
 
