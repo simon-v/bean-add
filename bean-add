@@ -1814,4 +1814,4 @@ h,?	show this help message''')
 		print('\nType `h` or `?` for a list of available commands.')
 	# Say what
 	else:
-		print('Unknown command.')
+		print('\nUnknown command.')
