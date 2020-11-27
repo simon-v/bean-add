@@ -1809,6 +1809,9 @@ w	write journal file
 q	quit
 wq	write journal file and quit immediately
 h,?	show this help message''')
+	# Repeat the prompt hint
+	elif cmd == '':
+		print('\nType `h` or `?` for a list of available commands.')
 	# Say what
 	else:
 		print('Unknown command.')
