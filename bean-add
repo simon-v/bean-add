@@ -381,9 +381,9 @@ def read_amount(account):
 		data.balance -= float(amount[0]) * float(amount[-2])
 	else:
 		data.balance -= float(amount[0])
-	data.balance = cast_number(data.balance)
 	if amount[-1] in data.precisions:
 		data.balance = round(data.balance, data.precisions[amount[-1]])
+	data.balance = cast_number(data.balance)
 	# Finalize and return
 	return ' '.join(amount)
 
@@ -805,7 +805,7 @@ def read_price_statement():
 	set_history_context('currency')
 	print('\nAdding a new price statement.')
 	data.date = read_date(data.date)
-	currency = read_currency()  #XXX
+	currency = read_currency()
 	try:
 		rate, quote_currency = read_amount('the quote').split()
 	except ValueError:
