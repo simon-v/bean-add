@@ -218,7 +218,7 @@ def sliding_window(day):
 # Read and validate a date: str(default) -> str(date)
 def read_date(default):
 	# Unset completion
-	data.vocab = []
+	data.vocab = ['today']
 	readline.set_completer_delims('')
 	set_history_context('date')
 	# Get a valid date
