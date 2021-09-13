@@ -1233,6 +1233,27 @@ def duplicate_transaction():
 		insert_transaction(new_tx)
 
 
+# Print changes from saved journal
+def print_journal_diff():
+	if data.journal == data.saved:
+		print('\nNo changes.')
+		return
+	for record in data.journal:
+		if record not in data.saved:
+			print()
+			color = '\33[32m' if data.colors else ''
+			endcolor = '\33[0m' if data.colors else ''
+			record = f'{color}+' + f'{endcolor}\n{color}+'.join(record.split('\n')) + f'{endcolor}'
+			print(record)
+	for record in data.saved:
+		if record not in data.journal:
+			print()
+			color = '\33[31m' if data.colors else ''
+			endcolor = '\33[0m' if data.colors else ''
+			record = f'{color}-' + f'{endcolor}\n{color}-'.join(record.split('\n')) + f'{endcolor}'
+			print(record)
+
+
 # Process command line arguments
 if len(sys.argv) < 2:
 	print(usage)
@@ -1639,6 +1660,9 @@ while True:
 	# Show context
 	elif cmd == 'j':
 		print_journal()
+	# Show changes
+	elif cmd == 'jj':
+		print_journal_diff()
 	# Tally account balances
 	elif cmd == 'b':
 		print_account_balances()
@@ -1793,6 +1817,7 @@ la	go one lookup result backwards
 le	go to the last lookup result
 lq	go to the first lookup result
 j	show the context of the current record
+jj	show changes from saved journal file
 b	show the balance of an account
 bv	estimate the amount of the next statement
 r	remove the current record
