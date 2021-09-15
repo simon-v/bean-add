@@ -1238,13 +1238,13 @@ def print_journal_diff():
 	if data.journal == data.saved:
 		print('\nNo changes.')
 		return
+	endcolor = '\33[0m' if data.colors else ''
 	journal = externalize_transactions() if data.external_write else data.journal
 	saved = data.external_journal if data.external_write else data.saved
 	for record in journal:
 		if record not in saved:
 			print()
 			color = '\33[32m' if data.colors else ''
-			endcolor = '\33[0m' if data.colors else ''
 			record = f'{color}+' + f'{endcolor}\n{color}+'.join(record.split('\n')) + f'{endcolor}'
 			print(record)
 	if data.external_write:
@@ -1253,7 +1253,6 @@ def print_journal_diff():
 		if record not in journal:
 			print()
 			color = '\33[31m' if data.colors else ''
-			endcolor = '\33[0m' if data.colors else ''
 			record = f'{color}-' + f'{endcolor}\n{color}-'.join(record.split('\n')) + f'{endcolor}'
 			print(record)
 
