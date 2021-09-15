@@ -1241,12 +1241,14 @@ def print_journal_diff():
 	endcolor = '\33[0m' if data.colors else ''
 	journal = externalize_transactions() if data.external_write else data.journal
 	saved = data.external_journal if data.external_write else data.saved
+	# Look for additions to the journal
 	for record in journal:
 		if record not in saved:
 			print()
 			color = '\33[32m' if data.colors else ''
 			record = f'{color}+' + f'{endcolor}\n{color}+'.join(record.split('\n')) + f'{endcolor}'
 			print(record)
+	# Look for deletions from the journal (except for external writes)
 	if data.external_write:
 		return
 	for record in saved:
