@@ -1239,8 +1239,8 @@ def print_journal_diff():
 		print('\nNo changes.')
 		return
 	endcolor = '\33[0m' if data.colors else ''
-	journal = externalize_transactions() if data.external_write else data.journal
-	saved = data.external_journal if data.external_write else data.saved
+	journal = set(externalize_transactions() if data.external_write else data.journal)
+	saved = set(data.external_journal if data.external_write else data.saved)
 	# Look for additions to the journal
 	for record in journal:
 		if record not in saved:
