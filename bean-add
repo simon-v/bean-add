@@ -369,6 +369,8 @@ def read_amount(account):
 	if len(amount) == 1:
 		amount.append(data.cur)
 	else:
+		if len(amount) == 4:
+			amount.append(data.cur)
 		detect_currencies(amount)
 		deduce_commodity_price(amount)
 		data.cur = amount[-1]
@@ -408,6 +410,9 @@ def deduce_commodity_price(line):
 		base_currency = line[2]
 		rate, currency = line[3:5]
 	elif '@' in line:
+		if len(line) < 5:
+			print('\nInvalid exchange rate declaration.')
+			raise KeyboardInterrupt
 		p = line.index('@')
 		base_currency = line[p - 1]
 		rate, currency = line[p + 1:p + 3]
