@@ -330,7 +330,7 @@ def evaluate(expression):
 		return eval(expression)
 	except (SyntaxError, ValueError, ArithmeticError):
 		print('\nInvalid arithmetic expression.')
-		raise KeyboardInterrupt
+		raise
 
 
 # Add previously unseen currency signs to the completion list
@@ -412,7 +412,7 @@ def deduce_commodity_price(line):
 	elif '@' in line:
 		if len(line) < 5:
 			print('\nInvalid exchange rate declaration.')
-			raise KeyboardInterrupt
+			raise ValueError
 		p = line.index('@')
 		base_currency = line[p - 1]
 		rate, currency = line[p + 1:p + 3]
@@ -717,7 +717,15 @@ def read_normal_transaction(description=None):
 						continue
 				break
 		_transaction.append(account)
-		amount = read_amount(account)
+		# Retry amount entry until valid input is received
+		while True:
+			try:
+				amount = read_amount(account)
+			except KeyboardInterrupt:
+				raise
+			except (SyntaxError, ValueError, IndexError, ArithmeticError):
+				continue
+			break
 		# Zero amounts are meaningless in this context
 		if amount.startswith('0 '):
 			print('Removing zero-amount `%s` from transaction.' % account)
