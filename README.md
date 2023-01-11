@@ -3,6 +3,8 @@
 
 Bean-add is a relatively simple tool designed to ease adding transactions to your [beancount](http://furius.ca/beancount/) journal. While both vi and EMACS have extensions for dealing with ledger and beancount files, some people prefer to edit their text with Nano.
 
+Bean-add requires Python 3.6 or later to run, but Beancount itself it optional. Bean-add is built around *the format*, not the binary.
+
 ### Basic Usage
 
 To begin, run `bean-add` with your journal file name as the argument. The journal file will be parsed, and you will be presented with a command prompt, not unlike that of `fdisk` or `parted`.
