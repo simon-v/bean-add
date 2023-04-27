@@ -216,6 +216,15 @@ def sliding_window(day):
 		return None
 
 
+# Figure out the full date from a day-month input.
+def sliding_window_with_month(day, month):
+	today = strpdate(data.date)
+	date = datetime.date(today.year, month, day)
+	if date > today + datetime.timedelta(days=365/2):
+		date = datetime.date(today.year - 1, month, day)
+	return date
+
+
 # Read and validate a date: str(default) -> str(date)
 def read_date(default):
 	# Unset completion
@@ -224,7 +233,7 @@ def read_date(default):
 	set_history_context('date')
 	# Get a valid date
 	while True:
-		reading = input('Enter transaction date (%s, or %%d, or +/-days, or "today") [%s]: ' % (data.date_prompt, default))
+		reading = input('Enter transaction date (%s, or %%d, or %%d.%%d (day.month), or %%d/%%d (month/day), or +/-days, or "today") [%s]: ' % (data.date_prompt, default))
 		# Accepting the default
 		if reading == '':
 			return default
@@ -242,6 +251,20 @@ def read_date(default):
 		elif len(reading) == 1 or len(reading) == 2:
 			try:
 				date = sliding_window(int(reading))
+			except ValueError:
+				continue
+			if date is None:
+				continue
+		# Partial notation (day and month)
+		elif len(reading) <= 5 and ('.' in reading or '/' in reading):
+			separator = '.' if '.' in reading else '/'
+			try:
+				split = reading.split(separator)
+				day, month = (int(split[0]), int(split[1]))
+				if separator == '/':
+					# American order with month first
+					day, month = (int(split[1]), int(split[0]))
+				date = sliding_window_with_month(day, month)
 			except ValueError:
 				continue
 			if date is None:
