@@ -79,6 +79,7 @@ class data(object):
 	use_defaults = None
 	paranoid_write = False
 	external_write = False
+	use_beancount_accounts = False
 	date_preview = True
 	context = 10
 	auto_flag = []
@@ -1329,6 +1330,8 @@ for line in tx_file.split('\n'):
 					data.lookup_seek = False
 				elif i == 'c':
 					data.colors = True
+				elif i == 'b':
+					data.use_beancount_accounts = True
 				elif i == 'f':
 					_auto_flag = True
 				elif _auto_flag:
@@ -1367,7 +1370,7 @@ for line in tx_file.split('\n'):
 				_amount = str(int(float(_data[1])))
 				data.amount_width = max(data.amount_width, len(_amount))
 		# Add account name to account list
-		elif _data[1] == 'open':
+		elif _data[1] == 'open' and _data[2] not in data.accounts:
 			data.accounts.append(_data[2])
 		# Remove closed accounts from completion
 		elif _data[1] == 'close' and _data[2] in data.accounts:
@@ -1398,6 +1401,18 @@ for line in tx_file.split('\n'):
 	# Pass through malformed (or unrecognized) lines without stopping
 	except IndexError:
 		continue
+
+# Try to use beancount to get the account list
+if data.use_beancount_accounts:
+	try:
+		beancount = subprocess.Popen(['bean-report', data.file_name, 'accounts'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		stdout, stderr = beancount.communicate()
+		for _line in str(stdout, 'UTF-8').split('\n'):
+			_line = condense(_line)
+			if len(_line) == 2 and _line[0] not in data.accounts:
+				data.accounts.append(_line[0])
+	except Exception as exc:
+		print('Unable to use beancount to get the account list: %s' % exc)
 
 
 data.amount_width += 3
@@ -1710,6 +1725,7 @@ while True:
 		print('oq	quote currency for all conversions (%s)' % ('None' if data.quote_currency == '' else data.quote_currency))
 		precision_string = ', '.join(['%s:%s' % (k, v) for k, v in data.precisions.items()])
 		print('op	custom precision for commodities (%s)' % ('None' if precision_string == '' else precision_string))
+		print('ob	use Beancount to load account names (%s)' % ('enabled' if data.use_beancount_accounts else 'disabled'))
 	# Option: sort by date
 	elif cmd == 'os':
 		data.sort_by_date = not data.sort_by_date
@@ -1734,6 +1750,11 @@ while True:
 	elif cmd == 'oc':
 		data.colors = not data.colors
 		print('\nColorizing of output is now %s.' % ('enabled' if data.colors else 'disabled'))
+	# Option: Beancount account loading
+	elif cmd == 'ob':
+		data.use_beancount_accounts = not data.use_beancount_accounts
+		print('\nUsing Beancount to load account names is now %s.' % ('enabled' if data.use_beancount_accounts else 'disabled'))
+		print('Save the options to the journal file with `oo` for it to take effect on the next journal load.')
 	# Option: auto-flagging of new records
 	elif cmd == 'of':
 		try:
@@ -1801,6 +1822,7 @@ while True:
 		optstring += '' if data.lookup_seek is None else ' l' if data.lookup_seek else ' ll'
 		optstring += ' c' if data.colors else ''
 		optstring += ' q ' + data.quote_currency if data.quote_currency != '' else ''
+		optstring += ' b' if data.use_beancount_accounts else ''
 		for _account in data.auto_flag:
 			optstring += ' f %s' % _account
 		for currency, precision in data.precisions.items():
