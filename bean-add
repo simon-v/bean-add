@@ -1338,6 +1338,8 @@ elif '-n' in sys.argv:
 	sys.argv.remove('-n')
 	data.auto_new = True
 
+locale.setlocale(locale.LC_ALL, '')
+
 # Read and process journal file
 data.file_name = sys.argv[1]
 try:
@@ -1427,7 +1429,7 @@ for full_line in tx_file.split('\n'):
 			if len(_data) > 1:
 				detect_currencies(_data)
 				data.accounts[_data[0]] = data.cur
-				_amount = str(int(float(_data[1])))
+				_amount = str(int(locale.atof(_data[1])))
 				data.amount_width = max(data.amount_width, len(_amount))
 		# Add account name to account list
 		elif _data[1] == 'open':
