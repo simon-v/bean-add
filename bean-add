@@ -1451,7 +1451,9 @@ if data.journal != data.saved:
 	data.saved = data.journal.copy()
 
 # Set up the completer
-readline.parse_and_bind('tab: complete')
+readline.parse_and_bind('tab: menu-complete')
+readline.parse_and_bind('"\e[Z": menu-complete-backward')
+readline.parse_and_bind('set show-all-if-ambiguous on')
 
 readline.set_completer(complete)
 
