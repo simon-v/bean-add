@@ -1445,7 +1445,7 @@ for full_line in tx_file.split('\n'):
 		elif _data[1] == 'pad':
 			data.defaults['__pad__'] = [_data[2], _data[3]]
 		# Record a description
-		elif _data[1] in '!*':
+		elif _data[1] in '!*P':
 			_date = _data[0][0:10]
 			if data.sort_by_date and _date < lastdate:
 				print('Sorting by date disabled due to inconsistent ordering at %s.' % _date)
