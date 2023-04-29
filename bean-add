@@ -827,6 +827,7 @@ def read_price_statement():
 	tx = f'{data.date} price {currency} {rate} {quote_currency}'
 	insert_transaction(tx)
 
+
 # Remove a transaction
 def remove_transaction(silent_drop):
 	if data.txid >= 0:
@@ -1729,7 +1730,7 @@ while True:
 	# Option: sort by date
 	elif cmd == 'os':
 		data.sort_by_date = not data.sort_by_date
-		print('\nSorting by date %s.' % ('enabled' if data.sort_by_date else 'disabled'))
+		print('\nSorting by date is now %s.' % ('enabled' if data.sort_by_date else 'disabled'))
 	# Option: accept defaults
 	elif cmd == 'oa':
 		data.use_defaults = True if data.use_defaults is None else False if data.use_defaults else None
@@ -1737,7 +1738,7 @@ while True:
 	# Option: paranoid write
 	elif cmd == 'ow':
 		data.paranoid_write = not data.paranoid_write
-		print('\nWriting journal after every change is %s.' % ('enabled' if data.paranoid_write else 'disabled'))
+		print('\nWriting journal after every change is now %s.' % ('enabled' if data.paranoid_write else 'disabled'))
 	# Option: external write
 	elif cmd == 'oe':
 		data.external_write = not data.external_write
