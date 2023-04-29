@@ -86,6 +86,7 @@ class data(object):
 	external_write = False
 	use_beancount_accounts = False
 	date_preview = True
+	enter_payees = False
 	context = 10
 	auto_flag = []
 	lookup_seek = None
@@ -1377,6 +1378,8 @@ for full_line in tx_file.split('\n'):
 					data.external_write = True
 				elif i == 'd':
 					data.date_preview = False
+				elif i == 'y':
+					data.enter_payees = True
 				elif i == 'l':
 					data.lookup_seek = True
 				elif i == 'll':
@@ -1791,6 +1794,7 @@ while True:
 		print('ow	write journal after every change (%s)' % ('enabled' if data.paranoid_write else 'disabled'))
 		print('oe	write changes to an external file (%s)' % ('enabled' if data.external_write else 'disabled'))
 		print('od	preview non-absoulute dates during input (%s)' % ('enabled' if data.date_preview else 'disabled'))
+		print('oy	enter payee string in addition to description in new transactions (%s)' % ('enabled' if data.enter_payees else 'disabled'))
 		print('of	automatically flag transactions containing (%s)' % (None if data.auto_flag == [] else ', '.join(data.auto_flag)))
 		print('ol	lookup result to seek to (%s)' % ('none' if data.lookup_seek is None else 'last' if data.lookup_seek else 'first'))
 		print('oc	colorize output (%s)' % ('enabled' if data.colors else 'disabled'))
@@ -1818,6 +1822,10 @@ while True:
 	elif cmd == 'od':
 		data.date_preview = not data.date_preview
 		print('\nPreviewing of non-absolute dates during input is now %s.' % ('enabled' if data.date_preview else 'disabled'))
+	# Option: enter payees
+	elif cmd == 'oy':
+		data.enter_payees = not data.enter_payees
+		print('\nEntering of payees for new transactions is now %s.' % ('enabled' if data.enter_payees else 'disabled'))
 	# Option: output colorization
 	elif cmd == 'oc':
 		data.colors = not data.colors
@@ -1891,6 +1899,7 @@ while True:
 		optstring += ' w' if data.paranoid_write else ''
 		optstring += ' e' if data.external_write else ''
 		optstring += '' if data.date_preview else ' d'
+		optstring += ' y' if data.enter_payees else ''
 		optstring += '' if data.lookup_seek is None else ' l' if data.lookup_seek else ' ll'
 		optstring += ' c' if data.colors else ''
 		optstring += ' q ' + data.quote_currency if data.quote_currency != '' else ''
