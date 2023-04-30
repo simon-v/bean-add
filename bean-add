@@ -1412,6 +1412,8 @@ if data.use_beancount_accounts:
 			_line = condense(_line)
 			if len(_line) == 2 and _line[0] not in data.accounts:
 				data.accounts.append(_line[0])
+			elif len(_line) == 3 and _line[0] in data.accounts:
+				data.accounts.remove(_line[0])
 	except Exception as exc:
 		print('Unable to use beancount to get the account list: %s' % exc)
 
