@@ -433,9 +433,9 @@ def read_amount(account):
 	data.amount_width = max(data.amount_width, len(_amt.strip('-')) + 3)
 	if '@' in amount:
 		amount[-2] = undecimal(evaluate(amount[-2]), 3)
-		data.balance -= float(amount[0]) * float(amount[-2])
+		data.balance -= locale.atof(amount[0]) * locale.atof(amount[-2])
 	else:
-		data.balance -= float(amount[0])
+		data.balance -= locale.atof(amount[0])
 	if amount[-1] in data.precisions:
 		data.balance = round(data.balance, data.precisions[amount[-1]])
 	data.balance = cast_number(data.balance)
@@ -821,7 +821,7 @@ def read_balance_transaction():
 	balance = calculate_balance(account, before=data.date)[cur]
 	insert_transaction(output)
 	# Warn about mismatching balances
-	delta = float(amount.split()[0]) - balance
+	delta = locale.atof(amount.split()[0]) - balance
 	difference = 'missing' if delta < 0 else 'extra'
 	if delta != 0:
 		print('\nWarning: The balance does not match ({expected} {cur} expected, {delta} {cur} {difference}).'.format(expected=undecimal(balance), difference=difference, delta=undecimal(abs(delta)), cur=cur))
@@ -1015,9 +1015,9 @@ def deduce_implied_amount(txid):
 			cur = line[-1]
 			if '@' in line and len(line) == 5:
 				line[-2] = undecimal(line[-2], 3)
-				amount -= float(line[1]) * float(line[-2])
+				amount -= locale.atof(line[1]) * locale.atof(line[-2])
 			else:
-				amount -= float(line[1])
+				amount -= locale.atof(line[1])
 			amount = cast_number(amount)
 	# The record is perfectly fine as-is
 	if lineid == -1:
@@ -1081,7 +1081,7 @@ def calculate_balance(account, txlist=None, statement_verification_quirks=False,
 					print('Missing amount ignored in record %s.' % tx)
 					continue
 				line = condense(data.journal[tx].split('\n')[flagid])[1:]
-				amounts[line[2]] = cast_number(amounts[line[2]] + float(line[1]))
+				amounts[line[2]] = cast_number(amounts[line[2]] + locale.atof(line[1]))
 				continue
 		# Else, just add the amount to the balance
 		for _line in lines[1:]:
@@ -1093,7 +1093,7 @@ def calculate_balance(account, txlist=None, statement_verification_quirks=False,
 					print('Missing amount ignored in record %s.' % tx)
 					continue
 				deduce_commodity_price(line)
-				amounts[line[2]] = cast_number(amounts[line[2]] + float(line[1]))
+				amounts[line[2]] = cast_number(amounts[line[2]] + locale.atof(line[1]))
 	return amounts
 
 
