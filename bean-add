@@ -37,7 +37,8 @@ class data(object):
 	prices = {}
 	quote_currency = ''
 	# Completion
-	accounts = []
+	# A mapping from known accounts to their respective default currencies.
+	accounts_currencies = {}
 	currencies = []
 	tags = []
 	vocab = []
@@ -320,7 +321,7 @@ def read_description():
 # Read a valid account name
 def read_account():
 	# Set completion
-	data.vocab = data.accounts
+	data.vocab = data.accounts_currencies.keys()
 	readline.set_completer_delims('')
 	set_history_context('account')
 	while True:
@@ -329,12 +330,12 @@ def read_account():
 		if reading == '':
 			return None
 		# Add new account option
-		if reading not in data.accounts:
+		if reading not in data.accounts_currencies.keys():
 			if not confirm('The account `%s` is not in the journal file. Add it? (Y/n) ' % reading, True):
 				continue
 			insert_transaction('%s open %s' % (data.date, reading))
 			print()
-			data.accounts.append(reading)
+			data.accounts_currencies[reading] = None
 		return reading
 
 
@@ -383,6 +384,7 @@ def detect_currencies(line):
 		try:
 			int(cur)
 		except ValueError:
+			data.cur = cur
 			if cur not in data.currencies:
 				data.currencies.append(cur)
 		except IndexError:
@@ -391,6 +393,7 @@ def detect_currencies(line):
 	try:
 		int(line[-1])
 	except ValueError:
+		data.cur = cur
 		if cur not in data.currencies:
 			data.currencies.append(cur)
 
@@ -402,19 +405,23 @@ def read_amount(account):
 	readline.set_completer_delims(' ')
 	set_history_context('amount')
 	# Read an amount
-	if account in data.accounts:
-		account = '`%s`' % account
-	amount = input('Enter the amount for %s (including currency symbol) [%s %s]: ' % (account, undecimal(data.balance), data.cur))
-	amount = [data.balance, data.cur] if amount == '' else amount.split()
+	default_currency = data.cur
+	if account in data.accounts_currencies.keys() and data.accounts_currencies[account] is not None:
+		default_currency = data.accounts_currencies[account]
+	account_printed = '`%s`' % account if account in data.accounts_currencies.keys() else account
+	amount = input('Enter the amount for %s (including currency symbol) [%s %s]: ' % (account_printed, undecimal(data.balance), default_currency))
+	amount = [data.balance, default_currency] if amount == '' else amount.split()
 	# Process currency sign
 	if len(amount) == 1:
-		amount.append(data.cur)
+		amount.append(default_currency)
+		data.cur = default_currency
 	else:
 		if len(amount) == 4:
 			amount.append(data.cur)
 		detect_currencies(amount)
 		deduce_commodity_price(amount)
 		data.cur = amount[-1]
+	data.accounts_currencies[account] = data.cur
 	# Normalize numbers and process conversion rate
 	amount[0] = undecimal(evaluate(amount[0]))
 	_amt = amount[0].split('.')[0] if '.' in amount[0] else amount[0]
@@ -641,7 +648,7 @@ def tx_lookup(patterns, prune_txids=[]):
 # Find transactions that contain a string
 def find_transactions(autoseek=None):
 	# Use all possible completion contenxts for lookups
-	data.vocab = data.accounts + list(data.defaults.keys()) + ['#' + x for x in data.tags]
+	data.vocab = data.accounts_currencies.keys() + list(data.defaults.keys()) + ['#' + x for x in data.tags]
 	readline.set_completer_delims('')
 	set_history_context('lookup')
 	# Autoseeking without doing a lookup first
@@ -985,7 +992,7 @@ def deduce_implied_amount(txid):
 		# Ignore anything that isn't a transaction leg
 		if line[0] == '!':
 			del(line[0])
-		if line[0] not in data.accounts:
+		if line[0] not in data.accounts_currencies.keys():
 			continue
 		# Find the leg that needs to be deduced
 		if len(line) == 1:
@@ -1403,19 +1410,22 @@ for line in tx_file.split('\n'):
 		# Attach transaction legs to previous description
 		if _data[0] == '!':
 			del _data[0]
-		if _data[0] in data.accounts:
+		if _data[0] in data.accounts_currencies.keys():
 			data.defaults[description].append(_data[0])
 			# Detect involved currencies and amounts
 			if len(_data) > 1:
 				detect_currencies(_data)
+				data.accounts_currencies[_data[0]] = data.cur
 				_amount = str(int(float(_data[1])))
 				data.amount_width = max(data.amount_width, len(_amount))
 		# Add account name to account list
-		elif _data[1] == 'open' and _data[2] not in data.accounts:
-			data.accounts.append(_data[2])
+		elif _data[1] == 'open':
+			data.accounts_currencies[_data[2]] = None
+			if len(_data) > 3:
+				data.accounts_currencies[_data[2]] = _data[3]
 		# Remove closed accounts from completion
-		elif _data[1] == 'close' and _data[2] in data.accounts:
-			data.accounts.remove(_data[2])
+		elif _data[1] == 'close' and _data[2] in data.accounts_currencies.keys():
+			del data.accounts_currencies[_data[2]]
 		# Cache command data
 		elif _data[1] == 'balance':
 			data.defaults['__balance__'] = [_data[2]]
@@ -1450,10 +1460,10 @@ if data.use_beancount_accounts:
 		stdout, stderr = beancount.communicate()
 		for _line in str(stdout, 'UTF-8').split('\n'):
 			_line = condense(_line)
-			if len(_line) == 2 and _line[0] not in data.accounts:
-				data.accounts.append(_line[0])
-			elif len(_line) == 3 and _line[0] in data.accounts:
-				data.accounts.remove(_line[0])
+			if len(_line) == 2 and _line[0] not in data.accounts_currencies.keys():
+				data.accounts_currencies[_line[0]] = None
+			elif len(_line) == 3 and _line[0] in data.accounts_currencies.keys():
+				del data.accounts_currencies[_line[0]]
 	except Exception as exc:
 		print('Unable to use beancount to get the account list: %s' % exc)
 
@@ -1500,9 +1510,9 @@ readline.set_completer(complete)
 
 # Print some statistics
 print('\n%s processed' % pluralize(len(data.journal), 'record'))
-if len(data.accounts) > 0:
-	print('%s, %s, %s and %s loaded' % (
-		pluralize(len(data.accounts), 'account name'),
+if len(data.accounts_currencies.keys()) > 0:
+	print('%s, %s, %s, and %s loaded' % (
+		pluralize(len(data.accounts_currencies.keys()), 'account name'),
 		pluralize(len(data.defaults), 'unique description'),
 		pluralize(len(data.currencies), 'currency sign'),
 		pluralize(len(data.tags), 'tag')))
@@ -1526,7 +1536,7 @@ if data.date_delimiter != '-':
 if data.currencies == []:
 	data.cur = 'USD'
 	data.currencies.append('USD')
-else:
+elif not data.cur:
 	data.cur = data.currencies[0]
 
 # Main data entry loop
