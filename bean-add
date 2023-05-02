@@ -77,6 +77,7 @@ class data(object):
 	# Options
 	sort_by_date = True
 	date_delimiter = '-'
+	indentation = '	'
 	use_defaults = None
 	paranoid_write = False
 	external_write = False
@@ -497,7 +498,7 @@ def toggle_flag_with_legs(account=None):
 			account = read_account()
 		data.journal[data.txid] = data.journal[data.txid].replace(account, '! %s' % account).replace('! !', '!')
 	else:
-		data.journal[data.txid] = data.journal[data.txid].replace('	! ', '	')
+		data.journal[data.txid] = data.journal[data.txid].replace('	! ', '	').replace('  ! ', '  ')
 	toggle_flag()
 
 
@@ -772,7 +773,7 @@ def read_normal_transaction(description=None):
 			print('Removing zero-amount `%s` from transaction.' % account)
 			del(_transaction[-1])
 		else:
-			output += '	%s %s\n' % (account, amount)
+			output += '%s%s %s\n' % (data.indentation, account, amount)
 	# The transaction is empty, no money moved anywhere
 	if _transaction == []:
 		raise KeyboardInterrupt
@@ -1257,7 +1258,7 @@ def verify_statement():
 			if lookup_string not in data.journal[tx]:
 				data.journal[tx] = data.journal[tx].replace(data.statement_pattern, data.statement_replacement)
 		# Add the statement transaction
-		output = '%s * "%s"\n	%s %s %s\n	%s %s %s' % (data.date, desc, data.funding_account, undecimal(balance * -1), data.statement_currency, data.transaction_account, undecimal(balance), data.statement_currency)
+		output = '%s * "%s"\n%s%s %s %s\n%s%s %s %s' % (data.date, desc, data.indentation, data.funding_account, undecimal(balance * -1), data.statement_currency, data.indentation, data.transaction_account, undecimal(balance), data.statement_currency)
 		insert_transaction(output)
 		# Mark the verification as finished
 		data.target = 0
@@ -1373,6 +1374,8 @@ for line in tx_file.split('\n'):
 					data.colors = True
 				elif i == 'b':
 					data.use_beancount_accounts = True
+				elif i == 'i':
+					data.indentation = '  '
 				elif i == 'f':
 					_auto_flag = True
 				elif _auto_flag:
@@ -1768,6 +1771,7 @@ while True:
 		print('of	automatically flag transactions containing (%s)' % (None if data.auto_flag == [] else ', '.join(data.auto_flag)))
 		print('ol	lookup result to seek to (%s)' % ('none' if data.lookup_seek is None else 'last' if data.lookup_seek else 'first'))
 		print('oc	colorize output (%s)' % ('enabled' if data.colors else 'disabled'))
+		print('oi	indent with spaces instead of tabs (%s)' % ('enabled' if data.indentation == '  ' else 'disabled'))
 		print('oq	quote currency for all conversions (%s)' % ('None' if data.quote_currency == '' else data.quote_currency))
 		precision_string = ', '.join(['%s:%s' % (k, v) for k, v in data.precisions.items()])
 		print('op	custom precision for commodities (%s)' % ('None' if precision_string == '' else precision_string))
@@ -1801,6 +1805,10 @@ while True:
 		data.use_beancount_accounts = not data.use_beancount_accounts
 		print('\nUsing Beancount to load account names is now %s.' % ('enabled' if data.use_beancount_accounts else 'disabled'))
 		print('Save the options to the journal file with `oo` for it to take effect on the next journal load.')
+	# Option: indent with spaces instead of tabs
+	elif cmd == 'oi':
+		data.indentation = '  ' if data.indentation == '\t' else '\t'
+		print('\nIndenation with spaces is now %s.' % ('enabled' if data.indentation == '  ' else 'disabled'))
 	# Option: auto-flagging of new records
 	elif cmd == 'of':
 		try:
@@ -1867,6 +1875,7 @@ while True:
 		optstring += '' if data.date_preview else ' d'
 		optstring += '' if data.lookup_seek is None else ' l' if data.lookup_seek else ' ll'
 		optstring += ' c' if data.colors else ''
+		optstring += ' i' if data.indentation == '  ' else ''
 		optstring += ' q ' + data.quote_currency if data.quote_currency != '' else ''
 		optstring += ' b' if data.use_beancount_accounts else ''
 		for _account in data.auto_flag:
