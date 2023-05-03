@@ -233,10 +233,14 @@ def read_date(default):
 	set_history_context('date')
 	# Get a valid date
 	while True:
-		reading = input('Enter transaction date (%s, or %%d, or %%d.%%d (day.month), or %%d/%%d (month/day), or +/-days, or "today") [%s]: ' % (data.date_prompt, default))
+		reading = input('Enter transaction date (`h` or `?` for a format hint) [%s]: ' % default)
 		# Accepting the default
 		if reading == '':
 			return default
+		# Formatting hint
+		elif reading in '?h':
+			print('\nAccepted formats: %s, or %%d, or %%d.%%m, or %%m/%%d, or +/-days, or "today"\n' % data.date_prompt)
+			continue
 		date = strpdate(default)
 		# Relative date
 		if reading.startswith('+') or reading.startswith('-'):
