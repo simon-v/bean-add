@@ -263,12 +263,11 @@ def read_date(default):
 		elif len(reading) <= 5 and ('.' in reading or '/' in reading):
 			separator = '.' if '.' in reading else '/'
 			try:
-				split = reading.split(separator)
-				day, month = (int(split[0]), int(split[1]))
+				day, month = reading.split(separator)
 				if separator == '/':
 					# American order with month first
-					day, month = (int(split[1]), int(split[0]))
-				date = sliding_window_with_month(day, month)
+					month, day = day, month
+				date = sliding_window_with_month(int(day), int(month))
 			except ValueError:
 				continue
 			if date is None:
