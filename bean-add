@@ -5,6 +5,7 @@
 # This program is free software, released under the Apache License, Version 2.0. See the LICENSE file for more information
 # Consult the README file for usage instructions and other helpful hints
 
+import locale
 import readline
 import sys
 import datetime
@@ -239,7 +240,8 @@ def read_date(default):
 			return default
 		# Formatting hint
 		elif reading in '?h':
-			print('\nAccepted formats: %s, or %%d, or %%d.%%m, or %%m/%%d, or +/-days, or "today"\n' % data.date_prompt)
+			partial_prompt = '%m/%d' if locale.getlocale()[0] == 'en_US' else '%d/%m'
+			print('\nAccepted formats: %s, or %%d, or %s, or +/-days, or "today"\n' % (data.date_prompt, partial_prompt))
 			continue
 		date = strpdate(default)
 		# Relative date
@@ -264,8 +266,8 @@ def read_date(default):
 			separator = '.' if '.' in reading else '/'
 			try:
 				day, month = reading.split(separator)
-				if separator == '/':
-					# American order with month first
+				# American order with month first
+				if locale.getlocale()[0] == 'en_US':
 					month, day = day, month
 				date = sliding_window_with_month(int(day), int(month))
 			except ValueError:
