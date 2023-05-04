@@ -200,15 +200,18 @@ def sliding_window(day):
 	if today.day == day:
 		return today
 	future = today
+	# Seek to the nearest same-date in the next month, mark the delta
 	for future_delta in range(32):
 		future = future + datetime.timedelta(days=1)
 		if future.day == day:
 			break
 	past = today
+	# Seek to the nearest same-date in the previous month, mark the delta
 	for past_delta in range(32):
 		past = past - datetime.timedelta(days=1)
 		if past.day == day:
 			break
+	# Compare the deltas and pick the smallest
 	if past_delta <= future_delta and past_delta < 31:
 		return past
 	elif future_delta < past_delta:
