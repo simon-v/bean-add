@@ -1494,6 +1494,7 @@ if data.journal != data.saved:
 readline.parse_and_bind('tab: menu-complete')
 readline.parse_and_bind('"\e[Z": menu-complete-backward')
 readline.parse_and_bind('set show-all-if-ambiguous on')
+readline.parse_and_bind('set menu-complete-display-prefix on')
 
 readline.set_completer(complete)
 
