@@ -223,10 +223,19 @@ def sliding_window(day):
 # Figure out the full date from a day-month input.
 def sliding_window_with_month(day, month):
 	today = strpdate(data.date)
-	date = datetime.date(today.year, month, day)
-	if date > today + datetime.timedelta(days=365/2):
-		date = datetime.date(today.year - 1, month, day)
-	return date
+	dates = []
+	deltas = []
+	# Pick the selected date in the three nearest years
+	for i in [0, -1, 1]:
+		try:
+			dates.append(datetime.date(today.year + i, month, day))
+			deltas.append(abs(today - dates[-1]))
+		except ValueError:
+			continue
+	if dates == []:
+		return None
+	# Return the date which is closest to the present
+	return dates[deltas.index(min(deltas))]
 
 
 # Read and validate a date: str(default) -> str(date)
