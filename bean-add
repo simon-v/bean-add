@@ -130,8 +130,8 @@ def cast_number(number, precision=data.default_precision):
 
 
 # Condense whitespace and return a list
-def condense(line):
-	line = line.strip().split(' ')
+def condense(line, delimiter=' '):
+	line = line.strip().split(delimiter)
 	_data = []
 	for i in line:
 		if i.strip() != '':
@@ -1453,7 +1453,12 @@ for full_line in tx_file.split('\n'):
 			else:
 				lastdate = _date
 			data.date_delimiter = _data[0][4]
-			description = line[13:].split('#')[0].strip('" ')
+			_before_tags = line[13:].split('#')[0]
+			# Split into the optional "payee" string and the required "description" string
+			_strings = condense(_before_tags, '" "')
+			if len(_strings) > 1:
+				del(_strings[0])
+			description = _strings[0].strip('" ')
 			data.defaults[description] = []
 			# Cache any tags present
 			if '#' in line:
