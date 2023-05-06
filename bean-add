@@ -32,7 +32,9 @@ class data(object):
 	saved = []
 	external_journal = []
 	file_name = ''
-	defaults = {}
+	defaults_by_description = {}
+	defaults_by_payee = {}
+	defaults_special = {}
 	restore = []
 	mtime = 0
 	prices = {}
@@ -99,6 +101,13 @@ class data(object):
 	default_precision = 8
 
 
+class Defaults:
+	def __init__(self):
+		self.description = ''
+		self.payee = None
+		self.accounts = []
+
+
 # Ask for confirmation: str(prompt) -> bool(result)
 def confirm(prompt='', default_yes=None):
 	# Unset completion
@@ -147,7 +156,7 @@ def pluralize(number, word):
 
 # Completion
 def complete(text, state):
-	results = [x for x in data.vocab if x not in ['__balance__', '__pad__', '__note__'] and text.lower() in x.lower()] + [None]
+	results = [x for x in data.vocab if text.lower() in x.lower()] + [None]
 	return results[state]
 
 
@@ -309,7 +318,7 @@ def read_date(default):
 # Read a description -> str(description)
 def read_description():
 	# Set completion
-	data.vocab = data.defaults
+	data.vocab = data.defaults_by_description
 	readline.set_completer_delims('')
 	set_history_context('description')
 	# Get a non-empty description
@@ -655,7 +664,7 @@ def tx_lookup(patterns, prune_txids=[]):
 # Find transactions that contain a string
 def find_transactions(autoseek=None):
 	# Use all possible completion contenxts for lookups
-	data.vocab = list(data.accounts) + list(data.defaults) + ['#' + x for x in data.tags]
+	data.vocab = list(data.accounts) + list(data.defaults_by_description) + ['#' + x for x in data.tags]
 	readline.set_completer_delims('')
 	set_history_context('lookup')
 	# Autoseeking without doing a lookup first
@@ -734,15 +743,15 @@ def find_transactions(autoseek=None):
 
 
 # Get default accounts for a transaction
-def get_default_accounts(description):
-	if description in data.defaults:
+def get_default_accounts(dictionary, key):
+	if key in dictionary:
 		print('Previously used accounts for this transaction:')
-		for _account in data.defaults[description]:
+		for _account in dictionary[key].accounts:
 			print('\t%s' % _account)
 		print()
 		_use = confirm('Use these accounts? (Y/n) ', True) if data.use_defaults is None else data.use_defaults
 		if _use:
-			return data.defaults[description].copy()
+			return dictionary[key].accounts.copy()
 	return []
 
 
@@ -759,11 +768,11 @@ def read_normal_transaction(description=None):
 		raise KeyboardInterrupt
 	else:
 		output += '%s * "%s"\n' % (data.date, description)
-	defaults = get_default_accounts(description)
+	default_accounts = get_default_accounts(data.defaults_by_description, description)
 	while True:
-		# Use defaults, if available, then proceed to manual account input
-		if len(defaults) > 0:
-			account = defaults.pop(0)
+		# Use default_accounts, if available, then proceed to manual account input
+		if len(default_accounts) > 0:
+			account = default_accounts.pop(0)
 		else:
 			account = read_account()
 			if account is None:
@@ -791,7 +800,10 @@ def read_normal_transaction(description=None):
 	if _transaction == []:
 		raise KeyboardInterrupt
 	# Update defaults and insert the transaction
-	data.defaults[description] = _transaction
+	defaults = Defaults()
+	defaults.accounts = _transaction
+	defaults.description = description
+	data.defaults_by_description[description] = defaults
 	insert_transaction(output.strip())
 	# Auto-flag if appropriate
 	for _account in data.auto_flag:
@@ -808,12 +820,12 @@ def read_normal_transaction(description=None):
 def read_balance_transaction():
 	print('\nAdding a new balance assertion.')
 	data.date = read_date(data.date)
-	defaults = get_default_accounts('__balance__')
-	if defaults == []:
+	default_accounts = get_default_accounts(data.defaults_special, '__balance__')
+	if default_accounts == []:
 		account = read_account()
-		data.defaults['__balance__'] = [account]
+		data.defaults_special['__balance__'] = [account]
 	else:
-		account = defaults[0]
+		account = default_accounts[0]
 	data.balance = 0
 	amount = read_amount(account)
 	output = '%s balance %s %s' % (data.date, account, amount)
@@ -832,15 +844,15 @@ def read_pad_transaction():
 	print('\nAdding a new pad statement.')
 	data.date = read_date(data.date)
 	# Print a helpful hint
-	if '__pad__' not in data.defaults:
+	if '__pad__' not in data.defaults_special:
 		print('\nEnter the source and destination accounts.')
-	defaults = get_default_accounts('__pad__')
-	if defaults == []:
+	default_accounts = get_default_accounts(data.defaults_special, '__pad__')
+	if default_accounts == []:
 		account1 = read_account()
 		account2 = read_account()
-		data.defaults['__pad__'] = [account1, account2]
+		data.defaults_special['__pad__'] = [account1, account2]
 	else:
-		account1, account2 = defaults
+		account1, account2 = default_accounts
 	output = '%s pad %s %s' % (data.date, account1, account2)
 	insert_transaction(output)
 
@@ -853,12 +865,12 @@ def read_note_transaction():
 	set_history_context('note')
 	print('\nAdding a new note statement.')
 	data.date = read_date(data.date)
-	defaults = get_default_accounts('__note__')
-	if defaults == []:
+	default_accounts = get_default_accounts(data.defaults_special, '__note__')
+	if default_accounts == []:
 		account = read_account()
-		data.defaults['__note__'] = [account]
+		data.defaults_special['__note__'] = [account]
 	else:
-		account = defaults[0]
+		account = default_accounts[0]
 	description = input('Enter the note text: ').strip(' "')
 	output = '%s note %s "%s"' % (data.date, account, description)
 	insert_transaction(output)
@@ -1351,14 +1363,18 @@ except Exception as exc:
 	sys.exit(2)
 
 description = ''
+payee = None
 lastdate = '0'
+# A Defaults object holding all the information for the transaction being currently parsed
+defaults = None
 for full_line in tx_file.split('\n'):
 	line = full_line.strip()
 	if line == '':
 		# Transaction came out empty
-		if description in data.defaults and data.defaults[description] == []:
-			del(data.defaults[description])
+		if description in data.defaults_by_description and data.defaults_by_description[description].accounts == []:
+			del(data.defaults_by_description[description])
 		description = ''
+		payee = None
 		continue
 	# Skip comments, but make use of the option strings
 	elif line.startswith(';'):
@@ -1424,7 +1440,7 @@ for full_line in tx_file.split('\n'):
 				_match = re.match('\\s+', full_line)
 				if _match is not None:
 					data.indentation = _match.group()
-			data.defaults[description].append(_data[0])
+			defaults.accounts.append(_data[0])
 			# Detect involved currencies and amounts
 			if len(_data) > 1:
 				detect_currencies(_data)
@@ -1441,9 +1457,9 @@ for full_line in tx_file.split('\n'):
 			del data.accounts[_data[2]]
 		# Cache command data
 		elif _data[1] == 'balance':
-			data.defaults['__balance__'] = [_data[2]]
+			data.defaults_special['__balance__'] = [_data[2]]
 		elif _data[1] == 'pad':
-			data.defaults['__pad__'] = [_data[2], _data[3]]
+			data.defaults_special['__pad__'] = [_data[2], _data[3]]
 		# Record a description
 		elif _data[1] in '!*':
 			_date = _data[0][0:10]
@@ -1452,14 +1468,20 @@ for full_line in tx_file.split('\n'):
 				data.sort_by_date = False
 			else:
 				lastdate = _date
+			defaults = Defaults()
 			data.date_delimiter = _data[0][4]
 			_before_tags = line[13:].split('#')[0]
 			# Split into the optional "payee" string and the required "description" string
 			_strings = condense(_before_tags, '" "')
+			payee = None
 			if len(_strings) > 1:
+				payee = _strings[0].strip('"')
 				del(_strings[0])
+				defaults.payee = payee
+				data.defaults_by_payee[payee] = defaults
 			description = _strings[0].strip('" ')
-			data.defaults[description] = []
+			defaults.description = description
+			data.defaults_by_description[description] = defaults
 			# Cache any tags present
 			if '#' in line:
 				for word in _data:
@@ -1529,9 +1551,10 @@ readline.set_completer(complete)
 # Print some statistics
 print('\n%s processed' % pluralize(len(data.journal), 'record'))
 if len(data.accounts) > 0:
-	print('%s, %s, %s and %s loaded' % (
+	print('%s, %s, %s, %s, and %s loaded' % (
 		pluralize(len(data.accounts), 'account name'),
-		pluralize(len(data.defaults), 'unique description'),
+		pluralize(len(data.defaults_by_description), 'unique description'),
+		pluralize(len(data.defaults_by_payee), 'unique payee'),
 		pluralize(len(data.currencies), 'currency sign'),
 		pluralize(len(data.tags), 'tag')))
 else:
@@ -1666,7 +1689,7 @@ while True:
 	# New transaction sequence
 	elif cmd == 'nn':
 		tx_count = 0
-		defaults = data.use_defaults
+		using_defaults = data.use_defaults
 		try:
 			read_normal_transaction()
 			# Set to auto-accept as much as possible
@@ -1682,7 +1705,7 @@ while True:
 		finally:
 			print('\n%s added.' % pluralize(tx_count, 'transaction'))
 			# Restore original behavior
-			data.use_defaults = defaults
+			data.use_defaults = using_defaults
 	# New balance assertion
 	elif cmd == 'B':
 		try:
