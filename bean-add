@@ -50,6 +50,7 @@ class data(object):
 		'command': [],
 		'date': [],
 		'description': [],
+		'payee': [],
 		'account': [],
 		'amount': [],
 		'tag': [],
@@ -62,6 +63,7 @@ class data(object):
 	history_context = 'command'
 	# Current transaction
 	description = ''
+	payee = ''
 	cur = ''
 	balance = 0
 	known_balances = {}
@@ -316,19 +318,46 @@ def read_date(default):
 
 
 # Read a description -> str(description)
-def read_description():
+def read_description(payee=None):
+	default_description = data.description
 	# Set completion
-	data.vocab = data.defaults_by_description
+	if payee is not None and payee in data.defaults_by_payee:
+		# Only consider descriptions used with the given payee
+		default_description = data.defaults_by_payee[payee].description
+		data.vocab = [x[0] for x in data.defaults_by_description.items() if x[1].payee == payee]
+	else:
+		data.vocab = data.defaults_by_description
 	readline.set_completer_delims('')
 	set_history_context('description')
-	# Get a non-empty description
-	reading = input('Enter transaction description [%s]: ' % data.description).strip(' "')
-	if reading == '':
-		if data.description != '':
-			return data.description
-		return None
+	# Get a description. It can be empty if payee is defined.
+	_allow_clearing = payee is not None and default_description
+	_clearing_hint = '(\'-\' for empty) ' if _allow_clearing else ''
+	reading = input('Enter transaction description %s[%s]: ' % (_clearing_hint, default_description)).strip(' "')
+	if reading == '' and default_description != '':
+		reading = default_description
+	elif _allow_clearing and reading == '-':
+		reading = ''
 	data.description = reading
-	return reading
+	return reading if reading != '' else None
+
+
+# Read a payee -> str(payee)
+def read_payee():
+	# Set completion
+	data.vocab = data.defaults_by_payee.keys()
+	default_payee = data.payee
+	readline.set_completer_delims('')
+	set_history_context('payee')
+	# Get a potentially empty payee
+	_allow_clearing = len(default_payee) > 0
+	_clearing_hint = '(\'-\' for empty) ' if _allow_clearing else ''
+	reading = input('Enter payee %s[%s]: ' % (_clearing_hint, default_payee)).strip(' "')
+	if reading == '' and default_payee != '':
+		reading = default_payee
+	elif _allow_clearing and reading == '-':
+		reading = ''
+	data.payee = reading
+	return reading if reading != '' else None
 
 
 # Read a valid account name
@@ -664,7 +693,7 @@ def tx_lookup(patterns, prune_txids=[]):
 # Find transactions that contain a string
 def find_transactions(autoseek=None):
 	# Use all possible completion contenxts for lookups
-	data.vocab = list(data.accounts) + list(data.defaults_by_description) + ['#' + x for x in data.tags]
+	data.vocab = list(data.accounts) + list(data.defaults_by_description) + list(data.defaults_by_payee) + ['#' + x for x in data.tags]
 	readline.set_completer_delims('')
 	set_history_context('lookup')
 	# Autoseeking without doing a lookup first
@@ -756,19 +785,26 @@ def get_default_accounts(dictionary, key):
 
 
 # Enter a normal transaction
-def read_normal_transaction(description=None):
+def read_normal_transaction(description=None, payee=None):
 	output = ''
 	_transaction = []
 	data.balance = 0
 	if not data.auto_new:
 		data.date = read_date(data.date)
+	if data.enter_payees and payee is None:
+		payee = read_payee()
 	if description is None:
-		description = read_description()
-	if description is None:
+		description = read_description(payee=payee)
+	if description is None and payee is None:
 		raise KeyboardInterrupt
-	else:
+	elif payee is None:
 		output += '%s * "%s"\n' % (data.date, description)
-	default_accounts = get_default_accounts(data.defaults_by_description, description)
+	else:
+		output += '%s * "%s" "%s"\n' % (data.date, payee, description if description is not None else '')
+	if payee is not None:
+		default_accounts = get_default_accounts(data.defaults_by_payee, payee)
+	else:
+		default_accounts = get_default_accounts(data.defaults_by_description, description)
 	while True:
 		# Use default_accounts, if available, then proceed to manual account input
 		if len(default_accounts) > 0:
@@ -802,8 +838,12 @@ def read_normal_transaction(description=None):
 	# Update defaults and insert the transaction
 	defaults = Defaults()
 	defaults.accounts = _transaction
-	defaults.description = description
-	data.defaults_by_description[description] = defaults
+	if description is not None:
+		defaults.description = description
+		data.defaults_by_description[description] = defaults
+	if payee is not None:
+		defaults.payee = payee
+		data.defaults_by_payee[payee] = defaults
 	insert_transaction(output.strip())
 	# Auto-flag if appropriate
 	for _account in data.auto_flag:
@@ -1373,6 +1413,8 @@ for full_line in tx_file.split('\n'):
 		# Transaction came out empty
 		if description in data.defaults_by_description and data.defaults_by_description[description].accounts == []:
 			del(data.defaults_by_description[description])
+		if payee is not None and payee in data.defaults_by_payee and data.defaults_by_payee[payee].accounts == []:
+			del(data.defaults_by_payee[payee])
 		description = ''
 		payee = None
 		continue
@@ -1460,7 +1502,7 @@ for full_line in tx_file.split('\n'):
 			data.defaults_special['__balance__'] = [_data[2]]
 		elif _data[1] == 'pad':
 			data.defaults_special['__pad__'] = [_data[2], _data[3]]
-		# Record a description
+		# Record a description, and an optional payee
 		elif _data[1] in '!*':
 			_date = _data[0][0:10]
 			if data.sort_by_date and _date < lastdate:
@@ -1697,7 +1739,7 @@ while True:
 			while True:
 				tx_count += 1
 				print('\nAdding transaction #%s\n' % (tx_count + 1))
-				read_normal_transaction(data.description)
+				read_normal_transaction(data.description, data.payee)
 		except KeyboardInterrupt:
 			print('\nTransaction entry cancelled.')
 		except EOFError:
