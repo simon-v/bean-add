@@ -6,6 +6,7 @@
 # Consult the README file for usage instructions and other helpful hints
 
 import locale
+import re
 import readline
 import sys
 import datetime
@@ -77,7 +78,7 @@ class data(object):
 	# Options
 	sort_by_date = True
 	date_delimiter = '-'
-	indentation = '	'
+	indentation = None
 	use_defaults = None
 	paranoid_write = False
 	external_write = False
@@ -498,7 +499,9 @@ def toggle_flag_with_legs(account=None):
 			account = read_account()
 		data.journal[data.txid] = data.journal[data.txid].replace(account, '! %s' % account).replace('! !', '!')
 	else:
-		data.journal[data.txid] = data.journal[data.txid].replace('	! ', '	').replace('  ! ', '  ')
+		# Replace any type/combination of whitespace used for indentation, followed by "! ", with just the leading
+		# whitespace
+		data.journal[data.txid] = re.sub('^(\\s+)! ', '\\1', data.journal[data.txid])
 	toggle_flag()
 
 
@@ -1340,8 +1343,8 @@ except Exception as exc:
 
 description = ''
 lastdate = '0'
-for line in tx_file.split('\n'):
-	line = line.strip()
+for full_line in tx_file.split('\n'):
+	line = full_line.strip()
 	if line == '':
 		# Transaction came out empty
 		if description in data.defaults and data.defaults[description] == []:
@@ -1374,8 +1377,6 @@ for line in tx_file.split('\n'):
 					data.colors = True
 				elif i == 'b':
 					data.use_beancount_accounts = True
-				elif i == 'i':
-					data.indentation = '  '
 				elif i == 'f':
 					_auto_flag = True
 				elif _auto_flag:
@@ -1407,6 +1408,10 @@ for line in tx_file.split('\n'):
 		if _data[0] == '!':
 			del _data[0]
 		if _data[0] in data.accounts:
+			if data.indentation is None:
+				_match = re.match('\\s+', full_line)
+				if _match is not None:
+					data.indentation = _match.group()
 			data.defaults[description].append(_data[0])
 			# Detect involved currencies and amounts
 			if len(_data) > 1:
@@ -1524,6 +1529,12 @@ if data.date_delimiter != '-':
 	print('\nWarning: Non-standard date delimiter.')
 	data.date = data.date.replace('-', data.date_delimiter)
 	data.date_prompt = data.date_delimiter.join(['%Y', '%m', '%d'])
+
+# If we haven't inferred indentation sequence to use, set it to TAB by default.
+if data.indentation is None:
+	data.indentation = '	'
+if data.indentation != '	':
+	print('\nWarning: Non-standard indentation (<%s>).' % data.indentation)
 
 # Init date and currencies
 if data.currencies == []:
@@ -1771,7 +1782,6 @@ while True:
 		print('of	automatically flag transactions containing (%s)' % (None if data.auto_flag == [] else ', '.join(data.auto_flag)))
 		print('ol	lookup result to seek to (%s)' % ('none' if data.lookup_seek is None else 'last' if data.lookup_seek else 'first'))
 		print('oc	colorize output (%s)' % ('enabled' if data.colors else 'disabled'))
-		print('oi	indent with spaces instead of tabs (%s)' % ('enabled' if data.indentation == '  ' else 'disabled'))
 		print('oq	quote currency for all conversions (%s)' % ('None' if data.quote_currency == '' else data.quote_currency))
 		precision_string = ', '.join(['%s:%s' % (k, v) for k, v in data.precisions.items()])
 		print('op	custom precision for commodities (%s)' % ('None' if precision_string == '' else precision_string))
@@ -1805,10 +1815,6 @@ while True:
 		data.use_beancount_accounts = not data.use_beancount_accounts
 		print('\nUsing Beancount to load account names is now %s.' % ('enabled' if data.use_beancount_accounts else 'disabled'))
 		print('Save the options to the journal file with `oo` for it to take effect on the next journal load.')
-	# Option: indent with spaces instead of tabs
-	elif cmd == 'oi':
-		data.indentation = '  ' if data.indentation == '\t' else '\t'
-		print('\nIndenation with spaces is now %s.' % ('enabled' if data.indentation == '  ' else 'disabled'))
 	# Option: auto-flagging of new records
 	elif cmd == 'of':
 		try:
@@ -1875,7 +1881,6 @@ while True:
 		optstring += '' if data.date_preview else ' d'
 		optstring += '' if data.lookup_seek is None else ' l' if data.lookup_seek else ' ll'
 		optstring += ' c' if data.colors else ''
-		optstring += ' i' if data.indentation == '  ' else ''
 		optstring += ' q ' + data.quote_currency if data.quote_currency != '' else ''
 		optstring += ' b' if data.use_beancount_accounts else ''
 		for _account in data.auto_flag:
