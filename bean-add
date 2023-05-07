@@ -499,8 +499,7 @@ def toggle_flag_with_legs(account=None):
 			account = read_account()
 		data.journal[data.txid] = data.journal[data.txid].replace(account, '! %s' % account).replace('! !', '!')
 	else:
-		# Replace any type/combination of whitespace used for indentation, followed by "! ", with just the leading
-		# whitespace
+		# Replace any type/combination of whitespace used for indentation, followed by "! ", with just the leading whitespace
 		data.journal[data.txid] = re.sub('^(\\s+)! ', '\\1', data.journal[data.txid])
 	toggle_flag()
 
@@ -1408,6 +1407,7 @@ for full_line in tx_file.split('\n'):
 		if _data[0] == '!':
 			del _data[0]
 		if _data[0] in data.accounts:
+			# Detect indentation type
 			if data.indentation is None:
 				_match = re.match('\\s+', full_line)
 				if _match is not None:
@@ -1530,7 +1530,7 @@ if data.date_delimiter != '-':
 	data.date = data.date.replace('-', data.date_delimiter)
 	data.date_prompt = data.date_delimiter.join(['%Y', '%m', '%d'])
 
-# If we haven't inferred indentation sequence to use, set it to TAB by default.
+# Default to indentation by a single tab
 if data.indentation is None:
 	data.indentation = '	'
 if data.indentation != '	':
