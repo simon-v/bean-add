@@ -500,7 +500,7 @@ def toggle_flag_with_legs(account=None):
 		data.journal[data.txid] = data.journal[data.txid].replace(account, '! %s' % account).replace('! !', '!')
 	else:
 		# Replace any type/combination of whitespace used for indentation, followed by "! ", with just the leading whitespace
-		data.journal[data.txid] = re.sub('^(\\s+)! ', '\\1', data.journal[data.txid])
+		data.journal[data.txid] = re.sub('\n(\\s+)! ', '\n\\1', data.journal[data.txid])
 	toggle_flag()
 
 
