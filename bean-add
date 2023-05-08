@@ -404,9 +404,7 @@ def read_amount(account):
 	readline.set_completer_delims(' ')
 	set_history_context('amount')
 	# Read an amount
-	if account in data.accounts:
-		account = '`%s`' % account
-	amount = input('Enter the amount for %s (including currency symbol) [%s %s]: ' % (account, undecimal(data.balance), data.cur))
+	amount = input('Enter the amount for `%s` (including currency symbol) [%s %s]: ' % (account, undecimal(data.balance), data.cur))
 	amount = [data.balance, data.cur] if amount == '' else amount.split()
 	# Process currency sign
 	if len(amount) == 1:
