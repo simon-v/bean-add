@@ -410,7 +410,7 @@ def read_amount(account):
 	default_currency = data.cur
 	if account in data.accounts and data.accounts[account] is not None:
 		default_currency = data.accounts[account]
-	amount = input('Enter the amount for `%s` (including currency symbol) [%s %s]: ' % (account, undecimal(data.balance), default_currency))
+	amount = input('Enter the amount for `%s` (including currency symbol) [%s %s]: ' % (account, undecimal(data.balance), default_currency)).replace(',', '')
 	amount = [data.balance, default_currency] if amount == '' else amount.split()
 	# Process currency sign
 	if len(amount) == 1:
@@ -1543,7 +1543,7 @@ if data.date_delimiter != '-':
 if data.indentation is None:
 	data.indentation = '	'
 if data.indentation != '	':
-	print('\nWarning: Non-standard indentation.' % data.indentation)
+	print('\nWarning: Non-standard indentation.')
 
 # Init date and currencies
 if data.currencies == []:
