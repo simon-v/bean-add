@@ -39,7 +39,7 @@ class data(object):
 	quote_currency = ''
 	# Completion
 	# A mapping from known accounts to their respective default currencies.
-	accounts_currencies = {}
+	accounts = {}
 	currencies = []
 	tags = []
 	vocab = []
@@ -323,7 +323,7 @@ def read_description():
 # Read a valid account name
 def read_account():
 	# Set completion
-	data.vocab = data.accounts_currencies.keys()
+	data.vocab = data.accounts.keys()
 	readline.set_completer_delims('')
 	set_history_context('account')
 	while True:
@@ -332,12 +332,12 @@ def read_account():
 		if reading == '':
 			return None
 		# Add new account option
-		if reading not in data.accounts_currencies.keys():
+		if reading not in data.accounts.keys():
 			if not confirm('The account `%s` is not in the journal file. Add it? (Y/n) ' % reading, True):
 				continue
 			insert_transaction('%s open %s' % (data.date, reading))
 			print()
-			data.accounts_currencies[reading] = None
+			data.accounts[reading] = None
 		return reading
 
 
@@ -408,8 +408,8 @@ def read_amount(account):
 	set_history_context('amount')
 	# Read an amount
 	default_currency = data.cur
-	if account in data.accounts_currencies.keys() and data.accounts_currencies[account] is not None:
-		default_currency = data.accounts_currencies[account]
+	if account in data.accounts.keys() and data.accounts[account] is not None:
+		default_currency = data.accounts[account]
 	amount = input('Enter the amount for `%s` (including currency symbol) [%s %s]: ' % (account, undecimal(data.balance), default_currency))
 	amount = [data.balance, default_currency] if amount == '' else amount.split()
 	# Process currency sign
@@ -422,7 +422,7 @@ def read_amount(account):
 		detect_currencies(amount)
 		deduce_commodity_price(amount)
 		data.cur = amount[-1]
-	data.accounts_currencies[account] = data.cur
+	data.accounts[account] = data.cur
 	# Normalize numbers and process conversion rate
 	amount[0] = undecimal(evaluate(amount[0]))
 	_amt = amount[0].split('.')[0] if '.' in amount[0] else amount[0]
@@ -650,7 +650,7 @@ def tx_lookup(patterns, prune_txids=[]):
 # Find transactions that contain a string
 def find_transactions(autoseek=None):
 	# Use all possible completion contenxts for lookups
-	data.vocab = data.accounts_currencies.keys() + list(data.defaults.keys()) + ['#' + x for x in data.tags]
+	data.vocab = data.accounts.keys() + list(data.defaults.keys()) + ['#' + x for x in data.tags]
 	readline.set_completer_delims('')
 	set_history_context('lookup')
 	# Autoseeking without doing a lookup first
@@ -994,7 +994,7 @@ def deduce_implied_amount(txid):
 		# Ignore anything that isn't a transaction leg
 		if line[0] == '!':
 			del(line[0])
-		if line[0] not in data.accounts_currencies.keys():
+		if line[0] not in data.accounts.keys():
 			continue
 		# Find the leg that needs to be deduced
 		if len(line) == 1:
@@ -1412,7 +1412,7 @@ for full_line in tx_file.split('\n'):
 		# Attach transaction legs to previous description
 		if _data[0] == '!':
 			del _data[0]
-		if _data[0] in data.accounts_currencies.keys():
+		if _data[0] in data.accounts.keys():
 			# Detect indentation type
 			if data.indentation is None:
 				_match = re.match('\\s+', full_line)
@@ -1422,17 +1422,17 @@ for full_line in tx_file.split('\n'):
 			# Detect involved currencies and amounts
 			if len(_data) > 1:
 				detect_currencies(_data)
-				data.accounts_currencies[_data[0]] = data.cur
+				data.accounts[_data[0]] = data.cur
 				_amount = str(int(float(_data[1])))
 				data.amount_width = max(data.amount_width, len(_amount))
 		# Add account name to account list
 		elif _data[1] == 'open':
-			data.accounts_currencies[_data[2]] = None
+			data.accounts[_data[2]] = None
 			if len(_data) > 3:
-				data.accounts_currencies[_data[2]] = _data[3]
+				data.accounts[_data[2]] = _data[3]
 		# Remove closed accounts from completion
-		elif _data[1] == 'close' and _data[2] in data.accounts_currencies.keys():
-			del data.accounts_currencies[_data[2]]
+		elif _data[1] == 'close' and _data[2] in data.accounts.keys():
+			del data.accounts[_data[2]]
 		# Cache command data
 		elif _data[1] == 'balance':
 			data.defaults['__balance__'] = [_data[2]]
@@ -1467,10 +1467,10 @@ if data.use_beancount_accounts:
 		stdout, stderr = beancount.communicate()
 		for _line in str(stdout, 'UTF-8').split('\n'):
 			_line = condense(_line)
-			if len(_line) == 2 and _line[0] not in data.accounts_currencies.keys():
-				data.accounts_currencies[_line[0]] = None
-			elif len(_line) == 3 and _line[0] in data.accounts_currencies.keys():
-				del data.accounts_currencies[_line[0]]
+			if len(_line) == 2 and _line[0] not in data.accounts.keys():
+				data.accounts[_line[0]] = None
+			elif len(_line) == 3 and _line[0] in data.accounts.keys():
+				del data.accounts[_line[0]]
 	except Exception as exc:
 		print('Unable to use beancount to get the account list: %s' % exc)
 
@@ -1517,9 +1517,9 @@ readline.set_completer(complete)
 
 # Print some statistics
 print('\n%s processed' % pluralize(len(data.journal), 'record'))
-if len(data.accounts_currencies.keys()) > 0:
+if len(data.accounts.keys()) > 0:
 	print('%s, %s, %s, and %s loaded' % (
-		pluralize(len(data.accounts_currencies.keys()), 'account name'),
+		pluralize(len(data.accounts.keys()), 'account name'),
 		pluralize(len(data.defaults), 'unique description'),
 		pluralize(len(data.currencies), 'currency sign'),
 		pluralize(len(data.tags), 'tag')))
