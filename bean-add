@@ -6,6 +6,7 @@
 # Consult the README file for usage instructions and other helpful hints
 
 import locale
+import re
 import readline
 import sys
 import datetime
@@ -78,6 +79,7 @@ class data(object):
 	# Options
 	sort_by_date = True
 	date_delimiter = '-'
+	indentation = None
 	use_defaults = None
 	paranoid_write = False
 	external_write = False
@@ -408,8 +410,7 @@ def read_amount(account):
 	default_currency = data.cur
 	if account in data.accounts_currencies.keys() and data.accounts_currencies[account] is not None:
 		default_currency = data.accounts_currencies[account]
-	account_printed = '`%s`' % account if account in data.accounts_currencies.keys() else account
-	amount = input('Enter the amount for %s (including currency symbol) [%s %s]: ' % (account_printed, undecimal(data.balance), default_currency))
+	amount = input('Enter the amount for `%s` (including currency symbol) [%s %s]: ' % (account, undecimal(data.balance), default_currency))
 	amount = [data.balance, default_currency] if amount == '' else amount.split()
 	# Process currency sign
 	if len(amount) == 1:
@@ -504,7 +505,8 @@ def toggle_flag_with_legs(account=None):
 			account = read_account()
 		data.journal[data.txid] = data.journal[data.txid].replace(account, '! %s' % account).replace('! !', '!')
 	else:
-		data.journal[data.txid] = data.journal[data.txid].replace('	! ', '	')
+		# Replace any type/combination of whitespace used for indentation, followed by "! ", with just the leading whitespace
+		data.journal[data.txid] = re.sub('\n(\\s+)! ', '\n\\1', data.journal[data.txid])
 	toggle_flag()
 
 
@@ -779,7 +781,7 @@ def read_normal_transaction(description=None):
 			print('Removing zero-amount `%s` from transaction.' % account)
 			del(_transaction[-1])
 		else:
-			output += '	%s %s\n' % (account, amount)
+			output += '%s%s %s\n' % (data.indentation, account, amount)
 	# The transaction is empty, no money moved anywhere
 	if _transaction == []:
 		raise KeyboardInterrupt
@@ -1264,7 +1266,7 @@ def verify_statement():
 			if lookup_string not in data.journal[tx]:
 				data.journal[tx] = data.journal[tx].replace(data.statement_pattern, data.statement_replacement)
 		# Add the statement transaction
-		output = '%s * "%s"\n	%s %s %s\n	%s %s %s' % (data.date, desc, data.funding_account, undecimal(balance * -1), data.statement_currency, data.transaction_account, undecimal(balance), data.statement_currency)
+		output = '%s * "%s"\n%s%s %s %s\n%s%s %s %s' % (data.date, desc, data.indentation, data.funding_account, undecimal(balance * -1), data.statement_currency, data.indentation, data.transaction_account, undecimal(balance), data.statement_currency)
 		insert_transaction(output)
 		# Mark the verification as finished
 		data.target = 0
@@ -1346,8 +1348,8 @@ except Exception as exc:
 
 description = ''
 lastdate = '0'
-for line in tx_file.split('\n'):
-	line = line.strip()
+for full_line in tx_file.split('\n'):
+	line = full_line.strip()
 	if line == '':
 		# Transaction came out empty
 		if description in data.defaults and data.defaults[description] == []:
@@ -1411,6 +1413,11 @@ for line in tx_file.split('\n'):
 		if _data[0] == '!':
 			del _data[0]
 		if _data[0] in data.accounts_currencies.keys():
+			# Detect indentation type
+			if data.indentation is None:
+				_match = re.match('\\s+', full_line)
+				if _match is not None:
+					data.indentation = _match.group()
 			data.defaults[description].append(_data[0])
 			# Detect involved currencies and amounts
 			if len(_data) > 1:
@@ -1531,6 +1538,12 @@ if data.date_delimiter != '-':
 	print('\nWarning: Non-standard date delimiter.')
 	data.date = data.date.replace('-', data.date_delimiter)
 	data.date_prompt = data.date_delimiter.join(['%Y', '%m', '%d'])
+
+# Default to indentation by a single tab
+if data.indentation is None:
+	data.indentation = '	'
+if data.indentation != '	':
+	print('\nWarning: Non-standard indentation.' % data.indentation)
 
 # Init date and currencies
 if data.currencies == []:
