@@ -1532,7 +1532,7 @@ if data.date_delimiter != '-':
 if data.indentation is None:
 	data.indentation = '	'
 if data.indentation != '	':
-	print('\nWarning: Non-standard indentation.' % data.indentation)
+	print('\nWarning: Non-standard indentation.')
 
 # Init date and currencies
 if data.currencies == []:
