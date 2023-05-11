@@ -332,7 +332,7 @@ def read_account():
 		if reading == '':
 			return None
 		# Add new account option
-		if reading not in data.accounts.keys():
+		if reading not in data.accounts:
 			if not confirm('The account `%s` is not in the journal file. Add it? (Y/n) ' % reading, True):
 				continue
 			insert_transaction('%s open %s' % (data.date, reading))
@@ -408,7 +408,7 @@ def read_amount(account):
 	set_history_context('amount')
 	# Read an amount
 	default_currency = data.cur
-	if account in data.accounts.keys() and data.accounts[account] is not None:
+	if account in data.accounts and data.accounts[account] is not None:
 		default_currency = data.accounts[account]
 	amount = input('Enter the amount for `%s` (including currency symbol) [%s %s]: ' % (account, undecimal(data.balance), default_currency))
 	amount = [data.balance, default_currency] if amount == '' else amount.split()
@@ -650,7 +650,7 @@ def tx_lookup(patterns, prune_txids=[]):
 # Find transactions that contain a string
 def find_transactions(autoseek=None):
 	# Use all possible completion contenxts for lookups
-	data.vocab = data.accounts.keys() + list(data.defaults.keys()) + ['#' + x for x in data.tags]
+	data.vocab = list(data.accounts) + list(data.defaults) + ['#' + x for x in data.tags]
 	readline.set_completer_delims('')
 	set_history_context('lookup')
 	# Autoseeking without doing a lookup first
@@ -994,7 +994,7 @@ def deduce_implied_amount(txid):
 		# Ignore anything that isn't a transaction leg
 		if line[0] == '!':
 			del(line[0])
-		if line[0] not in data.accounts.keys():
+		if line[0] not in data.accounts:
 			continue
 		# Find the leg that needs to be deduced
 		if len(line) == 1:
@@ -1412,7 +1412,7 @@ for full_line in tx_file.split('\n'):
 		# Attach transaction legs to previous description
 		if _data[0] == '!':
 			del _data[0]
-		if _data[0] in data.accounts.keys():
+		if _data[0] in data.accounts:
 			# Detect indentation type
 			if data.indentation is None:
 				_match = re.match('\\s+', full_line)
@@ -1431,7 +1431,7 @@ for full_line in tx_file.split('\n'):
 			if len(_data) > 3:
 				data.accounts[_data[2]] = _data[3]
 		# Remove closed accounts from completion
-		elif _data[1] == 'close' and _data[2] in data.accounts.keys():
+		elif _data[1] == 'close' and _data[2] in data.accounts:
 			del data.accounts[_data[2]]
 		# Cache command data
 		elif _data[1] == 'balance':
@@ -1467,9 +1467,9 @@ if data.use_beancount_accounts:
 		stdout, stderr = beancount.communicate()
 		for _line in str(stdout, 'UTF-8').split('\n'):
 			_line = condense(_line)
-			if len(_line) == 2 and _line[0] not in data.accounts.keys():
+			if len(_line) == 2 and _line[0] not in data.accounts:
 				data.accounts[_line[0]] = None
-			elif len(_line) == 3 and _line[0] in data.accounts.keys():
+			elif len(_line) == 3 and _line[0] in data.accounts:
 				del data.accounts[_line[0]]
 	except Exception as exc:
 		print('Unable to use beancount to get the account list: %s' % exc)
@@ -1517,9 +1517,9 @@ readline.set_completer(complete)
 
 # Print some statistics
 print('\n%s processed' % pluralize(len(data.journal), 'record'))
-if len(data.accounts.keys()) > 0:
+if len(data.accounts) > 0:
 	print('%s, %s, %s, and %s loaded' % (
-		pluralize(len(data.accounts.keys()), 'account name'),
+		pluralize(len(data.accounts), 'account name'),
 		pluralize(len(data.defaults), 'unique description'),
 		pluralize(len(data.currencies), 'currency sign'),
 		pluralize(len(data.tags), 'tag')))
