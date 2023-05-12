@@ -37,6 +37,7 @@ class data(object):
 	mtime = 0
 	prices = {}
 	quote_currency = ''
+	constraints = {}
 	# Completion
 	# A mapping from known accounts to their respective default currencies.
 	accounts = {}
@@ -417,6 +418,9 @@ def read_amount(account):
 		amount.append(default_currency)
 		data.accounts[account] = data.cur = default_currency
 	else:
+		if account in data.constraints and amount[1] != data.constraints[account]:
+			print(f'\n{data.constraints[account]} is the only allowed currency for this account.')
+			raise ValueError
 		if len(amount) == 4:
 			amount.append(data.cur)
 		detect_currencies(amount)
@@ -1429,7 +1433,7 @@ for full_line in tx_file.split('\n'):
 		elif _data[1] == 'open':
 			data.accounts[_data[2]] = None
 			if len(_data) > 3:
-				data.accounts[_data[2]] = _data[3]
+				data.accounts[_data[2]] = data.constraints[_data[2]] = _data[3]
 		# Remove closed accounts from completion
 		elif _data[1] == 'close' and _data[2] in data.accounts:
 			del data.accounts[_data[2]]
