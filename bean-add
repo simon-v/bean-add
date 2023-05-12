@@ -38,9 +38,9 @@ class data(object):
 	prices = {}
 	quote_currency = ''
 	constraints = {}
-	# Completion
-	# A mapping from known accounts to their respective default currencies.
+	# A mapping from known accounts to their respective default currencies
 	accounts = {}
+	# Completion
 	currencies = []
 	tags = []
 	vocab = []
@@ -1522,7 +1522,7 @@ readline.set_completer(complete)
 # Print some statistics
 print('\n%s processed' % pluralize(len(data.journal), 'record'))
 if len(data.accounts) > 0:
-	print('%s, %s, %s, and %s loaded' % (
+	print('%s, %s, %s and %s loaded' % (
 		pluralize(len(data.accounts), 'account name'),
 		pluralize(len(data.defaults), 'unique description'),
 		pluralize(len(data.currencies), 'currency sign'),
