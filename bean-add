@@ -307,7 +307,7 @@ def read_date(default):
 # Read a description -> str(description)
 def read_description():
 	# Set completion
-	data.vocab = data.defaults.keys()
+	data.vocab = data.defaults
 	readline.set_completer_delims('')
 	set_history_context('description')
 	# Get a non-empty description
@@ -323,7 +323,7 @@ def read_description():
 # Read a valid account name
 def read_account():
 	# Set completion
-	data.vocab = data.accounts.keys()
+	data.vocab = data.accounts
 	readline.set_completer_delims('')
 	set_history_context('account')
 	while True:
