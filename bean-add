@@ -415,14 +415,14 @@ def read_amount(account):
 	# Process currency sign
 	if len(amount) == 1:
 		amount.append(default_currency)
-		data.cur = default_currency
+		data.accounts[account] = data.cur = default_currency
 	else:
 		if len(amount) == 4:
 			amount.append(data.cur)
 		detect_currencies(amount)
 		deduce_commodity_price(amount)
+		data.accounts[account] = amount[1]
 		data.cur = amount[-1]
-	data.accounts[account] = data.cur
 	# Normalize numbers and process conversion rate
 	amount[0] = undecimal(evaluate(amount[0]))
 	_amt = amount[0].split('.')[0] if '.' in amount[0] else amount[0]
