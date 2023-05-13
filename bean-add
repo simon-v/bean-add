@@ -789,19 +789,18 @@ def read_normal_transaction(description=None):
 	# The transaction is empty, no money moved anywhere
 	if _transaction == []:
 		raise KeyboardInterrupt
-	else:
-		# Update defaults and insert the transaction
-		data.defaults[description] = _transaction
-		insert_transaction(output.strip())
-		# Auto-flag if appropriate
-		for _account in data.auto_flag:
-			_count = output.count(_account)
-			if _count > 1:
-				toggle_flag_with_legs(_account)
-				break
-			elif _count == 1:
-				toggle_flag()
-				break
+	# Update defaults and insert the transaction
+	data.defaults[description] = _transaction
+	insert_transaction(output.strip())
+	# Auto-flag if appropriate
+	for _account in data.auto_flag:
+		_count = output.count(_account)
+		if _count > 1:
+			toggle_flag_with_legs(_account)
+			break
+		elif _count == 1:
+			toggle_flag()
+			break
 
 
 # Read a balance assertion transaction
