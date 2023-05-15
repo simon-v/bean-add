@@ -60,7 +60,7 @@ class data(object):
 	history_context = 'command'
 	# Current transaction
 	description = ''
-	cur = ''
+	last_currency = ''
 	balance = 0
 	known_balances = {}
 	tag = 'bean-add'
@@ -387,7 +387,7 @@ def detect_currencies(line):
 		try:
 			int(cur)
 		except ValueError:
-			data.cur = cur
+			data.last_currency = cur
 			if cur not in data.currencies:
 				data.currencies.append(cur)
 		except IndexError:
@@ -396,7 +396,7 @@ def detect_currencies(line):
 	try:
 		int(line[-1])
 	except ValueError:
-		data.cur = cur
+		data.last_currency = cur
 		if cur not in data.currencies:
 			data.currencies.append(cur)
 
@@ -408,7 +408,7 @@ def read_amount(account):
 	readline.set_completer_delims(' ')
 	set_history_context('amount')
 	# Read an amount
-	default_currency = data.cur
+	default_currency = data.last_currency
 	if account in data.accounts and data.accounts[account] is not None:
 		default_currency = data.accounts[account]
 	amount = input('Enter the amount for `%s` (including currency symbol) [%s %s]: ' % (account, undecimal(data.balance), default_currency)).replace(',', '')
@@ -416,17 +416,17 @@ def read_amount(account):
 	# Process currency sign
 	if len(amount) == 1:
 		amount.append(default_currency)
-		data.accounts[account] = data.cur = default_currency
+		data.accounts[account] = data.last_currency = default_currency
 	else:
 		if account in data.constraints and amount[1] not in data.constraints[account]:
 			print('\nThis account is constrained to: {}'.format(', '.join(data.constraints[account])))
 			raise ValueError
 		if len(amount) == 4:
-			amount.append(data.cur)
+			amount.append(data.last_currency)
 		detect_currencies(amount)
 		deduce_commodity_price(amount)
 		data.accounts[account] = amount[1]
-		data.cur = amount[-1]
+		data.last_currency = amount[-1]
 	# Normalize numbers and process conversion rate
 	amount[0] = undecimal(evaluate(amount[0]))
 	_amt = amount[0].split('.')[0] if '.' in amount[0] else amount[0]
@@ -1182,7 +1182,7 @@ def verify_statement():
 			print('\nEnter the account which funds the statement.')
 			data.funding_account = read_account()
 			print()
-			data.balance, data.cur = estimate_statement_amount(data.transaction_account).split()
+			data.balance, data.last_currency = estimate_statement_amount(data.transaction_account).split()
 			data.balance = float(data.balance)
 			amount = read_amount('the statement')
 			data.target = cast_number(amount.split()[0])
@@ -1425,7 +1425,7 @@ for full_line in tx_file.split('\n'):
 			# Detect involved currencies and amounts
 			if len(_data) > 1:
 				detect_currencies(_data)
-				data.accounts[_data[0]] = data.cur
+				data.accounts[_data[0]] = data.last_currency
 				_amount = str(int(float(_data[1])))
 				data.amount_width = max(data.amount_width, len(_amount))
 		# Add account name to account list
@@ -1550,10 +1550,10 @@ if data.indentation != '	':
 
 # Init date and currencies
 if data.currencies == []:
-	data.cur = 'USD'
+	data.last_currency = 'USD'
 	data.currencies.append('USD')
-elif not data.cur:
-	data.cur = data.currencies[0]
+elif not data.last_currency:
+	data.last_currency = data.currencies[0]
 
 # Main data entry loop
 print('\nChanges stay in memory until you [w]rite them out.')
