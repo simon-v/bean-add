@@ -60,7 +60,7 @@ class data(object):
 	history_context = 'command'
 	# Current transaction
 	description = ''
-	last_currency = ''
+	last_currency = None
 	balance = 0
 	known_balances = {}
 	tag = 'bean-add'
@@ -1552,7 +1552,7 @@ if data.indentation != '	':
 if data.currencies == []:
 	data.last_currency = 'USD'
 	data.currencies.append('USD')
-elif not data.last_currency:
+elif data.last_currency is None:
 	data.last_currency = data.currencies[0]
 
 # Main data entry loop
