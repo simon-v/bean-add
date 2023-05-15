@@ -381,24 +381,17 @@ def evaluate(expression):
 # Add previously unseen currency signs to the completion list
 def detect_currencies(line):
 	if type(line) == str:
-		line = condense(line)
+		line = line.split()
+	_currencies = [line[-1]]
 	if '@' in line:
-		cur = line[line.index('@') -1]
+		_currencies.append(line[line.index('@') -1])
+	for cur in _currencies:
 		try:
 			int(cur)
 		except ValueError:
 			data.last_currency = cur
 			if cur not in data.currencies:
 				data.currencies.append(cur)
-		except IndexError:
-			pass
-	cur = line[-1]
-	try:
-		int(line[-1])
-	except ValueError:
-		data.last_currency = cur
-		if cur not in data.currencies:
-			data.currencies.append(cur)
 
 
 # Read and normalize transaction amount
