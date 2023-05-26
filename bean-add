@@ -1432,7 +1432,8 @@ for full_line in tx_file.split('\n'):
 		elif _data[1] == 'open':
 			data.accounts[_data[2]] = None
 			if len(_data) > 3:
-				data.accounts[_data[2]] = data.constraints[_data[2]] = _data[3].split(',')
+				data.constraints[_data[2]] = _data[3].split(',')
+				data.accounts[_data[2]] = data.constraints[_data[2]][0]
 		# Remove closed accounts from completion
 		elif _data[1] == 'close' and _data[2] in data.accounts:
 			del data.accounts[_data[2]]
