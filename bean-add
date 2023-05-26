@@ -418,8 +418,8 @@ def read_amount(account):
 		amount.append(default_currency)
 		data.accounts[account] = data.cur = default_currency
 	else:
-		if account in data.constraints and amount[1] != data.constraints[account]:
-			print(f'\n{data.constraints[account]} is the only allowed currency for this account.')
+		if account in data.constraints and amount[1] not in data.constraints[account]:
+			print('\nThis account is constrained to: {}'.format(', '.join(data.constraints[account])))
 			raise ValueError
 		if len(amount) == 4:
 			amount.append(data.cur)
@@ -789,19 +789,18 @@ def read_normal_transaction(description=None):
 	# The transaction is empty, no money moved anywhere
 	if _transaction == []:
 		raise KeyboardInterrupt
-	else:
-		# Update defaults and insert the transaction
-		data.defaults[description] = _transaction
-		insert_transaction(output.strip())
-		# Auto-flag if appropriate
-		for _account in data.auto_flag:
-			_count = output.count(_account)
-			if _count > 1:
-				toggle_flag_with_legs(_account)
-				break
-			elif _count == 1:
-				toggle_flag()
-				break
+	# Update defaults and insert the transaction
+	data.defaults[description] = _transaction
+	insert_transaction(output.strip())
+	# Auto-flag if appropriate
+	for _account in data.auto_flag:
+		_count = output.count(_account)
+		if _count > 1:
+			toggle_flag_with_legs(_account)
+			break
+		elif _count == 1:
+			toggle_flag()
+			break
 
 
 # Read a balance assertion transaction
@@ -1436,7 +1435,7 @@ for full_line in tx_file.split('\n'):
 		elif _data[1] == 'open':
 			data.accounts[_data[2]] = None
 			if len(_data) > 3:
-				data.accounts[_data[2]] = data.constraints[_data[2]] = _data[3]
+				data.accounts[_data[2]] = data.constraints[_data[2]] = _data[3].split(',')
 		# Remove closed accounts from completion
 		elif _data[1] == 'close' and _data[2] in data.accounts:
 			del data.accounts[_data[2]]
