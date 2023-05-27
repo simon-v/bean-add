@@ -62,6 +62,7 @@ class data(object):
 	description = ''
 	last_currency = None
 	balance = 0
+	balance_currency = None
 	known_balances = {}
 	tag = 'bean-add'
 	txid = -1
@@ -400,10 +401,12 @@ def read_amount(account):
 	data.vocab = data.currencies
 	readline.set_completer_delims(' ')
 	set_history_context('amount')
-	# Read an amount
+	# Read an amount, taking defaults into account (balancing currency, then default currency, then last used currency)
 	default_currency = data.last_currency
 	if account in data.accounts and data.accounts[account] is not None:
 		default_currency = data.accounts[account]
+	if data.balance_currency is not None:
+		default_currency = data.balance_currency
 	amount = input('Enter the amount for `%s` (including currency symbol) [%s %s]: ' % (account, undecimal(data.balance), default_currency)).replace(',', '')
 	amount = [data.balance, default_currency] if amount == '' else amount.split()
 	# Process currency sign
@@ -432,6 +435,7 @@ def read_amount(account):
 	if amount[-1] in data.precisions:
 		data.balance = round(data.balance, data.precisions[amount[-1]])
 	data.balance = cast_number(data.balance)
+	data.balance_currency = amount[-1]
 	# Finalize and return
 	return ' '.join(amount)
 
@@ -743,6 +747,7 @@ def read_normal_transaction(description=None):
 	output = ''
 	_transaction = []
 	data.balance = 0
+	data.balance_currency = None
 	if not data.auto_new:
 		data.date = read_date(data.date)
 	if description is None:
