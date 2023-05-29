@@ -1366,7 +1366,6 @@ for full_line in tx_file.split('\n'):
 		if line.startswith(';*bean-add* '):
 			_auto_flag = False
 			_quote = False
-			_precision = False
 			for i in line.split()[1:]:
 				if i == 'a':
 					data.use_defaults = True
