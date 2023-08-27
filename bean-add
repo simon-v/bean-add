@@ -675,7 +675,7 @@ def find_transactions(autoseek=None):
 		return
 	results = tx_lookup(reading)
 	# Use default lookup-seek option
-	if autoseek is None and reading != data.lookup_string:
+	if autoseek is None:
 		autoseek = data.lookup_seek
 		data.lookup_string = reading
 	if results == []:
