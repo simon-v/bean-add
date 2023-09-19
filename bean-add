@@ -1797,9 +1797,9 @@ while True:
 		print('of	automatically flag transactions containing (%s)' % (None if data.auto_flag == [] else ', '.join(data.auto_flag)))
 		print('ol	lookup result to seek to (%s)' % ('none' if data.lookup_seek is None else 'last' if data.lookup_seek else 'first'))
 		print('oc	colorize output (%s)' % ('enabled' if data.colors else 'disabled'))
-		print('oq	quote currency for all conversions (%s)' % ('None' if data.quote_currency == '' else data.quote_currency))
+		print('oq	quote currency for all conversions (%s)' % ('none' if data.quote_currency == '' else data.quote_currency))
 		precision_string = ', '.join(['%s:%s' % (k, v) for k, v in data.precisions.items()])
-		print('op	custom precision for commodities (%s)' % ('None' if precision_string == '' else precision_string))
+		print('op	custom precision for commodities (%s)' % ('none' if precision_string == '' else precision_string))
 		print('ob	use Beancount to load account names (%s)' % ('enabled' if data.use_beancount_accounts else 'disabled'))
 	# Option: sort by date
 	elif cmd == 'os':
