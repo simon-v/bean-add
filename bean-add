@@ -1556,7 +1556,10 @@ elif data.last_currency is None:
 	data.last_currency = data.currencies[0]
 
 # Main data entry loop
-print('\nChanges stay in memory until you [w]rite them out.')
+if data.paranoid_write:
+	print('\nChanges are written to disk immediately.')
+else:
+	print('\nChanges stay in memory until you [w]rite them out.')
 print('Type `h` or `?` for a list of available commands.')
 
 while True:
