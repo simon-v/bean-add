@@ -520,6 +520,11 @@ def add_remove_tag():
 	data.vocab = data.tags
 	readline.set_completer_delims('')
 	set_history_context('tag')
+	# Make sure the transaction can be tagged
+	tx = data.journal[data.txid].split('\n')
+	if len(tx) == 1:
+		print('\nCannot add tags to special transactions.')
+		return
 	# Get and normalize a tag
 	try:
 		_tag = input('Enter a tag [%s]: ' % data.tag)
@@ -534,22 +539,20 @@ def add_remove_tag():
 		_tag = data.tag
 	else:
 		data.tag = _tag
+	_tag = '#' + _tag
 	# If the tag is already there, offer to remove it instead
-	if '#' + _tag in data.journal[data.txid]:
+	tx_tags = tx[0].split()
+	if _tag in tx_tags:
 		if confirm('\nThe transaction already has this tag. Remove it? (Y/n) ', True):
-			data.journal[data.txid] = data.journal[data.txid].replace(' #%s' % _tag, '')
+			tx_tags.remove(_tag)
 		else:
 			print('\nTagging cancelled.')
 			return
-	# Apply the tag (using two different methods)
+	# Apply the tag
 	else:
-		_transaction = data.journal[data.txid].replace('"\n', '" #%s\n' % _tag)
-		if _transaction == data.journal[data.txid]:
-			_transaction = data.journal[data.txid].replace('" #', '" #%s #' % _tag)
-		if _transaction == data.journal[data.txid]:
-			print('\nCannot add tags to special transactions.')
-			return
-		data.journal[data.txid] = _transaction
+		tx_tags.append(_tag)
+	tx[0] = ' '.join(tx_tags)
+	data.journal[data.txid] = '\n'.join(tx)
 	print()
 	print(data.journal[data.txid])
 
