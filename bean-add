@@ -540,15 +540,11 @@ def add_remove_tag():
 	else:
 		data.tag = _tag
 	_tag = '#' + _tag
-	# If the tag is already there, offer to remove it instead
+	# If the tag is already there, remove it instead
 	tx_tags = tx[0].split()
 	if _tag in tx_tags:
-		if confirm('\nThe transaction already has this tag. Remove it? (Y/n) ', True):
-			tx_tags.remove(_tag)
-		else:
-			print('\nTagging cancelled.')
-			return
-	# Apply the tag
+		tx_tags.remove(_tag)
+	# Otherwise, apply the tag
 	else:
 		tx_tags.append(_tag)
 	tx[0] = ' '.join(tx_tags)
