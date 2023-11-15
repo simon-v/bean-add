@@ -1181,7 +1181,12 @@ def verify_statement():
 			print()
 			data.balance, data.last_currency = estimate_statement_amount(data.transaction_account).split()
 			data.balance = float(data.balance)
-			amount = read_amount('the statement')
+			while True:
+				try:
+					amount = read_amount('the statement')
+				except (SyntaxError, ValueError, ArithmeticError):
+					continue
+				break
 			data.target = cast_number(amount.split()[0])
 			if data.target == 0:
 				raise KeyboardInterrupt
