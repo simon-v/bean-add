@@ -420,7 +420,6 @@ def read_amount(account):
 		if len(amount) == 4:
 			amount.append(data.last_currency)
 		detect_currencies(amount)
-		deduce_commodity_price(amount)
 		data.accounts[account] = amount[1]
 		data.last_currency = amount[-1]
 	# Normalize numbers and process conversion rate
@@ -434,6 +433,7 @@ def read_amount(account):
 		data.balance -= float(amount[0])
 	if amount[-1] in data.precisions:
 		data.balance = round(data.balance, data.precisions[amount[-1]])
+	deduce_commodity_price(amount)
 	data.balance = cast_number(data.balance)
 	data.balance_currency = amount[-1]
 	# Finalize and return
