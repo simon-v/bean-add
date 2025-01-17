@@ -381,11 +381,11 @@ def evaluate(expression):
 
 # Add previously unseen currency signs to the completion list
 def detect_currencies(line):
-	if type(line) == str:
+	if type(line) is str:
 		line = line.split()
 	_currencies = [line[-1]]
 	if '@' in line:
-		_currencies.append(line[line.index('@') -1])
+		_currencies.append(line[line.index('@') - 1])
 	for cur in _currencies:
 		try:
 			int(cur)
@@ -454,7 +454,7 @@ def read_currency():
 def deduce_commodity_price(line):
 	if data.quote_currency == '':
 		return
-	if type(line) == str:
+	if type(line) is str:
 		line = condense(line)
 	if 'price' in line and line[1] == 'price':
 		base_currency = line[2]
@@ -629,7 +629,7 @@ def seek_to_transaction(autoseek=None):
 
 # Return a list of txids which contain all of the passed strings
 def tx_lookup(patterns, prune_txids=[]):
-	if type(patterns) == str:
+	if type(patterns) is str:
 		patterns = [patterns]
 	patterns = [x.lower() for x in patterns]
 	results = []
