@@ -1167,6 +1167,21 @@ def update_statement_refs(txid, insertion):
 				data.statement[tx] -= 1
 
 
+# Read the accounts related to a statement, or use the defaults
+def read_statement_accounts():
+	if data.transaction_account != '' and data.funding_account != '':
+		print('\nPreviously used statement accounts:')
+		print('	%s\n	%s' % (data.transaction_account, data.funding_account))
+		print()
+		_use = confirm('Use these accounts? (Y/n) ', True) if data.use_defaults is None else data.use_defaults
+		if _use:
+			return
+	print('\nEnter the account the statement refers to.')
+	data.transaction_account = read_account()
+	print('\nEnter the account which funds the statement.')
+	data.funding_account = read_account()
+
+
 # Verify a statement
 def verify_statement():
 	# If wasn't working on a statement before
@@ -1174,10 +1189,7 @@ def verify_statement():
 		# Get some general information
 		try:
 			data.statement = []
-			print('\nEnter the account the statement refers to.')
-			data.transaction_account = read_account()
-			print('\nEnter the account which funds the statement.')
-			data.funding_account = read_account()
+			read_statement_accounts()
 			print()
 			data.balance, data.last_currency = estimate_statement_amount(data.transaction_account).split()
 			data.balance = float(data.balance)
@@ -1367,6 +1379,7 @@ for full_line in tx_file.split('\n'):
 			_auto_flag = False
 			_quote = False
 			_precision = False
+			_statement = False
 			for i in line.split()[1:]:
 				if i == 'a':
 					data.use_defaults = True
@@ -1398,6 +1411,14 @@ for full_line in tx_file.split('\n'):
 				elif _quote:
 					data.quote_currency = i
 					_quote = False
+				elif i == 'v':
+					_statement = True
+				elif _statement:
+					try:
+						data.transaction_account, data.funding_account = i.split(',')
+					except ValueError:
+						print('Malformed option: v %s' % i)
+					_statement = False
 				elif i == 'p':
 					_precision = True
 				elif _precision:
