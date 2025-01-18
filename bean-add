@@ -189,7 +189,7 @@ def insert_transaction(tx):
 		# If not found, insert at the end of file
 		_txid = len(data.journal)
 		data.journal.append(tx)
-	print('\nTransaction added as record %s\n\n%s' % (_txid, tx))
+	print(f'\nTransaction added as record {_txid}\n\n{tx}')
 	data.txid = _txid
 	update_statement_refs(_txid, True)
 
@@ -251,14 +251,14 @@ def read_date(default):
 	set_history_context('date')
 	# Get a valid date
 	while True:
-		reading = input('Enter transaction date (`h` or `?` for a format hint) [%s]: ' % default)
+		reading = input(f'Enter transaction date (`h` or `?` for a format hint) [{default}]: ')
 		# Accepting the default
 		if reading == '':
 			return default
 		# Formatting hint
 		elif reading in '?h':
 			partial_prompt = '%m/%d' if locale.getlocale()[0] == 'en_US' else '%d/%m'
-			print('\nAccepted formats: %s, or %%d, or %s, or +/-days, or "today"\n' % (data.date_prompt, partial_prompt))
+			print(f'\nAccepted formats: {data.date_prompt}, or %d, or {partial_prompt}, or +/-days, or "today"\n')
 			continue
 		date = strpdate(default)
 		# Relative date
@@ -302,7 +302,7 @@ def read_date(default):
 			if data.date_preview:
 				default = date
 				continue
-			print('\nAdding new transaction at %s.\n' % date)
+			print(f'\nAdding new transaction at {date}.\n')
 		return date
 
 
@@ -313,7 +313,7 @@ def read_description():
 	readline.set_completer_delims('')
 	set_history_context('description')
 	# Get a non-empty description
-	reading = input('Enter transaction description [%s]: ' % data.description).strip(' "')
+	reading = input(f'Enter transaction description [{data.description}]: ').strip(' "')
 	if reading == '':
 		if data.description != '':
 			return data.description
@@ -335,9 +335,9 @@ def read_account():
 			return None
 		# Add new account option
 		if reading not in data.accounts:
-			if not confirm('The account `%s` is not in the journal file. Add it? (Y/n) ' % reading, True):
+			if not confirm(f'The account `{reading}` is not in the journal file. Add it? (Y/n) ', True):
 				continue
-			insert_transaction('%s open %s' % (data.date, reading))
+			insert_transaction(f'{data.date} open {reading}')
 			print()
 			data.accounts[reading] = None
 		return reading
@@ -527,7 +527,7 @@ def add_remove_tag():
 		return
 	# Get and normalize a tag
 	try:
-		_tag = input('Enter a tag [%s]: ' % data.tag)
+		_tag = input(f'Enter a tag [{data.tag}]: ')
 	except KeyboardInterrupt:
 		print('\nTagging cancelled.')
 		return
@@ -568,13 +568,13 @@ def seek_to_transaction(autoseek=None):
 			data.vocab = []
 			readline.set_completer_delims('')
 			if data.txid >= 0:
-				print('\nCurrently at record %s.' % data.txid)
+				print(f'\nCurrently at record {data.txid}.')
 				or_count = ', or +/-COUNT'
 			else:
 				print('\nNo current record.')
 				or_count = ''
 			try:
-				reading = input('Enter record number (0-%s%s): ' % (last_tx, or_count))
+				reading = input(f'Enter record number (0-{last_tx}{or_count}): ')
 			except KeyboardInterrupt:
 				print('\nSeeking cancelled.')
 				return
@@ -622,7 +622,7 @@ def seek_to_transaction(autoseek=None):
 		else:
 			break
 	# Change to the specified record
-	print('\nRecord %s:\n' % _txid)
+	print(f'\nRecord {_txid}:\n')
 	print(data.journal[_txid])
 	data.txid = _txid
 
@@ -733,7 +733,7 @@ def get_default_accounts(description):
 	if description in data.defaults:
 		print('Previously used accounts for this transaction:')
 		for _account in data.defaults[description]:
-			print('\t%s' % _account)
+			print(f'\t{_account}')
 		print()
 		_use = confirm('Use these accounts? (Y/n) ', True) if data.use_defaults is None else data.use_defaults
 		if _use:
@@ -754,7 +754,7 @@ def read_normal_transaction(description=None):
 	if description is None:
 		raise KeyboardInterrupt
 	else:
-		output += '%s * "%s"\n' % (data.date, description)
+		output += f'{data.date} * "{description}"\n'
 	defaults = get_default_accounts(description)
 	while True:
 		# Use defaults, if available, then proceed to manual account input
@@ -779,10 +779,10 @@ def read_normal_transaction(description=None):
 			break
 		# Zero amounts are meaningless in this context
 		if amount.startswith('0 '):
-			print('Removing zero-amount `%s` from transaction.' % account)
+			print(f'Removing zero-amount `{account}` from transaction.')
 			del(_transaction[-1])
 		else:
-			output += '%s%s %s\n' % (data.indentation, account, amount)
+			output += f'{data.indentation}{account} {amount}\n'
 	# The transaction is empty, no money moved anywhere
 	if _transaction == []:
 		raise KeyboardInterrupt
@@ -812,7 +812,7 @@ def read_balance_transaction():
 		account = defaults[0]
 	data.balance = 0
 	amount = read_amount(account)
-	output = '%s balance %s %s' % (data.date, account, amount)
+	output = f'{data.date} balance {account} {amount}'
 	cur = amount.split()[1]
 	balance = calculate_balance(account, before=data.date)[cur]
 	insert_transaction(output)
@@ -837,7 +837,7 @@ def read_pad_transaction():
 		data.defaults['__pad__'] = [account1, account2]
 	else:
 		account1, account2 = defaults
-	output = '%s pad %s %s' % (data.date, account1, account2)
+	output = f'{data.date} pad {account1} {account2}'
 	insert_transaction(output)
 
 
@@ -856,7 +856,7 @@ def read_note_transaction():
 	else:
 		account = defaults[0]
 	description = input('Enter the note text: ').strip(' "')
-	output = '%s note %s "%s"' % (data.date, account, description)
+	output = f'{data.date} note {account} "{description}"'
 	insert_transaction(output)
 
 
@@ -884,7 +884,7 @@ def remove_transaction(silent_drop):
 			del(data.journal[data.txid])
 		else:
 			data.restore.append(data.journal.pop(data.txid))
-			print('\nRemoved record %s' % data.txid)
+			print(f'\nRemoved record {data.txid}')
 		if data.txid in data.statement:
 			data.statement.remove(data.txid)
 		update_statement_refs(data.txid, False)
