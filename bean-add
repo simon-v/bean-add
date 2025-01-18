@@ -1614,6 +1614,20 @@ while True:
 			cmd = 'q'
 	# Write the journal
 	if cmd in ['w', 'wq']:
+		# Cache last-used statement accounts
+		if data.transaction_account != '' and data.funding_account != '':
+			if data.journal[0].startswith(';*bean-add* '):
+				# Replace cached statement accounts
+				if ' v' in data.journal[0]:
+					chunks = data.journal[0].split(' ')
+					chunks[chunks.index('v') + 1] = f'{data.transaction_account},{data.funding_account}'
+					data.journal[0] = ' '.join(chunks)
+				# Append cached statement accounts
+				else:
+					data.journal[0] += f' v {data.transaction_account},{data.funding_account}'
+			# Create empty option string with cached statement accounts
+			else:
+				data.journal.insert(0, f';*bean-add* v {data.transaction_account},{data.funding_account}')
 		if data.mtime != os.stat(data.file_name).st_mtime:
 			print('\nWARNING: The journal file was modified on disk after opening; The journal is most likely inconsistent.')
 			if not data.external_write and not confirm('Do you really want to overwrite it? (y/N) ', False):
@@ -1927,6 +1941,8 @@ while True:
 			optstring += ' f %s' % _account
 		for currency, precision in data.precisions.items():
 			optstring += f' p {currency}:{precision}'
+		if data.transaction_account != '' and data.funding_account != '':
+			optstring += f' v {data.transaction_account},{data.funding_account}'
 		# Apply the option string
 		if data.journal[0].startswith(';*bean-add* '):
 			data.journal[0] = optstring
