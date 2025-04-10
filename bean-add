@@ -512,7 +512,7 @@ def toggle_flag_with_legs(account=None):
 
 
 # Add or remove transaction tags
-def add_remove_tag():
+def add_remove_tag(autotag=False):
 	if data.txid < 0:
 		print('\nNothing to tag, no current record.')
 		return
@@ -526,14 +526,18 @@ def add_remove_tag():
 		print('\nCannot add tags to special transactions.')
 		return
 	# Get and normalize a tag
-	try:
-		_tag = input(f'Enter a tag [{data.tag}]: ')
-	except KeyboardInterrupt:
-		print('\nTagging cancelled.')
-		return
-	except EOFError:
-		data.eof = True
-		return
+	_tag = ''
+	if autotag:
+		_tag = data.tag
+	if _tag == '':
+		try:
+			_tag = input(f'Enter a tag [{data.tag}]: ')
+		except KeyboardInterrupt:
+			print('\nTagging cancelled.')
+			return
+		except EOFError:
+			data.eof = True
+			return
 	_tag = _tag.strip('# ')
 	if _tag == '':
 		_tag = data.tag
@@ -1762,6 +1766,8 @@ while True:
 	# Edit tags
 	elif cmd == 't':
 		add_remove_tag()
+	elif cmd == 'tt':
+		add_remove_tag(True)
 	# Seeking
 	elif cmd == 's':
 		seek_to_transaction()
@@ -1962,6 +1968,7 @@ d	duplicate the current transaction at another date
 f	toggle transaction flag
 ff	flag a transaction including its legs
 t	add or remove tags
+tt	add or remove the last used tag
 s	seek to another record
 sa	seek one record forward
 sd	seek one record backwards
